@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <LangVersion>8.0</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="Brands\" />
+    <Folder Include="Boxes\" />
+    <Folder Include="Campaigns\" />
+    <Folder Include="CampaignBoxes\" />
+  </ItemGroup>
+
+</Project>

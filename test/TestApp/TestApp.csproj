@@ -6,13 +6,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Grpc.Net.Client" Version="2.39.0" />
+    <PackageReference Include="Grpc.Net.Client" Version="2.38.0" />
     <PackageReference Include="protobuf-net.Grpc" Version="1.0.152" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\MarketingBox.BackOffice.Service.Client\MarketingBox.BackOffice.Service.Client.csproj" />
-    <ProjectReference Include="..\..\src\MarketingBox.BackOffice.Service.Grpc\MarketingBox.BackOffice.Service.Grpc.csproj" />
+    <ProjectReference Include="..\..\src\MarketingBox.Affiliate.Service.Client\MarketingBox.Affiliate.Service.Client.csproj" />
+    <ProjectReference Include="..\..\src\MarketingBox.Affiliate.Service.Grpc\MarketingBox.Affiliate.Service.Grpc.csproj" />
   </ItemGroup>
 
 </Project>
