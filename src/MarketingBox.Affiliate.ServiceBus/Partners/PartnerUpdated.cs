@@ -1,9 +1,9 @@
 ﻿using System.Runtime.Serialization;
 
-namespace MarketingBox.Affiliate.Service.Grpc.Models.Partners
+namespace MarketingBox.Affiliate.Service.Messages.Partners
 {
     [DataContract]
-    public class Partner
+    public class PartnerUpdated
     {
         [DataMember(Order = 1)]
         public long AffiliateId { get; set; }
@@ -22,5 +22,6 @@ namespace MarketingBox.Affiliate.Service.Grpc.Models.Partners
 
         [DataMember(Order = 6)]
         public long SequenceId { get; set; }
+
     }
 }

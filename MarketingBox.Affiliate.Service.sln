@@ -33,6 +33,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MarketingBox.Affiliate.Serv
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MarketingBox.Affiliate.Postgres", "src\MarketingBox.Affiliate.Postgres\MarketingBox.Affiliate.Postgres.csproj", "{383F8FCD-D53C-4720-82F4-1C4E327F9E71}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MarketingBox.Affiliate.Service.Messages", "src\MarketingBox.Affiliate.ServiceBus\MarketingBox.Affiliate.Service.Messages.csproj", "{72A91A60-8D6E-423F-AD7C-AFACBEDF5991}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MarketingBox.Affiliate.Service.MyNoSql", "src\MarketingBox.Affiliate.Service.MyNoSql\MarketingBox.Affiliate.Service.MyNoSql.csproj", "{CD23B436-D600-473D-8833-C61659EFECCF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -71,6 +75,14 @@ Global
 		{383F8FCD-D53C-4720-82F4-1C4E327F9E71}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{383F8FCD-D53C-4720-82F4-1C4E327F9E71}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{383F8FCD-D53C-4720-82F4-1C4E327F9E71}.Release|Any CPU.Build.0 = Release|Any CPU
+		{72A91A60-8D6E-423F-AD7C-AFACBEDF5991}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{72A91A60-8D6E-423F-AD7C-AFACBEDF5991}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{72A91A60-8D6E-423F-AD7C-AFACBEDF5991}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{72A91A60-8D6E-423F-AD7C-AFACBEDF5991}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CD23B436-D600-473D-8833-C61659EFECCF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CD23B436-D600-473D-8833-C61659EFECCF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CD23B436-D600-473D-8833-C61659EFECCF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CD23B436-D600-473D-8833-C61659EFECCF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -83,6 +95,8 @@ Global
 		{60D4504F-2038-4EBC-B43A-1231F7DCDBD8} = {446301A0-97F2-4921-BA0B-32B76039C73B}
 		{72C2B520-EEB7-444D-97F8-639E3D6F13C1} = {EB832FF1-4E01-40ED-BAC4-5ECF70F5C108}
 		{383F8FCD-D53C-4720-82F4-1C4E327F9E71} = {446301A0-97F2-4921-BA0B-32B76039C73B}
+		{72A91A60-8D6E-423F-AD7C-AFACBEDF5991} = {446301A0-97F2-4921-BA0B-32B76039C73B}
+		{CD23B436-D600-473D-8833-C61659EFECCF} = {446301A0-97F2-4921-BA0B-32B76039C73B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6BF00C9D-AD55-40F2-8FE3-E5C3559B3E26}

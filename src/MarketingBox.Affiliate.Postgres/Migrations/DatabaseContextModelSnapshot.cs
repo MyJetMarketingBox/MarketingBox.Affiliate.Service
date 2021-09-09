@@ -27,6 +27,9 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
                         .HasColumnType("bigint")
                         .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
+                    b.Property<long>("Sequence")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("TenantId")
                         .HasColumnType("text");
 

@@ -18,6 +18,6 @@ namespace MarketingBox.Affiliate.Service.Grpc
         Task<Partner> GetAsync(PartnerGetRequest request);
 
         [OperationContract]
-        Task GetAsync(PartnerDeleteRequest request);
+        Task DeleteAsync(PartnerDeleteRequest request);
     }
 }

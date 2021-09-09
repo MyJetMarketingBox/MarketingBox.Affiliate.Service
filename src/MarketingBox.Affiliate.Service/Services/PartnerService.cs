@@ -1,15 +1,26 @@
-﻿using System;
+﻿using DotNetCoreDecorators;
+using MarketingBox.Affiliate.Postgres;
+using MarketingBox.Affiliate.Postgres.Entities;
+using MarketingBox.Affiliate.Service.Domain.Extensions;
 using MarketingBox.Affiliate.Service.Grpc;
 using MarketingBox.Affiliate.Service.Grpc.Models.Partners;
 using MarketingBox.Affiliate.Service.Grpc.Models.Partners.Messages;
-using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
-using MarketingBox.Affiliate.Postgres;
-using MarketingBox.Affiliate.Postgres.Entities;
+using MarketingBox.Affiliate.Service.Messages.Partners;
+using MarketingBox.Affiliate.Service.MyNoSql.Partners;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using MyNoSqlServer.Abstractions;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+using Npgsql;
+using Z.EntityFramework.Plus;
+using Currency = MarketingBox.Affiliate.Service.Grpc.Models.Partners.Currency;
 using PartnerBank = MarketingBox.Affiliate.Postgres.Entities.PartnerBank;
 using PartnerCompany = MarketingBox.Affiliate.Postgres.Entities.PartnerCompany;
 using PartnerGeneralInfo = MarketingBox.Affiliate.Postgres.Entities.PartnerGeneralInfo;
+using PartnerRole = MarketingBox.Affiliate.Service.Grpc.Models.Partners.PartnerRole;
+using PartnerState = MarketingBox.Affiliate.Service.Grpc.Models.Partners.PartnerState;
 
 namespace MarketingBox.Affiliate.Service.Services
 {
@@ -17,16 +28,26 @@ namespace MarketingBox.Affiliate.Service.Services
     {
         private readonly ILogger<PartnerService> _logger;
         private readonly DbContextOptionsBuilder<DatabaseContext> _dbContextOptionsBuilder;
+        private readonly IPublisher<PartnerUpdated> _publisherPartnerUpdated;
+        private readonly IMyNoSqlServerDataWriter<PartnerNoSql> _myNoSqlServerDataWriter;
+        private readonly IPublisher<PartnerRemoved> _publisherPartnerRemoved;
 
         public PartnerService(ILogger<PartnerService> logger,
-            DbContextOptionsBuilder<DatabaseContext> dbContextOptionsBuilder)
+            DbContextOptionsBuilder<DatabaseContext> dbContextOptionsBuilder,
+            IPublisher<PartnerUpdated> publisherPartnerUpdated,
+            IMyNoSqlServerDataWriter<PartnerNoSql> myNoSqlServerDataWriter,
+            IPublisher<PartnerRemoved> publisherPartnerRemoved)
         {
             _logger = logger;
             _dbContextOptionsBuilder = dbContextOptionsBuilder;
+            _publisherPartnerUpdated = publisherPartnerUpdated;
+            _myNoSqlServerDataWriter = myNoSqlServerDataWriter;
+            _publisherPartnerRemoved = publisherPartnerRemoved;
         }
 
         public async Task<Partner> CreateAsync(PartnerCreateRequest request)
         {
+            _logger.LogInformation("Creating new Partner {@context}", request);
             using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
             var partnerEntity = new PartnerEntity()
@@ -52,28 +73,10 @@ namespace MarketingBox.Affiliate.Service.Services
                 GeneralInfo = new PartnerGeneralInfo()
                 {
                     CreatedAt = DateTime.UtcNow,
-                    Currency = request.GeneralInfo.Currency switch {
-                        Currency.USD => Domain.Partners.Currency.USD,
-                        Currency.EUR => Domain.Partners.Currency.EUR,
-                        Currency.GBP => Domain.Partners.Currency.GBP,
-                        Currency.CHF => Domain.Partners.Currency.CHF,
-                        Currency.BTC => Domain.Partners.Currency.BTC,
-                        _ => throw new ArgumentOutOfRangeException(nameof(request.GeneralInfo.Currency), request.GeneralInfo.Currency, null)
-                    },
-                    Role = request.GeneralInfo.Role switch {
-                        PartnerRole.Affiliate => Domain.Partners.PartnerRole.Affiliate,
-                        PartnerRole.AffiliateManager => Domain.Partners.PartnerRole.AffiliateManager,
-                        PartnerRole.BrandManager => Domain.Partners.PartnerRole.BrandManager,
-                        PartnerRole.MasterAffiliate => Domain.Partners.PartnerRole.MasterAffiliate,
-                        _ => throw new ArgumentOutOfRangeException(nameof(request.GeneralInfo.Role), request.GeneralInfo.Role, null)
-                    },
+                    Currency = request.GeneralInfo.Currency.MapEnum<Domain.Partners.Currency>(),
+                    Role = request.GeneralInfo.Role.MapEnum< Domain.Partners.PartnerRole>(),
                     Skype = request.GeneralInfo.Skype,
-                    State = request.GeneralInfo.State switch {
-                        PartnerState.Active => Domain.Partners.PartnerState.Active,
-                        PartnerState.Banned => Domain.Partners.PartnerState.Banned,
-                        PartnerState.NotActive => Domain.Partners.PartnerState.NotActive,
-                        _ => throw new ArgumentOutOfRangeException()
-                    },
+                    State = request.GeneralInfo.State.MapEnum<Domain.Partners.PartnerState>(),
                     Username = request.GeneralInfo.Username,
                     ZipCode = request.GeneralInfo.ZipCode,
                     Email = request.GeneralInfo.Email,
@@ -81,25 +84,146 @@ namespace MarketingBox.Affiliate.Service.Services
                     Phone = request.GeneralInfo.Phone
                 }
             };
+            
             ctx.Partners.Add(partnerEntity);
             await ctx.SaveChangesAsync();
+
+            await _publisherPartnerUpdated.PublishAsync(MapToMessage(partnerEntity));
+            _logger.LogInformation("Sent partner update to service bus {@context}", request);
+            
+            await _myNoSqlServerDataWriter.InsertOrReplaceAsync(MapToNoSql(partnerEntity));
+            _logger.LogInformation("Sent partner update to MyNoSql {@context}", request);
 
             return MapToGrpc(partnerEntity);
         }
 
-        public Task<Partner> UpdateAsync(PartnerUpdateRequest request)
+        public async Task<Partner> UpdateAsync(PartnerUpdateRequest request)
         {
-            throw new System.NotImplementedException();
+            _logger.LogInformation("Updating a Partner {@context}", request);
+            using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+
+            var partnerEntity = new PartnerEntity()
+            {
+                AffiliateId = request.AffiliateId,
+                TenantId = request.TenantId,
+                Bank = new PartnerBank()
+                {
+                    AccountNumber = request.Bank.AccountNumber,
+                    BankAddress = request.Bank.BankAddress,
+                    BankName = request.Bank.BankName,
+                    BeneficiaryAddress = request.Bank.BeneficiaryAddress,
+                    BeneficiaryName = request.Bank.BeneficiaryName,
+                    Iban = request.Bank.Iban,
+                    Swift = request.Bank.Swift,
+                },
+                Company = new PartnerCompany()
+                {
+                    Address = request.Company.Address,
+                    Name = request.Company.Name,
+                    RegNumber = request.Company.RegNumber,
+                    VatId = request.Company.VatId
+                },
+                GeneralInfo = new PartnerGeneralInfo()
+                {
+                    CreatedAt = DateTime.UtcNow,
+                    Currency = request.GeneralInfo.Currency.MapEnum<Domain.Partners.Currency>(),
+                    Role = request.GeneralInfo.Role.MapEnum<Domain.Partners.PartnerRole>(),
+                    Skype = request.GeneralInfo.Skype,
+                    State = request.GeneralInfo.State.MapEnum<Domain.Partners.PartnerState>(),
+                    Username = request.GeneralInfo.Username,
+                    ZipCode = request.GeneralInfo.ZipCode,
+                    Email = request.GeneralInfo.Email,
+                    Password = request.GeneralInfo.Password,
+                    Phone = request.GeneralInfo.Phone
+                },
+                Sequence = request.Sequence
+            };
+
+            var affectedRowsCount = await ctx.Partners
+                .Where(x => x.AffiliateId == request.AffiliateId &&
+                            x.Sequence <=  request.Sequence)
+                .UpdateAsync(x => new PartnerEntity()
+                {
+                    AffiliateId = request.AffiliateId,
+                    TenantId = request.TenantId,
+                    Bank = new PartnerBank()
+                    {
+                        AccountNumber = request.Bank.AccountNumber,
+                        BankAddress = request.Bank.BankAddress,
+                        BankName = request.Bank.BankName,
+                        BeneficiaryAddress = request.Bank.BeneficiaryAddress,
+                        BeneficiaryName = request.Bank.BeneficiaryName,
+                        Iban = request.Bank.Iban,
+                        Swift = request.Bank.Swift,
+                    },
+                    Company = new PartnerCompany()
+                    {
+                        Address = request.Company.Address,
+                        Name = request.Company.Name,
+                        RegNumber = request.Company.RegNumber,
+                        VatId = request.Company.VatId
+                    },
+                    GeneralInfo = new PartnerGeneralInfo()
+                    {
+                        CreatedAt = DateTime.UtcNow,
+                        Currency = request.GeneralInfo.Currency.MapEnum<Domain.Partners.Currency>(),
+                        Role = request.GeneralInfo.Role.MapEnum<Domain.Partners.PartnerRole>(),
+                        Skype = request.GeneralInfo.Skype,
+                        State = request.GeneralInfo.State.MapEnum<Domain.Partners.PartnerState>(),
+                        Username = request.GeneralInfo.Username,
+                        ZipCode = request.GeneralInfo.ZipCode,
+                        Email = request.GeneralInfo.Email,
+                        Password = request.GeneralInfo.Password,
+                        Phone = request.GeneralInfo.Phone
+                    },
+                    Sequence = request.Sequence
+                });
+
+            if (affectedRowsCount != 1 )
+            {
+                throw new Exception("Update failed");
+            }
+
+            await _publisherPartnerUpdated.PublishAsync(MapToMessage(partnerEntity));
+            _logger.LogInformation("Sent partner update to service bus {@context}", request);
+
+            await _myNoSqlServerDataWriter.InsertOrReplaceAsync(MapToNoSql(partnerEntity));
+            _logger.LogInformation("Sent partner update to MyNoSql {@context}", request);
+
+            return MapToGrpc(partnerEntity);
         }
 
-        public Task<Partner> GetAsync(PartnerGetRequest request)
+        public async Task<Partner> GetAsync(PartnerGetRequest request)
         {
-            throw new System.NotImplementedException();
+            using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+
+            var partnerEntity = await ctx.Partners.FirstOrDefaultAsync(x => x.AffiliateId == request.AffiliateId);
+
+            return partnerEntity != null ? MapToGrpc(partnerEntity) : null;
         }
 
-        public Task GetAsync(PartnerDeleteRequest request)
+        public async Task DeleteAsync(PartnerDeleteRequest request)
         {
-            throw new System.NotImplementedException();
+            using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+
+            var partnerEntity = await ctx.Partners.FirstOrDefaultAsync(x => x.AffiliateId == request.AffiliateId);
+
+            if (partnerEntity == null)
+                return;
+
+            await _publisherPartnerRemoved.PublishAsync(new PartnerRemoved()
+            {
+                AffiliateId = partnerEntity.AffiliateId,
+                Sequence = partnerEntity.Sequence,
+                TenantId = partnerEntity.TenantId
+            });
+
+            await _myNoSqlServerDataWriter.DeleteAsync(
+                PartnerNoSql.GeneratePartitionKey(partnerEntity.TenantId),
+                PartnerNoSql.GenerateRowKey(partnerEntity.AffiliateId));
+
+            ctx.Partners.Remove(partnerEntity);
+            await ctx.SaveChangesAsync();
         }
 
         private static Partner MapToGrpc(PartnerEntity partnerEntity)
@@ -126,39 +250,95 @@ namespace MarketingBox.Affiliate.Service.Services
                 },
                 GeneralInfo = new Grpc.Models.Partners.PartnerGeneralInfo()
                 {
-                    Currency = partnerEntity.GeneralInfo.Currency switch
-                    {
-                        Domain.Partners.Currency.USD => Currency.USD,
-                        Domain.Partners.Currency.EUR => Currency.EUR,
-                        Domain.Partners.Currency.GBP => Currency.GBP,
-                        Domain.Partners.Currency.CHF => Currency.CHF,
-                        Domain.Partners.Currency.BTC => Currency.BTC,
-                        _ => throw new ArgumentOutOfRangeException(nameof(partnerEntity.GeneralInfo.Currency), partnerEntity.GeneralInfo.Currency, null)
-                    },
+                    Currency = partnerEntity.GeneralInfo.Currency.MapEnum<Currency>(),
                     CreatedAt = partnerEntity.GeneralInfo.CreatedAt.UtcDateTime,
                     Email = partnerEntity.GeneralInfo.Email,
                     Password = partnerEntity.GeneralInfo.Password,
                     Phone = partnerEntity.GeneralInfo.Phone,
-                    Role = partnerEntity.GeneralInfo.Role switch
-                    {
-                        Domain.Partners.PartnerRole.Affiliate => PartnerRole.Affiliate,
-                        Domain.Partners.PartnerRole.AffiliateManager => PartnerRole.AffiliateManager,
-                        Domain.Partners.PartnerRole.BrandManager => PartnerRole.BrandManager,
-                        Domain.Partners.PartnerRole.MasterAffiliate => PartnerRole.MasterAffiliate,
-                        _ => throw new ArgumentOutOfRangeException(nameof(partnerEntity.GeneralInfo.Role), partnerEntity.GeneralInfo.Role, null)
-                    },
+                    Role = partnerEntity.GeneralInfo.Role.MapEnum<PartnerRole>(),
                     Skype = partnerEntity.GeneralInfo.Skype,
-                    State = partnerEntity.GeneralInfo.State switch
-                    {
-                        Domain.Partners.PartnerState.Active => PartnerState.Active,
-                        Domain.Partners.PartnerState.Banned => PartnerState.Banned,
-                        Domain.Partners.PartnerState.NotActive => PartnerState.NotActive,
-                        _ => throw new ArgumentOutOfRangeException(nameof(partnerEntity.GeneralInfo.State), partnerEntity.GeneralInfo.State, null)
-                    },
+                    State = partnerEntity.GeneralInfo.State.MapEnum<PartnerState>(),
                     Username = partnerEntity.GeneralInfo.Username,
                     ZipCode = partnerEntity.GeneralInfo.ZipCode
                 }
             };
+        }
+
+        private static PartnerUpdated MapToMessage(PartnerEntity partnerEntity)
+        {
+            return new PartnerUpdated()
+            {
+                TenantId = partnerEntity.TenantId,
+                AffiliateId = partnerEntity.AffiliateId,
+                Company = new Messages.Partners.PartnerCompany()
+                {
+                    Address = partnerEntity.Company.Address,
+                    Name = partnerEntity.Company.Name,
+                    RegNumber = partnerEntity.Company.RegNumber,
+                    VatId = partnerEntity.Company.VatId,
+                },
+                Bank = new Messages.Partners.PartnerBank()
+                {
+                    AccountNumber = partnerEntity.Bank.AccountNumber,
+                    BankAddress = partnerEntity.Bank.BankAddress,
+                    BankName = partnerEntity.Bank.BankName,
+                    BeneficiaryAddress = partnerEntity.Bank.BeneficiaryAddress,
+                    BeneficiaryName = partnerEntity.Bank.BeneficiaryName,
+                    Iban = partnerEntity.Bank.Iban,
+                    Swift = partnerEntity.Bank.Swift
+                },
+                GeneralInfo = new Messages.Partners.PartnerGeneralInfo()
+                {
+                    Currency = partnerEntity.GeneralInfo.Currency.MapEnum<Messages.Partners.Currency>(),
+                    CreatedAt = partnerEntity.GeneralInfo.CreatedAt.UtcDateTime,
+                    Email = partnerEntity.GeneralInfo.Email,
+                    //Password = partnerEntity.GeneralInfo.Password,
+                    Phone = partnerEntity.GeneralInfo.Phone,
+                    Role = partnerEntity.GeneralInfo.Role.MapEnum<Messages.Partners.PartnerRole>(),
+                    Skype = partnerEntity.GeneralInfo.Skype,
+                    State = partnerEntity.GeneralInfo.State.MapEnum<Messages.Partners.PartnerState>(),
+                    Username = partnerEntity.GeneralInfo.Username,
+                    ZipCode = partnerEntity.GeneralInfo.ZipCode
+                }
+            };
+        }
+
+        private static PartnerNoSql MapToNoSql(PartnerEntity partnerEntity)
+        {
+            return PartnerNoSql.Create(
+                partnerEntity.TenantId,
+                partnerEntity.AffiliateId,
+                new MyNoSql.Partners.PartnerGeneralInfo()
+                {
+                    Currency = partnerEntity.GeneralInfo.Currency.MapEnum<MyNoSql.Partners.Currency>(),
+                    CreatedAt = partnerEntity.GeneralInfo.CreatedAt.UtcDateTime,
+                    Email = partnerEntity.GeneralInfo.Email,
+                    //Password = partnerEntity.GeneralInfo.Password,
+                    Phone = partnerEntity.GeneralInfo.Phone,
+                    Role = partnerEntity.GeneralInfo.Role.MapEnum<MyNoSql.Partners.PartnerRole>(),
+                    Skype = partnerEntity.GeneralInfo.Skype,
+                    State = partnerEntity.GeneralInfo.State.MapEnum<MyNoSql.Partners.PartnerState>(),
+                    Username = partnerEntity.GeneralInfo.Username,
+                    ZipCode = partnerEntity.GeneralInfo.ZipCode
+                },
+                new MyNoSql.Partners.PartnerCompany()
+                {
+                    Address = partnerEntity.Company.Address,
+                    Name = partnerEntity.Company.Name,
+                    RegNumber = partnerEntity.Company.RegNumber,
+                    VatId = partnerEntity.Company.VatId,
+                },
+                new MyNoSql.Partners.PartnerBank()
+                {
+                    AccountNumber = partnerEntity.Bank.AccountNumber,
+                    BankAddress = partnerEntity.Bank.BankAddress,
+                    BankName = partnerEntity.Bank.BankName,
+                    BeneficiaryAddress = partnerEntity.Bank.BeneficiaryAddress,
+                    BeneficiaryName = partnerEntity.Bank.BeneficiaryName,
+                    Iban = partnerEntity.Bank.Iban,
+                    Swift = partnerEntity.Bank.Swift
+                },
+                partnerEntity.Sequence);
         }
     }
 }

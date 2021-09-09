@@ -39,7 +39,8 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
                     Bank_BankAddress = table.Column<string>(type: "text", nullable: true),
                     Bank_AccountNumber = table.Column<string>(type: "text", nullable: true),
                     Bank_Swift = table.Column<string>(type: "text", nullable: true),
-                    Bank_Iban = table.Column<string>(type: "text", nullable: true)
+                    Bank_Iban = table.Column<string>(type: "text", nullable: true),
+                    Sequence = table.Column<long>(type: "bigint", nullable: false)
                 },
                 constraints: table =>
                 {

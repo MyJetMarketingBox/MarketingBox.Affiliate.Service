@@ -17,5 +17,11 @@ namespace MarketingBox.Affiliate.Service.Grpc.Models.Partners.Messages
 
         [DataMember(Order = 4)]
         public PartnerBank Bank { get; set; }
+
+        [DataMember(Order = 5)]
+        public string TenantId { get; set; }
+
+        [DataMember(Order = 6)]
+        public long Sequence { get; set; }
     }
 }

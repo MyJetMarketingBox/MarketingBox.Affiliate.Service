@@ -21,8 +21,10 @@ namespace TestApp
             var factory = new AffiliateServiceClientFactory("http://localhost:12347");
             var client = factory.GetPartnerService();
 
-            var resp = await  client.CreateAsync(new PartnerCreateRequest()
+            var testTenant = "Test-Tenant";
+            var request = new PartnerCreateRequest()
             {
+                TenantId = testTenant,
                 Company = new PartnerCompany()
                 {
                     Address = "a1",
@@ -39,21 +41,44 @@ namespace TestApp
                     BeneficiaryName = "a1",
                     Iban = "a1",
                     Swift = "a1"
-                },
-                GeneralInfo = new PartnerGeneralInfo()
-                {
-                    Currency = Currency.CHF,
-                    Email = "email@email.com",
-                    Password = "sadadadwad",
-                    Phone = "+79990999999",
-                    Role = PartnerRole.BrandManager,
-                    Skype = "skype",
-                    State = PartnerState.Active,
-                    Username = "User",
-                    ZipCode = "414141"
                 }
+            };
+            request.GeneralInfo = new PartnerGeneralInfo()
+            {
+                Currency = Currency.CHF,
+                Email = "email@email.com",
+                Password = "sadadadwad",
+                Phone = "+79990999999",
+                Role = PartnerRole.BrandManager,
+                Skype = "skype",
+                State = PartnerState.Active,
+                Username = "User",
+                ZipCode = "414141"
+            };
+
+            var partnerCreated = await  client.CreateAsync(request);
+
+            Console.WriteLine(partnerCreated.AffiliateId);
+
+            var partnerUpdated = await client.UpdateAsync(new PartnerUpdateRequest()
+            {
+                AffiliateId = partnerCreated.AffiliateId,
+                TenantId = partnerCreated.TenantId,
+                Bank = request.Bank,
+                Company = request.Company,
+                GeneralInfo = request.GeneralInfo,
+                Sequence = 1
             });
-            Console.WriteLine(resp?.AffiliateId);
+
+            await client.DeleteAsync(new PartnerDeleteRequest()
+            {
+                AffiliateId = partnerUpdated.AffiliateId,
+            });
+
+            var shouldBeNull =await client.GetAsync(new PartnerGetRequest()
+            {
+                AffiliateId = partnerUpdated.AffiliateId,
+            });
 
             Console.WriteLine("End");
             Console.ReadLine();
