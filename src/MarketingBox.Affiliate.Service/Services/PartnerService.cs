@@ -45,14 +45,14 @@ namespace MarketingBox.Affiliate.Service.Services
             _publisherPartnerRemoved = publisherPartnerRemoved;
         }
 
-        public async Task<Partner> CreateAsync(PartnerCreateRequest request)
+        public async Task<PartnerResponse> CreateAsync(PartnerCreateRequest request)
         {
             _logger.LogInformation("Creating new Partner {@context}", request);
             using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
             var partnerEntity = new PartnerEntity()
             {
-                TenantId = "Basic",
+                TenantId = request.TenantId,
                 Bank = new PartnerBank()
                 {
                     AccountNumber = request.Bank.AccountNumber,
@@ -90,14 +90,15 @@ namespace MarketingBox.Affiliate.Service.Services
 
             await _publisherPartnerUpdated.PublishAsync(MapToMessage(partnerEntity));
             _logger.LogInformation("Sent partner update to service bus {@context}", request);
-            
-            await _myNoSqlServerDataWriter.InsertOrReplaceAsync(MapToNoSql(partnerEntity));
+
+            var nosql = MapToNoSql(partnerEntity);
+            await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
             _logger.LogInformation("Sent partner update to MyNoSql {@context}", request);
 
             return MapToGrpc(partnerEntity);
         }
 
-        public async Task<Partner> UpdateAsync(PartnerUpdateRequest request)
+        public async Task<PartnerResponse> UpdateAsync(PartnerUpdateRequest request)
         {
             _logger.LogInformation("Updating a Partner {@context}", request);
             using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
@@ -187,19 +188,20 @@ namespace MarketingBox.Affiliate.Service.Services
             await _publisherPartnerUpdated.PublishAsync(MapToMessage(partnerEntity));
             _logger.LogInformation("Sent partner update to service bus {@context}", request);
 
-            await _myNoSqlServerDataWriter.InsertOrReplaceAsync(MapToNoSql(partnerEntity));
+            var nosql = MapToNoSql(partnerEntity);
+            await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
             _logger.LogInformation("Sent partner update to MyNoSql {@context}", request);
 
             return MapToGrpc(partnerEntity);
         }
 
-        public async Task<Partner> GetAsync(PartnerGetRequest request)
+        public async Task<PartnerResponse> GetAsync(PartnerGetRequest request)
         {
             using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
             var partnerEntity = await ctx.Partners.FirstOrDefaultAsync(x => x.AffiliateId == request.AffiliateId);
 
-            return partnerEntity != null ? MapToGrpc(partnerEntity) : null;
+            return partnerEntity != null ? MapToGrpc(partnerEntity) : new PartnerResponse();
         }
 
         public async Task DeleteAsync(PartnerDeleteRequest request)
@@ -222,44 +224,47 @@ namespace MarketingBox.Affiliate.Service.Services
                 PartnerNoSql.GeneratePartitionKey(partnerEntity.TenantId),
                 PartnerNoSql.GenerateRowKey(partnerEntity.AffiliateId));
 
-            ctx.Partners.Remove(partnerEntity);
-            await ctx.SaveChangesAsync();
+            await ctx.Partners.Where(x => x.AffiliateId == partnerEntity.AffiliateId).DeleteAsync();
         }
 
-        private static Partner MapToGrpc(PartnerEntity partnerEntity)
+        private static PartnerResponse MapToGrpc(PartnerEntity partnerEntity)
         {
-            return new Partner()
+            return new PartnerResponse()
             {
-                AffiliateId = partnerEntity.AffiliateId,
-                Company = new Grpc.Models.Partners.PartnerCompany()
+                Partner = new Partner()
                 {
-                    Address = partnerEntity.Company.Address,
-                    Name = partnerEntity.Company.Name,
-                    RegNumber = partnerEntity.Company.RegNumber,
-                    VatId = partnerEntity.Company.VatId,
-                },
-                Bank = new Grpc.Models.Partners.PartnerBank()
-                {
-                    AccountNumber = partnerEntity.Bank.AccountNumber,
-                    BankAddress = partnerEntity.Bank.BankAddress,
-                    BankName = partnerEntity.Bank.BankName,
-                    BeneficiaryAddress = partnerEntity.Bank.BeneficiaryAddress,
-                    BeneficiaryName = partnerEntity.Bank.BeneficiaryName,
-                    Iban = partnerEntity.Bank.Iban,
-                    Swift = partnerEntity.Bank.Swift
-                },
-                GeneralInfo = new Grpc.Models.Partners.PartnerGeneralInfo()
-                {
-                    Currency = partnerEntity.GeneralInfo.Currency.MapEnum<Currency>(),
-                    CreatedAt = partnerEntity.GeneralInfo.CreatedAt.UtcDateTime,
-                    Email = partnerEntity.GeneralInfo.Email,
-                    Password = partnerEntity.GeneralInfo.Password,
-                    Phone = partnerEntity.GeneralInfo.Phone,
-                    Role = partnerEntity.GeneralInfo.Role.MapEnum<PartnerRole>(),
-                    Skype = partnerEntity.GeneralInfo.Skype,
-                    State = partnerEntity.GeneralInfo.State.MapEnum<PartnerState>(),
-                    Username = partnerEntity.GeneralInfo.Username,
-                    ZipCode = partnerEntity.GeneralInfo.ZipCode
+                    TenantId = partnerEntity.TenantId,
+                    AffiliateId = partnerEntity.AffiliateId,
+                    Company = new Grpc.Models.Partners.PartnerCompany()
+                    {
+                        Address = partnerEntity.Company.Address,
+                        Name = partnerEntity.Company.Name,
+                        RegNumber = partnerEntity.Company.RegNumber,
+                        VatId = partnerEntity.Company.VatId,
+                    },
+                    Bank = new Grpc.Models.Partners.PartnerBank()
+                    {
+                        AccountNumber = partnerEntity.Bank.AccountNumber,
+                        BankAddress = partnerEntity.Bank.BankAddress,
+                        BankName = partnerEntity.Bank.BankName,
+                        BeneficiaryAddress = partnerEntity.Bank.BeneficiaryAddress,
+                        BeneficiaryName = partnerEntity.Bank.BeneficiaryName,
+                        Iban = partnerEntity.Bank.Iban,
+                        Swift = partnerEntity.Bank.Swift
+                    },
+                    GeneralInfo = new Grpc.Models.Partners.PartnerGeneralInfo()
+                    {
+                        Currency = partnerEntity.GeneralInfo.Currency.MapEnum<Currency>(),
+                        CreatedAt = partnerEntity.GeneralInfo.CreatedAt.UtcDateTime,
+                        Email = partnerEntity.GeneralInfo.Email,
+                        Password = partnerEntity.GeneralInfo.Password,
+                        Phone = partnerEntity.GeneralInfo.Phone,
+                        Role = partnerEntity.GeneralInfo.Role.MapEnum<PartnerRole>(),
+                        Skype = partnerEntity.GeneralInfo.Skype,
+                        State = partnerEntity.GeneralInfo.State.MapEnum<PartnerState>(),
+                        Username = partnerEntity.GeneralInfo.Username,
+                        ZipCode = partnerEntity.GeneralInfo.ZipCode
+                    }
                 }
             };
         }

@@ -9,13 +9,13 @@ namespace MarketingBox.Affiliate.Service.Grpc
     public interface IPartnerService
     {
         [OperationContract]
-        Task<Partner> CreateAsync(PartnerCreateRequest request);
+        Task<PartnerResponse> CreateAsync(PartnerCreateRequest request);
 
         [OperationContract]
-        Task<Partner> UpdateAsync(PartnerUpdateRequest request);
+        Task<PartnerResponse> UpdateAsync(PartnerUpdateRequest request);
 
         [OperationContract]
-        Task<Partner> GetAsync(PartnerGetRequest request);
+        Task<PartnerResponse> GetAsync(PartnerGetRequest request);
 
         [OperationContract]
         Task DeleteAsync(PartnerDeleteRequest request);

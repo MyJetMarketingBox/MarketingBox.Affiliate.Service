@@ -3,7 +3,6 @@ using MyNoSqlServer.Abstractions;
 
 namespace MarketingBox.Affiliate.Service.MyNoSql.Partners
 {
-    [DataContract]
     public class PartnerNoSql : MyNoSqlDbEntity
     {
         public const string TableName = "marketingbox-affiliateservice-partners";
@@ -12,22 +11,16 @@ namespace MarketingBox.Affiliate.Service.MyNoSql.Partners
             $"{affiliateId}";
 
 
-        [DataMember(Order = 1)]
         public long AffiliateId { get; private set; }
 
-        [DataMember(Order = 2)]
         public PartnerGeneralInfo GeneralInfo { get; private set; }
 
-        [DataMember(Order = 3)]
         public PartnerCompany Company { get; private set; }
 
-        [DataMember(Order = 4)]
         public PartnerBank Bank { get; private set; }
 
-        [DataMember(Order = 5)]
         public string TenantId { get; private set; }
 
-        [DataMember(Order = 6)]
         public long SequenceId { get; private set; }
 
 

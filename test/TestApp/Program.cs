@@ -17,9 +17,13 @@ namespace TestApp
             Console.Write("Press enter to start");
             Console.ReadLine();
 
-
             var factory = new AffiliateServiceClientFactory("http://localhost:12347");
             var client = factory.GetPartnerService();
+
+            var check = await client.GetAsync(new PartnerGetRequest()
+            {
+                AffiliateId = 0,
+            });
 
             var testTenant = "Test-Tenant";
             var request = new PartnerCreateRequest()
@@ -56,11 +60,11 @@ namespace TestApp
                 ZipCode = "414141"
             };
 
-            var partnerCreated = await  client.CreateAsync(request);
+            var partnerCreated = (await  client.CreateAsync(request)).Partner;
 
             Console.WriteLine(partnerCreated.AffiliateId);
 
-            var partnerUpdated = await client.UpdateAsync(new PartnerUpdateRequest()
+            var partnerUpdated = (await client.UpdateAsync(new PartnerUpdateRequest()
             {
                 AffiliateId = partnerCreated.AffiliateId,
                 TenantId = partnerCreated.TenantId,
@@ -68,7 +72,7 @@ namespace TestApp
                 Company = request.Company,
                 GeneralInfo = request.GeneralInfo,
                 Sequence = 1
-            });
+            })).Partner;
 
             await client.DeleteAsync(new PartnerDeleteRequest()
             {
