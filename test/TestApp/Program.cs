@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using MarketingBox.Affiliate.Service.Client;
-using MarketingBox.Affiliate.Service.Grpc.Models;
+using MarketingBox.Affiliate.Service.Grpc.Models.Common;
 using MarketingBox.Affiliate.Service.Grpc.Models.Partners;
 using MarketingBox.Affiliate.Service.Grpc.Models.Partners.Messages;
 using ProtoBuf.Grpc.Client;

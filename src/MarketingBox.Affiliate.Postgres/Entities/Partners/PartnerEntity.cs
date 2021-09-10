@@ -1,4 +1,4 @@
-﻿namespace MarketingBox.Affiliate.Postgres.Entities
+﻿namespace MarketingBox.Affiliate.Postgres.Entities.Partners
 {
     public class PartnerEntity
     {

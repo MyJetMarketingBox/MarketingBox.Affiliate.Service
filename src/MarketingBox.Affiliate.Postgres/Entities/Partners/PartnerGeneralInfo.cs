@@ -1,7 +1,8 @@
 ﻿using System;
+using MarketingBox.Affiliate.Service.Domain.Common;
 using MarketingBox.Affiliate.Service.Domain.Partners;
 
-namespace MarketingBox.Affiliate.Postgres.Entities
+namespace MarketingBox.Affiliate.Postgres.Entities.Partners
 {
     public class PartnerGeneralInfo
     {

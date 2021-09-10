@@ -1,4 +1,4 @@
-﻿namespace MarketingBox.Affiliate.Service.MyNoSql.Partners
+﻿namespace MarketingBox.Affiliate.Service.Grpc.Models.Common
 {
     public enum Currency
     {

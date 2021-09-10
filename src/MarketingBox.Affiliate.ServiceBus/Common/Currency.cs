@@ -1,4 +1,4 @@
-﻿namespace MarketingBox.Affiliate.Service.Messages.Partners
+﻿namespace MarketingBox.Affiliate.Service.Messages.Common
 {
     public enum Currency
     {

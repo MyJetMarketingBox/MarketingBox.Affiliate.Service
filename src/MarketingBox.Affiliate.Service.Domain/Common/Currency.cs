@@ -1,4 +1,4 @@
-﻿namespace MarketingBox.Affiliate.Service.Domain.Partners
+﻿namespace MarketingBox.Affiliate.Service.Domain.Common
 {
     public enum Currency
     {

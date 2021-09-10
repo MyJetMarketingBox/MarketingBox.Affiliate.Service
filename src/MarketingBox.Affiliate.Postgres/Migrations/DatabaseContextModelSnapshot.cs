@@ -20,7 +20,136 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
                 .HasAnnotation("ProductVersion", "5.0.9")
                 .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
-            modelBuilder.Entity("MarketingBox.Affiliate.Postgres.Entities.PartnerEntity", b =>
+            modelBuilder.Entity("MarketingBox.Affiliate.Postgres.Entities.Boxes.BoxEntity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+
+                    b.Property<string>("Name")
+                        .HasColumnType("text");
+
+                    b.Property<long>("Sequence")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("TenantId")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId", "Id");
+
+                    b.ToTable("boxes");
+                });
+
+            modelBuilder.Entity("MarketingBox.Affiliate.Postgres.Entities.Brands.BrandEntity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+
+                    b.Property<string>("Name")
+                        .HasColumnType("text");
+
+                    b.Property<long>("Sequence")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("TenantId")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId", "Id");
+
+                    b.ToTable("brands");
+                });
+
+            modelBuilder.Entity("MarketingBox.Affiliate.Postgres.Entities.CampaignBoxes.CampaignBoxEntity", b =>
+                {
+                    b.Property<long>("CampaignBoxId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+
+                    b.Property<string>("ActivityHours")
+                        .HasColumnType("text");
+
+                    b.Property<long>("BoxId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("CampaignId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("CapType")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("CountryCode")
+                        .HasColumnType("text");
+
+                    b.Property<long>("DailyCapValue")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("EnableTraffic")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Information")
+                        .HasColumnType("text");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("integer");
+
+                    b.Property<long>("Sequence")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Weight")
+                        .HasColumnType("integer");
+
+                    b.HasKey("CampaignBoxId");
+
+                    b.HasIndex("BoxId");
+
+                    b.HasIndex("CampaignId");
+
+                    b.ToTable("campaign-boxes");
+                });
+
+            modelBuilder.Entity("MarketingBox.Affiliate.Postgres.Entities.Campaigns.CampaignEntity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+
+                    b.Property<long>("BrandId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("text");
+
+                    b.Property<int>("Privacy")
+                        .HasColumnType("integer");
+
+                    b.Property<long>("Sequence")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("TenantId")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BrandId");
+
+                    b.HasIndex("TenantId", "Id");
+
+                    b.ToTable("campaigns");
+                });
+
+            modelBuilder.Entity("MarketingBox.Affiliate.Postgres.Entities.Partners.PartnerEntity", b =>
                 {
                     b.Property<long>("AffiliateId")
                         .ValueGeneratedOnAdd()
@@ -40,9 +169,91 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
                     b.ToTable("partners");
                 });
 
-            modelBuilder.Entity("MarketingBox.Affiliate.Postgres.Entities.PartnerEntity", b =>
+            modelBuilder.Entity("MarketingBox.Affiliate.Postgres.Entities.CampaignBoxes.CampaignBoxEntity", b =>
                 {
-                    b.OwnsOne("MarketingBox.Affiliate.Postgres.Entities.PartnerBank", "Bank", b1 =>
+                    b.HasOne("MarketingBox.Affiliate.Postgres.Entities.Boxes.BoxEntity", "Box")
+                        .WithMany("CampaignBoxes")
+                        .HasForeignKey("BoxId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MarketingBox.Affiliate.Postgres.Entities.Campaigns.CampaignEntity", "Campaign")
+                        .WithMany("CampaignBoxes")
+                        .HasForeignKey("CampaignId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Box");
+
+                    b.Navigation("Campaign");
+                });
+
+            modelBuilder.Entity("MarketingBox.Affiliate.Postgres.Entities.Campaigns.CampaignEntity", b =>
+                {
+                    b.HasOne("MarketingBox.Affiliate.Postgres.Entities.Brands.BrandEntity", "Brand")
+                        .WithMany("Campaigns")
+                        .HasForeignKey("BrandId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.OwnsOne("MarketingBox.Affiliate.Postgres.Entities.Campaigns.Payout", "Payout", b1 =>
+                        {
+                            b1.Property<long>("CampaignEntityId")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("bigint")
+                                .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+
+                            b1.Property<decimal>("Amount")
+                                .HasColumnType("numeric");
+
+                            b1.Property<int>("Currency")
+                                .HasColumnType("integer");
+
+                            b1.Property<int>("Plan")
+                                .HasColumnType("integer");
+
+                            b1.HasKey("CampaignEntityId");
+
+                            b1.ToTable("campaigns");
+
+                            b1.WithOwner()
+                                .HasForeignKey("CampaignEntityId");
+                        });
+
+                    b.OwnsOne("MarketingBox.Affiliate.Postgres.Entities.Campaigns.Revenue", "Revenue", b1 =>
+                        {
+                            b1.Property<long>("CampaignEntityId")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("bigint")
+                                .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+
+                            b1.Property<decimal>("Amount")
+                                .HasColumnType("numeric");
+
+                            b1.Property<int>("Currency")
+                                .HasColumnType("integer");
+
+                            b1.Property<int>("Plan")
+                                .HasColumnType("integer");
+
+                            b1.HasKey("CampaignEntityId");
+
+                            b1.ToTable("campaigns");
+
+                            b1.WithOwner()
+                                .HasForeignKey("CampaignEntityId");
+                        });
+
+                    b.Navigation("Brand");
+
+                    b.Navigation("Payout");
+
+                    b.Navigation("Revenue");
+                });
+
+            modelBuilder.Entity("MarketingBox.Affiliate.Postgres.Entities.Partners.PartnerEntity", b =>
+                {
+                    b.OwnsOne("MarketingBox.Affiliate.Postgres.Entities.Partners.PartnerBank", "Bank", b1 =>
                         {
                             b1.Property<long>("PartnerEntityAffiliateId")
                                 .ValueGeneratedOnAdd()
@@ -78,7 +289,7 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
                                 .HasForeignKey("PartnerEntityAffiliateId");
                         });
 
-                    b.OwnsOne("MarketingBox.Affiliate.Postgres.Entities.PartnerCompany", "Company", b1 =>
+                    b.OwnsOne("MarketingBox.Affiliate.Postgres.Entities.Partners.PartnerCompany", "Company", b1 =>
                         {
                             b1.Property<long>("PartnerEntityAffiliateId")
                                 .ValueGeneratedOnAdd()
@@ -105,7 +316,7 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
                                 .HasForeignKey("PartnerEntityAffiliateId");
                         });
 
-                    b.OwnsOne("MarketingBox.Affiliate.Postgres.Entities.PartnerGeneralInfo", "GeneralInfo", b1 =>
+                    b.OwnsOne("MarketingBox.Affiliate.Postgres.Entities.Partners.PartnerGeneralInfo", "GeneralInfo", b1 =>
                         {
                             b1.Property<long>("PartnerEntityAffiliateId")
                                 .ValueGeneratedOnAdd()
@@ -155,6 +366,21 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
                     b.Navigation("Company");
 
                     b.Navigation("GeneralInfo");
+                });
+
+            modelBuilder.Entity("MarketingBox.Affiliate.Postgres.Entities.Boxes.BoxEntity", b =>
+                {
+                    b.Navigation("CampaignBoxes");
+                });
+
+            modelBuilder.Entity("MarketingBox.Affiliate.Postgres.Entities.Brands.BrandEntity", b =>
+                {
+                    b.Navigation("Campaigns");
+                });
+
+            modelBuilder.Entity("MarketingBox.Affiliate.Postgres.Entities.Campaigns.CampaignEntity", b =>
+                {
+                    b.Navigation("CampaignBoxes");
                 });
 #pragma warning restore 612, 618
         }

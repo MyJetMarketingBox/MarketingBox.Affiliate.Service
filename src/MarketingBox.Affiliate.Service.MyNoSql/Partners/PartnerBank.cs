@@ -1,6 +1,4 @@
-﻿using System.Runtime.Serialization;
-
-namespace MarketingBox.Affiliate.Service.MyNoSql.Partners
+﻿namespace MarketingBox.Affiliate.Service.MyNoSql.Partners
 {
     public class PartnerBank
     {

@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Runtime.Serialization;
+using MarketingBox.Affiliate.Service.MyNoSql.Common;
 
 namespace MarketingBox.Affiliate.Service.MyNoSql.Partners
 {

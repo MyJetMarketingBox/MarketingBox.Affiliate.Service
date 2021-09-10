@@ -17,6 +17,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MarketingBox.Affiliate.Service.Grpc\MarketingBox.Affiliate.Service.Grpc.csproj" />
+    <ProjectReference Include="..\MarketingBox.Affiliate.Service.MyNoSql\MarketingBox.Affiliate.Service.MyNoSql.csproj" />
+    <ProjectReference Include="..\MarketingBox.Affiliate.ServiceBus\MarketingBox.Affiliate.Service.Messages.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

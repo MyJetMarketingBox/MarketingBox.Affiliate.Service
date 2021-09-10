@@ -1,6 +1,5 @@
 ﻿using DotNetCoreDecorators;
 using MarketingBox.Affiliate.Postgres;
-using MarketingBox.Affiliate.Postgres.Entities;
 using MarketingBox.Affiliate.Service.Domain.Extensions;
 using MarketingBox.Affiliate.Service.Grpc;
 using MarketingBox.Affiliate.Service.Grpc.Models.Partners;
@@ -13,12 +12,12 @@ using MyNoSqlServer.Abstractions;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Npgsql;
+using MarketingBox.Affiliate.Postgres.Entities.Partners;
 using Z.EntityFramework.Plus;
-using Currency = MarketingBox.Affiliate.Service.Grpc.Models.Partners.Currency;
-using PartnerBank = MarketingBox.Affiliate.Postgres.Entities.PartnerBank;
-using PartnerCompany = MarketingBox.Affiliate.Postgres.Entities.PartnerCompany;
-using PartnerGeneralInfo = MarketingBox.Affiliate.Postgres.Entities.PartnerGeneralInfo;
+using Currency = MarketingBox.Affiliate.Service.Grpc.Models.Common.Currency;
+using PartnerBank = MarketingBox.Affiliate.Postgres.Entities.Partners.PartnerBank;
+using PartnerCompany = MarketingBox.Affiliate.Postgres.Entities.Partners.PartnerCompany;
+using PartnerGeneralInfo = MarketingBox.Affiliate.Postgres.Entities.Partners.PartnerGeneralInfo;
 using PartnerRole = MarketingBox.Affiliate.Service.Grpc.Models.Partners.PartnerRole;
 using PartnerState = MarketingBox.Affiliate.Service.Grpc.Models.Partners.PartnerState;
 
@@ -73,7 +72,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 GeneralInfo = new PartnerGeneralInfo()
                 {
                     CreatedAt = DateTime.UtcNow,
-                    Currency = request.GeneralInfo.Currency.MapEnum<Domain.Partners.Currency>(),
+                    Currency = request.GeneralInfo.Currency.MapEnum<Domain.Common.Currency>(),
                     Role = request.GeneralInfo.Role.MapEnum< Domain.Partners.PartnerRole>(),
                     Skype = request.GeneralInfo.Skype,
                     State = request.GeneralInfo.State.MapEnum<Domain.Partners.PartnerState>(),
@@ -127,7 +126,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 GeneralInfo = new PartnerGeneralInfo()
                 {
                     CreatedAt = DateTime.UtcNow,
-                    Currency = request.GeneralInfo.Currency.MapEnum<Domain.Partners.Currency>(),
+                    Currency = request.GeneralInfo.Currency.MapEnum<Domain.Common.Currency>(),
                     Role = request.GeneralInfo.Role.MapEnum<Domain.Partners.PartnerRole>(),
                     Skype = request.GeneralInfo.Skype,
                     State = request.GeneralInfo.State.MapEnum<Domain.Partners.PartnerState>(),
@@ -167,7 +166,7 @@ namespace MarketingBox.Affiliate.Service.Services
                     GeneralInfo = new PartnerGeneralInfo()
                     {
                         CreatedAt = DateTime.UtcNow,
-                        Currency = request.GeneralInfo.Currency.MapEnum<Domain.Partners.Currency>(),
+                        Currency = request.GeneralInfo.Currency.MapEnum<Domain.Common.Currency>(),
                         Role = request.GeneralInfo.Role.MapEnum<Domain.Partners.PartnerRole>(),
                         Skype = request.GeneralInfo.Skype,
                         State = request.GeneralInfo.State.MapEnum<Domain.Partners.PartnerState>(),
@@ -294,7 +293,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 },
                 GeneralInfo = new Messages.Partners.PartnerGeneralInfo()
                 {
-                    Currency = partnerEntity.GeneralInfo.Currency.MapEnum<Messages.Partners.Currency>(),
+                    Currency = partnerEntity.GeneralInfo.Currency.MapEnum<Messages.Common.Currency>(),
                     CreatedAt = partnerEntity.GeneralInfo.CreatedAt.UtcDateTime,
                     Email = partnerEntity.GeneralInfo.Email,
                     //Password = partnerEntity.GeneralInfo.Password,
@@ -315,7 +314,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 partnerEntity.AffiliateId,
                 new MyNoSql.Partners.PartnerGeneralInfo()
                 {
-                    Currency = partnerEntity.GeneralInfo.Currency.MapEnum<MyNoSql.Partners.Currency>(),
+                    Currency = partnerEntity.GeneralInfo.Currency.MapEnum<MyNoSql.Common.Currency>(),
                     CreatedAt = partnerEntity.GeneralInfo.CreatedAt.UtcDateTime,
                     Email = partnerEntity.GeneralInfo.Email,
                     //Password = partnerEntity.GeneralInfo.Password,

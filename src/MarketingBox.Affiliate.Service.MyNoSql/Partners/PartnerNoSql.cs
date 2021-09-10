@@ -1,5 +1,4 @@
-﻿using System.Runtime.Serialization;
-using MyNoSqlServer.Abstractions;
+﻿using MyNoSqlServer.Abstractions;
 
 namespace MarketingBox.Affiliate.Service.MyNoSql.Partners
 {
@@ -21,7 +20,7 @@ namespace MarketingBox.Affiliate.Service.MyNoSql.Partners
 
         public string TenantId { get; private set; }
 
-        public long SequenceId { get; private set; }
+        public long Sequence { get; private set; }
 
 
         public static PartnerNoSql Create(
@@ -30,7 +29,7 @@ namespace MarketingBox.Affiliate.Service.MyNoSql.Partners
             PartnerGeneralInfo generalInfo,
             PartnerCompany company,
             PartnerBank partnerBank,
-            long sequenceId) =>
+            long sequence) =>
             new()
             {
                 PartitionKey = GeneratePartitionKey(tenantId),
@@ -40,7 +39,7 @@ namespace MarketingBox.Affiliate.Service.MyNoSql.Partners
                 Company = company,
                 GeneralInfo = generalInfo,
                 TenantId = tenantId,
-                SequenceId = sequenceId
+                Sequence = sequence
             };
 
     }
