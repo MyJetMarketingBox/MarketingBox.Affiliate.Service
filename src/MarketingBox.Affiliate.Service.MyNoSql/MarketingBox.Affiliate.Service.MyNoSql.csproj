@@ -4,6 +4,18 @@
     <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <TargetsForTfmSpecificBuildOutput>
+      $(TargetsForTfmSpecificBuildOutput);PackReferencedProjectOutputs
+    </TargetsForTfmSpecificBuildOutput>
+    <PackageId>MarketingBox.Affiliate.Service.MyNoSql</PackageId>
+    <Authors>MyJetWallet</Authors>
+    <Company>MyJetWallet</Company>
+    <Product>MarketingBox</Product>
+    <PackageProjectUrl>https://github.com/MyJetWallet/MarketingBox.Affiliate.Service</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/MyJetWallet/MarketingBox.Affiliate.Service</RepositoryUrl>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="MyJetWallet.Sdk.Service" Version="1.5.5" />
     <PackageReference Include="MyJetWallet.Sdk.ServiceBus" Version="1.0.3" />
