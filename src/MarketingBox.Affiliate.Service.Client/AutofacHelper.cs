@@ -7,7 +7,7 @@ namespace MarketingBox.Affiliate.Service.Client
 {
     public static class AutofacHelper
     {
-        public static void RegisterAssetsDictionaryClient(this ContainerBuilder builder, string grpcServiceUrl)
+        public static void RegisterAffiliateServiceClient(this ContainerBuilder builder, string grpcServiceUrl)
         {
             var factory = new AffiliateServiceClientFactory(grpcServiceUrl);
 
