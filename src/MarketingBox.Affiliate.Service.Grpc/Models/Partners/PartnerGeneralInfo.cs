@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.Serialization;
+using Destructurama.Attributed;
 using MarketingBox.Affiliate.Service.Grpc.Models.Common;
 
 namespace MarketingBox.Affiliate.Service.Grpc.Models.Partners
@@ -11,14 +12,19 @@ namespace MarketingBox.Affiliate.Service.Grpc.Models.Partners
         public string Username { get; set; }
         
         [DataMember(Order = 2)]
+        [LogMasked(PreserveLength = false)]
         public string Password { get; set; }
         
         [DataMember(Order = 3)]
+        [LogMasked(PreserveLength = true, ShowFirst = 1, ShowLast = 1)]
         public string Email { get; set; }
         
         [DataMember(Order = 4)]
+        [LogMasked(PreserveLength = true, ShowFirst = 2, ShowLast = 2)]
         public string Phone { get; set; }
+
         [DataMember(Order = 5)]
+        [LogMasked(PreserveLength = true, ShowFirst = 2, ShowLast = 2)]
         public string Skype { get; set; }
         
         [DataMember(Order = 6)]

@@ -12,6 +12,8 @@ using MyNoSqlServer.Abstractions;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using MarketingBox.Affiliate.Service.Grpc.Models.Brands;
+using MarketingBox.Affiliate.Service.Grpc.Models.Common;
 using MarketingBox.Affiliate.Service.MyNoSql.CampaignBoxes;
 using Z.EntityFramework.Plus;
 using ActivityHours = MarketingBox.Affiliate.Postgres.Entities.CampaignBoxes.ActivityHours;
@@ -45,38 +47,47 @@ namespace MarketingBox.Affiliate.Service.Services
             _logger.LogInformation("Creating new CampaignBox {@context}", request);
             using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
-            var campaignBoxEntity = new CampaignBoxEntity()
+            try
             {
-                ActivityHours = request.ActivityHours.Select(x => new ActivityHours()
+                var campaignBoxEntity = new CampaignBoxEntity()
+                {
+                    ActivityHours = request.ActivityHours.Select(x => new ActivityHours()
                     {
                         Day = x.Day,
                         From = x.From,
                         IsActive = x.IsActive,
                         To = x.To
                     }).ToArray(),
-                BoxId = request.BoxId,
-                CampaignId = request.CampaignId,
-                CapType= request.CapType.MapEnum<CapType>(),
-                CountryCode = request.CountryCode,
-                DailyCapValue = request.DailyCapValue,
-                EnableTraffic = request.EnableTraffic,
-                Information = request.Information,
-                Priority = request.Priority,
-                Sequence = request.Sequence,
-                Weight = request.Weight
-            };
+                    BoxId = request.BoxId,
+                    CampaignId = request.CampaignId,
+                    CapType = request.CapType.MapEnum<CapType>(),
+                    CountryCode = request.CountryCode,
+                    DailyCapValue = request.DailyCapValue,
+                    EnableTraffic = request.EnableTraffic,
+                    Information = request.Information,
+                    Priority = request.Priority,
+                    Sequence = request.Sequence,
+                    Weight = request.Weight
+                };
 
-            ctx.CampaignBoxes.Add(campaignBoxEntity);
-            await ctx.SaveChangesAsync();
+                ctx.CampaignBoxes.Add(campaignBoxEntity);
+                await ctx.SaveChangesAsync();
 
-            await _publisherCampaignBoxUpdated.PublishAsync(MapToMessage(campaignBoxEntity));
-            _logger.LogInformation("Sent campaignBox update to service bus {@context}", request);
+                await _publisherCampaignBoxUpdated.PublishAsync(MapToMessage(campaignBoxEntity));
+                _logger.LogInformation("Sent campaignBox update to service bus {@context}", request);
 
-            var nosql = MapToNoSql(campaignBoxEntity);
-            await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
-            _logger.LogInformation("Sent campaignBox update to MyNoSql {@context}", request);
+                var nosql = MapToNoSql(campaignBoxEntity);
+                await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
+                _logger.LogInformation("Sent campaignBox update to MyNoSql {@context}", request);
 
-            return MapToGrpc(campaignBoxEntity);
+                return MapToGrpc(campaignBoxEntity);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error creating campaign box {@context}", request);
+
+                return new CampaignBoxResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+            }
         }
 
         public async Task<CampaignBoxResponse> UpdateAsync(CampaignBoxUpdateRequest request)
@@ -84,32 +95,10 @@ namespace MarketingBox.Affiliate.Service.Services
             _logger.LogInformation("Updating a CampaignBox {@context}", request);
             using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
-            var campaignBoxEntity = new CampaignBoxEntity()
+            try
             {
-                CampaignBoxId = request.CampaignBoxId,
-                ActivityHours = request.ActivityHours.Select(x => new ActivityHours()
-                {
-                    Day = x.Day,
-                    From = x.From,
-                    IsActive = x.IsActive,
-                    To = x.To
-                }).ToArray(),
-                BoxId = request.BoxId,
-                CampaignId = request.CampaignId,
-                CapType = request.CapType.MapEnum<CapType>(),
-                CountryCode = request.CountryCode,
-                DailyCapValue = request.DailyCapValue,
-                EnableTraffic = request.EnableTraffic,
-                Information = request.Information,
-                Priority = request.Priority,
-                Sequence = request.Sequence,
-                Weight = request.Weight
-            };
 
-            var affectedRowsCount = await ctx.CampaignBoxes
-                .Where(x => x.CampaignBoxId == request.CampaignBoxId &&
-                            x.Sequence <= request.Sequence)
-                .UpdateAsync(x => new CampaignBoxEntity()
+                var campaignBoxEntity = new CampaignBoxEntity()
                 {
                     CampaignBoxId = request.CampaignBoxId,
                     ActivityHours = request.ActivityHours.Select(x => new ActivityHours()
@@ -129,52 +118,104 @@ namespace MarketingBox.Affiliate.Service.Services
                     Priority = request.Priority,
                     Sequence = request.Sequence,
                     Weight = request.Weight
-                });
+                };
 
-            if (affectedRowsCount != 1)
-            {
-                throw new Exception("Update failed");
+                var affectedRowsCount = await ctx.CampaignBoxes
+                    .Where(x => x.CampaignBoxId == request.CampaignBoxId &&
+                                x.Sequence <= request.Sequence)
+                    .UpdateAsync(x => new CampaignBoxEntity()
+                    {
+                        CampaignBoxId = request.CampaignBoxId,
+                        ActivityHours = request.ActivityHours.Select(x => new ActivityHours()
+                        {
+                            Day = x.Day,
+                            From = x.From,
+                            IsActive = x.IsActive,
+                            To = x.To
+                        }).ToArray(),
+                        BoxId = request.BoxId,
+                        CampaignId = request.CampaignId,
+                        CapType = request.CapType.MapEnum<CapType>(),
+                        CountryCode = request.CountryCode,
+                        DailyCapValue = request.DailyCapValue,
+                        EnableTraffic = request.EnableTraffic,
+                        Information = request.Information,
+                        Priority = request.Priority,
+                        Sequence = request.Sequence,
+                        Weight = request.Weight
+                    });
+
+                if (affectedRowsCount != 1)
+                {
+                    throw new Exception("Update failed");
+                }
+
+                await _publisherCampaignBoxUpdated.PublishAsync(MapToMessage(campaignBoxEntity));
+                _logger.LogInformation("Sent campaignBox update to service bus {@context}", request);
+
+                var nosql = MapToNoSql(campaignBoxEntity);
+                await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
+                _logger.LogInformation("Sent campaignBox update to MyNoSql {@context}", request);
+
+                return MapToGrpc(campaignBoxEntity);
             }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error updating campaign box {@context}", request);
 
-            await _publisherCampaignBoxUpdated.PublishAsync(MapToMessage(campaignBoxEntity));
-            _logger.LogInformation("Sent campaignBox update to service bus {@context}", request);
-
-            var nosql = MapToNoSql(campaignBoxEntity);
-            await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
-            _logger.LogInformation("Sent campaignBox update to MyNoSql {@context}", request);
-
-            return MapToGrpc(campaignBoxEntity);
+                return new CampaignBoxResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+            }
         }
 
         public async Task<CampaignBoxResponse> GetAsync(CampaignBoxGetRequest request)
         {
             using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
-            var campaignBoxEntity = await ctx.CampaignBoxes.FirstOrDefaultAsync(x => x.CampaignBoxId == request.CampaignBoxId);
+            try
+            {
+                var campaignBoxEntity = await ctx.CampaignBoxes.FirstOrDefaultAsync(x => x.CampaignBoxId == request.CampaignBoxId);
 
-            return campaignBoxEntity != null ? MapToGrpc(campaignBoxEntity) : new CampaignBoxResponse();
+                return campaignBoxEntity != null ? MapToGrpc(campaignBoxEntity) : new CampaignBoxResponse();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error getting campaign box {@context}", request);
+
+                return new CampaignBoxResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+            }
         }
 
-        public async Task DeleteAsync(CampaignBoxDeleteRequest request)
+        public async Task<CampaignBoxResponse> DeleteAsync(CampaignBoxDeleteRequest request)
         {
             using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
-            var campaignBoxEntity = await ctx.CampaignBoxes.FirstOrDefaultAsync(x => x.CampaignBoxId == request.CampaignBoxId);
-
-            if (campaignBoxEntity == null)
-                return;
-
-            await _publisherCampaignBoxRemoved.PublishAsync(new CampaignBoxRemoved()
+            try
             {
-                CampaignBoxId = campaignBoxEntity.CampaignBoxId,
-                Sequence = campaignBoxEntity.Sequence,
-            });
+                var campaignBoxEntity = await ctx.CampaignBoxes.FirstOrDefaultAsync(x => x.CampaignBoxId == request.CampaignBoxId);
 
-            await _myNoSqlServerDataWriter.DeleteAsync(
-                CampaignBoxNoSql.GeneratePartitionKey(campaignBoxEntity.BoxId),
-                CampaignBoxNoSql.GenerateRowKey(campaignBoxEntity.CampaignBoxId));
+                if (campaignBoxEntity == null)
+                    return new CampaignBoxResponse();
 
-            await ctx.CampaignBoxes.Where(x => x.CampaignBoxId == campaignBoxEntity.CampaignBoxId).DeleteAsync();
+                await _publisherCampaignBoxRemoved.PublishAsync(new CampaignBoxRemoved()
+                {
+                    CampaignBoxId = campaignBoxEntity.CampaignBoxId,
+                    Sequence = campaignBoxEntity.Sequence,
+                });
+
+                await _myNoSqlServerDataWriter.DeleteAsync(
+                    CampaignBoxNoSql.GeneratePartitionKey(campaignBoxEntity.BoxId),
+                    CampaignBoxNoSql.GenerateRowKey(campaignBoxEntity.CampaignBoxId));
+
+                await ctx.CampaignBoxes.Where(x => x.CampaignBoxId == campaignBoxEntity.CampaignBoxId).DeleteAsync();
+
+                return new CampaignBoxResponse();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error deleting campaign box {@context}", request);
+
+                return new CampaignBoxResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+            }
         }
 
         private static CampaignBoxResponse MapToGrpc(CampaignBoxEntity campaignBoxEntity)
@@ -213,7 +254,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 Sequence = campaignBoxEntity.Sequence,
                 BoxId = campaignBoxEntity.BoxId,
                 CampaignId = campaignBoxEntity.CampaignId,
-                ActivityHours = campaignBoxEntity.ActivityHours.Select(x => 
+                ActivityHours = campaignBoxEntity.ActivityHours.Select(x =>
                     new Messages.CampaignBoxes.ActivityHours()
                     {
                         To = x.To,

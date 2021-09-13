@@ -5,6 +5,7 @@ using MarketingBox.Affiliate.Service.Domain.Extensions;
 using MarketingBox.Affiliate.Service.Grpc;
 using MarketingBox.Affiliate.Service.Grpc.Models.Campaigns;
 using MarketingBox.Affiliate.Service.Grpc.Models.Campaigns.Requests;
+using MarketingBox.Affiliate.Service.Grpc.Models.Common;
 using MarketingBox.Affiliate.Service.Messages.Campaigns;
 using MarketingBox.Affiliate.Service.MyNoSql.Campaigns;
 using Microsoft.EntityFrameworkCore;
@@ -48,39 +49,48 @@ namespace MarketingBox.Affiliate.Service.Services
             _logger.LogInformation("Creating new Campaign {@context}", request);
             using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
-            var campaignEntity = new CampaignEntity()
+            try
             {
-                TenantId = request.TenantId,
-                BrandId = request.BrandId,
-                Name = request.Name,
-                Sequence = 0,
-                Payout = new Payout()
+                var campaignEntity = new CampaignEntity()
                 {
-                    Currency = request.Payout.Currency.MapEnum<Domain.Common.Currency>(),
-                    Amount = request.Payout.Amount,
-                    Plan = request.Payout.Plan.MapEnum<Domain.Campaigns.Plan>(),
-                },
-                Privacy = request.Privacy.MapEnum<Domain.Campaigns.CampaignPrivacy>(),
-                Revenue = new Revenue()
-                {
-                    Amount = request.Revenue.Amount,
-                    Plan = request.Payout.Plan.MapEnum<Domain.Campaigns.Plan>(),
-                    Currency = request.Payout.Currency.MapEnum<Domain.Common.Currency>(),
-                },
-                Status = request.Status.MapEnum<Domain.Campaigns.CampaignStatus>(),
-            };
+                    TenantId = request.TenantId,
+                    BrandId = request.BrandId,
+                    Name = request.Name,
+                    Sequence = 0,
+                    Payout = new Payout()
+                    {
+                        Currency = request.Payout.Currency.MapEnum<Domain.Common.Currency>(),
+                        Amount = request.Payout.Amount,
+                        Plan = request.Payout.Plan.MapEnum<Domain.Campaigns.Plan>(),
+                    },
+                    Privacy = request.Privacy.MapEnum<Domain.Campaigns.CampaignPrivacy>(),
+                    Revenue = new Revenue()
+                    {
+                        Amount = request.Revenue.Amount,
+                        Plan = request.Payout.Plan.MapEnum<Domain.Campaigns.Plan>(),
+                        Currency = request.Payout.Currency.MapEnum<Domain.Common.Currency>(),
+                    },
+                    Status = request.Status.MapEnum<Domain.Campaigns.CampaignStatus>(),
+                };
 
-            ctx.Campaigns.Add(campaignEntity);
-            await ctx.SaveChangesAsync();
+                ctx.Campaigns.Add(campaignEntity);
+                await ctx.SaveChangesAsync();
 
-            await _publisherCampaignUpdated.PublishAsync(MapToMessage(campaignEntity));
-            _logger.LogInformation("Sent campaign update to service bus {@context}", request);
+                await _publisherCampaignUpdated.PublishAsync(MapToMessage(campaignEntity));
+                _logger.LogInformation("Sent campaign update to service bus {@context}", request);
 
-            var nosql = MapToNoSql(campaignEntity);
-            await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
-            _logger.LogInformation("Sent campaign update to MyNoSql {@context}", request);
+                var nosql = MapToNoSql(campaignEntity);
+                await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
+                _logger.LogInformation("Sent campaign update to MyNoSql {@context}", request);
 
-            return MapToGrpc(campaignEntity);
+                return MapToGrpc(campaignEntity);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error creating campaign {@context}", request);
+
+                return new CampaignResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+            }
         }
 
         public async Task<CampaignResponse> UpdateAsync(CampaignUpdateRequest request)
@@ -88,33 +98,9 @@ namespace MarketingBox.Affiliate.Service.Services
             _logger.LogInformation("Updating a Campaign {@context}", request);
             using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
-            var campaignEntity = new CampaignEntity()
+            try
             {
-                TenantId = request.TenantId,
-                BrandId = request.BrandId,
-                Name = request.Name,
-                Sequence = request.Sequence,
-                Payout = new Payout()
-                {
-                    Currency = request.Payout.Currency.MapEnum<Domain.Common.Currency>(),
-                    Amount = request.Payout.Amount,
-                    Plan = request.Payout.Plan.MapEnum<Domain.Campaigns.Plan>(),
-                },
-                Privacy = request.Privacy.MapEnum<Domain.Campaigns.CampaignPrivacy>(),
-                Revenue = new Revenue()
-                {
-                    Amount = request.Revenue.Amount,
-                    Plan = request.Payout.Plan.MapEnum<Domain.Campaigns.Plan>(),
-                    Currency = request.Payout.Currency.MapEnum<Domain.Common.Currency>(),
-                },
-                Status = request.Status.MapEnum<Domain.Campaigns.CampaignStatus>(),
-                Id = request.Id
-            };
-
-            var affectedRowsCount = await ctx.Campaigns
-                .Where(x => x.Id == request.Id&&
-                            x.Sequence <= request.Sequence)
-                .UpdateAsync(x => new CampaignEntity()
+                var campaignEntity = new CampaignEntity()
                 {
                     TenantId = request.TenantId,
                     BrandId = request.BrandId,
@@ -135,53 +121,106 @@ namespace MarketingBox.Affiliate.Service.Services
                     },
                     Status = request.Status.MapEnum<Domain.Campaigns.CampaignStatus>(),
                     Id = request.Id
-                });
+                };
 
-            if (affectedRowsCount != 1)
-            {
-                throw new Exception("Update failed");
+                var affectedRowsCount = await ctx.Campaigns
+                    .Where(x => x.Id == request.Id &&
+                                x.Sequence <= request.Sequence)
+                    .UpdateAsync(x => new CampaignEntity()
+                    {
+                        TenantId = request.TenantId,
+                        BrandId = request.BrandId,
+                        Name = request.Name,
+                        Sequence = request.Sequence,
+                        Payout = new Payout()
+                        {
+                            Currency = request.Payout.Currency.MapEnum<Domain.Common.Currency>(),
+                            Amount = request.Payout.Amount,
+                            Plan = request.Payout.Plan.MapEnum<Domain.Campaigns.Plan>(),
+                        },
+                        Privacy = request.Privacy.MapEnum<Domain.Campaigns.CampaignPrivacy>(),
+                        Revenue = new Revenue()
+                        {
+                            Amount = request.Revenue.Amount,
+                            Plan = request.Payout.Plan.MapEnum<Domain.Campaigns.Plan>(),
+                            Currency = request.Payout.Currency.MapEnum<Domain.Common.Currency>(),
+                        },
+                        Status = request.Status.MapEnum<Domain.Campaigns.CampaignStatus>(),
+                        Id = request.Id
+                    });
+
+                if (affectedRowsCount != 1)
+                {
+                    throw new Exception("Update failed");
+                }
+
+                await _publisherCampaignUpdated.PublishAsync(MapToMessage(campaignEntity));
+                _logger.LogInformation("Sent campaign update to service bus {@context}", request);
+
+                var nosql = MapToNoSql(campaignEntity);
+                await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
+                _logger.LogInformation("Sent campaign update to MyNoSql {@context}", request);
+
+                return MapToGrpc(campaignEntity);
             }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error updating campaign {@context}", request);
 
-            await _publisherCampaignUpdated.PublishAsync(MapToMessage(campaignEntity));
-            _logger.LogInformation("Sent campaign update to service bus {@context}", request);
-
-            var nosql = MapToNoSql(campaignEntity);
-            await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
-            _logger.LogInformation("Sent campaign update to MyNoSql {@context}", request);
-
-            return MapToGrpc(campaignEntity);
+                return new CampaignResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+            }
         }
 
         public async Task<CampaignResponse> GetAsync(CampaignGetRequest request)
         {
             using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
-            var campaignEntity = await ctx.Campaigns.FirstOrDefaultAsync(x => x.Id == request.CampaignId);
+            try
+            {
+                var campaignEntity = await ctx.Campaigns.FirstOrDefaultAsync(x => x.Id == request.CampaignId);
 
-            return campaignEntity != null ? MapToGrpc(campaignEntity) : new CampaignResponse();
+                return campaignEntity != null ? MapToGrpc(campaignEntity) : new CampaignResponse();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error getting campaign {@context}", request);
+
+                return new CampaignResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+            }
         }
 
-        public async Task DeleteAsync(CampaignDeleteRequest request)
+        public async Task<CampaignResponse> DeleteAsync(CampaignDeleteRequest request)
         {
             using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
-            var campaignEntity = await ctx.Campaigns.FirstOrDefaultAsync(x => x.Id == request.CampaignId);
-
-            if (campaignEntity == null)
-                return;
-
-            await _publisherCampaignRemoved.PublishAsync(new CampaignRemoved()
+            try
             {
-                CampaignId = campaignEntity.Id,
-                Sequence = campaignEntity.Sequence,
-                TenantId = campaignEntity.TenantId
-            });
+                var campaignEntity = await ctx.Campaigns.FirstOrDefaultAsync(x => x.Id == request.CampaignId);
 
-            await _myNoSqlServerDataWriter.DeleteAsync(
-                CampaignNoSql.GeneratePartitionKey(campaignEntity.TenantId),
-                CampaignNoSql.GenerateRowKey(campaignEntity.Id));
+                if (campaignEntity == null)
+                    return new CampaignResponse();
 
-            await ctx.Campaigns.Where(x => x.Id == campaignEntity.Id).DeleteAsync();
+                await _publisherCampaignRemoved.PublishAsync(new CampaignRemoved()
+                {
+                    CampaignId = campaignEntity.Id,
+                    Sequence = campaignEntity.Sequence,
+                    TenantId = campaignEntity.TenantId
+                });
+
+                await _myNoSqlServerDataWriter.DeleteAsync(
+                    CampaignNoSql.GeneratePartitionKey(campaignEntity.TenantId),
+                    CampaignNoSql.GenerateRowKey(campaignEntity.Id));
+
+                await ctx.Campaigns.Where(x => x.Id == campaignEntity.Id).DeleteAsync();
+
+                return new CampaignResponse();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error deleting campaign {@context}", request);
+
+                return new CampaignResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+            }
         }
 
         private static CampaignResponse MapToGrpc(CampaignEntity campaignEntity)

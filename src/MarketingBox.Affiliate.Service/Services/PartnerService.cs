@@ -13,6 +13,8 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using MarketingBox.Affiliate.Postgres.Entities.Partners;
+using MarketingBox.Affiliate.Service.Grpc.Models.Campaigns;
+using MarketingBox.Affiliate.Service.Grpc.Models.Common;
 using Z.EntityFramework.Plus;
 using Currency = MarketingBox.Affiliate.Service.Grpc.Models.Common.Currency;
 using PartnerBank = MarketingBox.Affiliate.Postgres.Entities.Partners.PartnerBank;
@@ -23,7 +25,7 @@ using PartnerState = MarketingBox.Affiliate.Service.Grpc.Models.Partners.Partner
 
 namespace MarketingBox.Affiliate.Service.Services
 {
-    public class PartnerService: IPartnerService
+    public class PartnerService : IPartnerService
     {
         private readonly ILogger<PartnerService> _logger;
         private readonly DbContextOptionsBuilder<DatabaseContext> _dbContextOptionsBuilder;
@@ -73,7 +75,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 {
                     CreatedAt = DateTime.UtcNow,
                     Currency = request.GeneralInfo.Currency.MapEnum<Domain.Common.Currency>(),
-                    Role = request.GeneralInfo.Role.MapEnum< Domain.Partners.PartnerRole>(),
+                    Role = request.GeneralInfo.Role.MapEnum<Domain.Partners.PartnerRole>(),
                     Skype = request.GeneralInfo.Skype,
                     State = request.GeneralInfo.State.MapEnum<Domain.Partners.PartnerState>(),
                     Username = request.GeneralInfo.Username,
@@ -83,18 +85,27 @@ namespace MarketingBox.Affiliate.Service.Services
                     Phone = request.GeneralInfo.Phone
                 }
             };
-            
-            ctx.Partners.Add(partnerEntity);
-            await ctx.SaveChangesAsync();
 
-            await _publisherPartnerUpdated.PublishAsync(MapToMessage(partnerEntity));
-            _logger.LogInformation("Sent partner update to service bus {@context}", request);
+            try
+            {
+                ctx.Partners.Add(partnerEntity);
+                await ctx.SaveChangesAsync();
 
-            var nosql = MapToNoSql(partnerEntity);
-            await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
-            _logger.LogInformation("Sent partner update to MyNoSql {@context}", request);
+                await _publisherPartnerUpdated.PublishAsync(MapToMessage(partnerEntity));
+                _logger.LogInformation("Sent partner update to service bus {@context}", request);
 
-            return MapToGrpc(partnerEntity);
+                var nosql = MapToNoSql(partnerEntity);
+                await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
+                _logger.LogInformation("Sent partner update to MyNoSql {@context}", request);
+
+                return MapToGrpc(partnerEntity);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error creating partner {@context}", request);
+
+                return new PartnerResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+            }
         }
 
         public async Task<PartnerResponse> UpdateAsync(PartnerUpdateRequest request)
@@ -139,9 +150,11 @@ namespace MarketingBox.Affiliate.Service.Services
                 Sequence = request.Sequence
             };
 
-            var affectedRowsCount = await ctx.Partners
+            try
+            {
+                var affectedRowsCount = await ctx.Partners
                 .Where(x => x.AffiliateId == request.AffiliateId &&
-                            x.Sequence <=  request.Sequence)
+                            x.Sequence <= request.Sequence)
                 .UpdateAsync(x => new PartnerEntity()
                 {
                     AffiliateId = request.AffiliateId,
@@ -179,51 +192,79 @@ namespace MarketingBox.Affiliate.Service.Services
                     Sequence = request.Sequence
                 });
 
-            if (affectedRowsCount != 1 )
-            {
-                throw new Exception("Update failed");
+                if (affectedRowsCount != 1)
+                {
+                    throw new Exception("Update failed");
+                }
+
+                await _publisherPartnerUpdated.PublishAsync(MapToMessage(partnerEntity));
+                _logger.LogInformation("Sent partner update to service bus {@context}", request);
+
+                var nosql = MapToNoSql(partnerEntity);
+                await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
+                _logger.LogInformation("Sent partner update to MyNoSql {@context}", request);
+
+                return MapToGrpc(partnerEntity);
             }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error updating partner {@context}", request);
 
-            await _publisherPartnerUpdated.PublishAsync(MapToMessage(partnerEntity));
-            _logger.LogInformation("Sent partner update to service bus {@context}", request);
-
-            var nosql = MapToNoSql(partnerEntity);
-            await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
-            _logger.LogInformation("Sent partner update to MyNoSql {@context}", request);
-
-            return MapToGrpc(partnerEntity);
+                return new PartnerResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+            }
         }
 
         public async Task<PartnerResponse> GetAsync(PartnerGetRequest request)
         {
             using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
-            var partnerEntity = await ctx.Partners.FirstOrDefaultAsync(x => x.AffiliateId == request.AffiliateId);
+            try
+            {
+                var partnerEntity = await ctx.Partners.FirstOrDefaultAsync(x => x.AffiliateId == request.AffiliateId);
 
-            return partnerEntity != null ? MapToGrpc(partnerEntity) : new PartnerResponse();
+                return partnerEntity != null ? MapToGrpc(partnerEntity) : new PartnerResponse();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error getting partner {@context}", request);
+
+                return new PartnerResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+            }
         }
 
-        public async Task DeleteAsync(PartnerDeleteRequest request)
+        public async Task<PartnerResponse> DeleteAsync(PartnerDeleteRequest request)
         {
             using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
-            var partnerEntity = await ctx.Partners.FirstOrDefaultAsync(x => x.AffiliateId == request.AffiliateId);
-
-            if (partnerEntity == null)
-                return;
-
-            await _publisherPartnerRemoved.PublishAsync(new PartnerRemoved()
+            try
             {
-                AffiliateId = partnerEntity.AffiliateId,
-                Sequence = partnerEntity.Sequence,
-                TenantId = partnerEntity.TenantId
-            });
 
-            await _myNoSqlServerDataWriter.DeleteAsync(
-                PartnerNoSql.GeneratePartitionKey(partnerEntity.TenantId),
-                PartnerNoSql.GenerateRowKey(partnerEntity.AffiliateId));
+                var partnerEntity = await ctx.Partners.FirstOrDefaultAsync(x => x.AffiliateId == request.AffiliateId);
 
-            await ctx.Partners.Where(x => x.AffiliateId == partnerEntity.AffiliateId).DeleteAsync();
+                if (partnerEntity == null)
+                    return new PartnerResponse();
+
+                await _publisherPartnerRemoved.PublishAsync(new PartnerRemoved()
+                {
+                    AffiliateId = partnerEntity.AffiliateId,
+                    Sequence = partnerEntity.Sequence,
+                    TenantId = partnerEntity.TenantId
+                });
+
+                await _myNoSqlServerDataWriter.DeleteAsync(
+                    PartnerNoSql.GeneratePartitionKey(partnerEntity.TenantId),
+                    PartnerNoSql.GenerateRowKey(partnerEntity.AffiliateId));
+
+                await ctx.Partners.Where(x => x.AffiliateId == partnerEntity.AffiliateId).DeleteAsync();
+
+                return new PartnerResponse();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error deleting partner {@context}", request);
+
+                return new PartnerResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+            }
         }
 
         private static PartnerResponse MapToGrpc(PartnerEntity partnerEntity)

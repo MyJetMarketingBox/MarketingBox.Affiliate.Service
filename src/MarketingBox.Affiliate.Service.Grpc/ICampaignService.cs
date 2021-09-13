@@ -18,6 +18,6 @@ namespace MarketingBox.Affiliate.Service.Grpc
         Task<CampaignResponse> GetAsync(CampaignGetRequest request);
 
         [OperationContract]
-        Task DeleteAsync(CampaignDeleteRequest request);
+        Task<CampaignResponse> DeleteAsync(CampaignDeleteRequest request);
     }
 }
