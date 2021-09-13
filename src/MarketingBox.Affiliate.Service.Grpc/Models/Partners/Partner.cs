@@ -21,6 +21,6 @@ namespace MarketingBox.Affiliate.Service.Grpc.Models.Partners
         public string TenantId { get; set; }
 
         [DataMember(Order = 6)]
-        public long SequenceId { get; set; }
+        public long Sequence { get; set; }
     }
 }

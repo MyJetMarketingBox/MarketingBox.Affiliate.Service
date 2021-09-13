@@ -304,7 +304,8 @@ namespace MarketingBox.Affiliate.Service.Services
                         State = partnerEntity.GeneralInfo.State.MapEnum<PartnerState>(),
                         Username = partnerEntity.GeneralInfo.Username,
                         ZipCode = partnerEntity.GeneralInfo.ZipCode
-                    }
+                    },
+                    Sequence = partnerEntity.Sequence
                 }
             };
         }
