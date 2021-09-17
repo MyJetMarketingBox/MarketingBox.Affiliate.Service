@@ -32,9 +32,12 @@ namespace MarketingBox.Affiliate.Service
 
             services.AddHostedService<ApplicationLifetimeManager>();
 
+            DatabaseContext.LoggerFactory = Program.LogFactory;
             services.AddDatabase(DatabaseContext.Schema, 
                 Program.Settings.PostgresConnectionString, 
                 o => new DatabaseContext(o));
+            DatabaseContext.LoggerFactory = null;
+            
 
             services.AddMyTelemetry("SP-", Program.Settings.ZipkinUrl);
         }
