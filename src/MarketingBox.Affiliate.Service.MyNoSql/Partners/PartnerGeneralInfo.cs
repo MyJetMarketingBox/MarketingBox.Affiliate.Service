@@ -21,5 +21,6 @@ namespace MarketingBox.Affiliate.Service.MyNoSql.Partners
         public Currency Currency { get; set; }
         
         public DateTime CreatedAt { get; set; }
+        public string ApiKey { get; set; }
     }
 }

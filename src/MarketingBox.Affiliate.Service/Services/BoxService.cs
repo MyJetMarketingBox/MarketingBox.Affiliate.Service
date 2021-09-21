@@ -24,18 +24,21 @@ namespace MarketingBox.Affiliate.Service.Services
         private readonly IPublisher<BoxUpdated> _publisherBoxUpdated;
         private readonly IMyNoSqlServerDataWriter<BoxNoSql> _myNoSqlServerDataWriter;
         private readonly IPublisher<BoxRemoved> _publisherBoxRemoved;
+        private readonly IMyNoSqlServerDataWriter<BoxIndexNoSql> _myNoSqlIndexServerDataWriter;
 
         public BoxService(ILogger<BoxService> logger,
             DbContextOptionsBuilder<DatabaseContext> dbContextOptionsBuilder,
             IPublisher<BoxUpdated> publisherBoxUpdated,
             IMyNoSqlServerDataWriter<BoxNoSql> myNoSqlServerDataWriter,
-            IPublisher<BoxRemoved> publisherBoxRemoved)
+            IPublisher<BoxRemoved> publisherBoxRemoved,
+            IMyNoSqlServerDataWriter<BoxIndexNoSql> myNoSqlIndexServerDataWriter)
         {
             _logger = logger;
             _dbContextOptionsBuilder = dbContextOptionsBuilder;
             _publisherBoxUpdated = publisherBoxUpdated;
             _myNoSqlServerDataWriter = myNoSqlServerDataWriter;
             _publisherBoxRemoved = publisherBoxRemoved;
+            _myNoSqlIndexServerDataWriter = myNoSqlIndexServerDataWriter;
         }
 
         public async Task<BoxResponse> CreateAsync(BoxCreateRequest request)
@@ -60,6 +63,8 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 var nosql = MapToNoSql(boxEntity);
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
+                await _myNoSqlIndexServerDataWriter.InsertOrReplaceAsync(
+                    BoxIndexNoSql.Create(boxEntity.TenantId, boxEntity.Id, boxEntity.Name, boxEntity.Sequence));
                 _logger.LogInformation("Sent box update to MyNoSql {@context}", request);
 
                 return MapToGrpc(boxEntity);

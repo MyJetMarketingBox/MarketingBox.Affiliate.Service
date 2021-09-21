@@ -52,6 +52,9 @@ namespace MarketingBox.Affiliate.Service.Modules
             // register writer (IMyNoSqlServerDataWriter<BoxNoSql>)
             builder.RegisterMyNoSqlWriter<BoxNoSql>(Program.ReloadedSettings(e => e.MyNoSqlWriterUrl), BoxNoSql.TableName);
 
+            // register writer (IMyNoSqlServerDataWriter<BoxIndexNoSql>)
+            builder.RegisterMyNoSqlWriter<BoxIndexNoSql>(Program.ReloadedSettings(e => e.MyNoSqlWriterUrl), BoxIndexNoSql.TableName);
+
             #endregion
 
             #region Brands
@@ -62,7 +65,7 @@ namespace MarketingBox.Affiliate.Service.Modules
             // publisher (IPublisher<BoxRemoved>)
             builder.RegisterMyServiceBusPublisher<BrandRemoved>(serviceBusClient, Topics.BrandRemovedTopic, false);
 
-            // register writer (IMyNoSqlServerDataWriter<BoxNoSql>)
+            // register writer (IMyNoSqlServerDataWriter<BrandNoSql>)
             builder.RegisterMyNoSqlWriter<BrandNoSql>(Program.ReloadedSettings(e => e.MyNoSqlWriterUrl), BrandNoSql.TableName);
 
             #endregion

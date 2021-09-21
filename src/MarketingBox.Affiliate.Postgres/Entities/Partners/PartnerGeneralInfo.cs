@@ -16,5 +16,6 @@ namespace MarketingBox.Affiliate.Postgres.Entities.Partners
         public PartnerState State { get; set; }
         public Currency Currency { get; set; }
         public DateTimeOffset CreatedAt { get; set; }
+        public string ApiKey { get; set; }
     }
 }

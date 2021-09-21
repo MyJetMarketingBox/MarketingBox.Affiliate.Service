@@ -82,7 +82,8 @@ namespace MarketingBox.Affiliate.Service.Services
                     ZipCode = request.GeneralInfo.ZipCode,
                     Email = request.GeneralInfo.Email,
                     Password = request.GeneralInfo.Password,
-                    Phone = request.GeneralInfo.Phone
+                    Phone = request.GeneralInfo.Phone,
+                    ApiKey = request.GeneralInfo.ApiKey
                 }
             };
 
@@ -145,7 +146,8 @@ namespace MarketingBox.Affiliate.Service.Services
                     ZipCode = request.GeneralInfo.ZipCode,
                     Email = request.GeneralInfo.Email,
                     Password = request.GeneralInfo.Password,
-                    Phone = request.GeneralInfo.Phone
+                    Phone = request.GeneralInfo.Phone,
+                    ApiKey = request.GeneralInfo.ApiKey
                 },
                 Sequence = request.Sequence
             };
@@ -187,7 +189,8 @@ namespace MarketingBox.Affiliate.Service.Services
                         ZipCode = request.GeneralInfo.ZipCode,
                         Email = request.GeneralInfo.Email,
                         Password = request.GeneralInfo.Password,
-                        Phone = request.GeneralInfo.Phone
+                        Phone = request.GeneralInfo.Phone,
+                        ApiKey = request.GeneralInfo.ApiKey
                     },
                     Sequence = request.Sequence
                 });
@@ -238,7 +241,6 @@ namespace MarketingBox.Affiliate.Service.Services
 
             try
             {
-
                 var partnerEntity = await ctx.Partners.FirstOrDefaultAsync(x => x.AffiliateId == request.AffiliateId);
 
                 if (partnerEntity == null)
@@ -303,7 +305,8 @@ namespace MarketingBox.Affiliate.Service.Services
                         Skype = partnerEntity.GeneralInfo.Skype,
                         State = partnerEntity.GeneralInfo.State.MapEnum<PartnerState>(),
                         Username = partnerEntity.GeneralInfo.Username,
-                        ZipCode = partnerEntity.GeneralInfo.ZipCode
+                        ZipCode = partnerEntity.GeneralInfo.ZipCode,
+                        ApiKey = partnerEntity.GeneralInfo.ApiKey
                     },
                     Sequence = partnerEntity.Sequence
                 }
@@ -344,7 +347,8 @@ namespace MarketingBox.Affiliate.Service.Services
                     Skype = partnerEntity.GeneralInfo.Skype,
                     State = partnerEntity.GeneralInfo.State.MapEnum<Messages.Partners.PartnerState>(),
                     Username = partnerEntity.GeneralInfo.Username,
-                    ZipCode = partnerEntity.GeneralInfo.ZipCode
+                    ZipCode = partnerEntity.GeneralInfo.ZipCode,
+                    ApiKey = partnerEntity.GeneralInfo.ApiKey
                 }
             };
         }
@@ -365,7 +369,8 @@ namespace MarketingBox.Affiliate.Service.Services
                     Skype = partnerEntity.GeneralInfo.Skype,
                     State = partnerEntity.GeneralInfo.State.MapEnum<MyNoSql.Partners.PartnerState>(),
                     Username = partnerEntity.GeneralInfo.Username,
-                    ZipCode = partnerEntity.GeneralInfo.ZipCode
+                    ZipCode = partnerEntity.GeneralInfo.ZipCode,
+                    ApiKey = partnerEntity.GeneralInfo.ApiKey
                 },
                 new MyNoSql.Partners.PartnerCompany()
                 {
