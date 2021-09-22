@@ -25,5 +25,8 @@ namespace MarketingBox.Affiliate.Service.Settings
 
         [YamlProperty("MarketingBoxAffiliateService.MarketingBoxServiceBusHostPort")]
         public string MarketingBoxServiceBusHostPort { get; set; }
+        
+        [YamlProperty("MarketingBoxAffiliateService.AuthServiceUrl")]
+        public string AuthServiceUrl { get; set; }
     }
 }

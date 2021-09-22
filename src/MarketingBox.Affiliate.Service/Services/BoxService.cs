@@ -58,14 +58,14 @@ namespace MarketingBox.Affiliate.Service.Services
                 ctx.Boxes.Add(boxEntity);
                 await ctx.SaveChangesAsync();
 
-                await _publisherBoxUpdated.PublishAsync(MapToMessage(boxEntity));
-                _logger.LogInformation("Sent box update to service bus {@context}", request);
-
                 var nosql = MapToNoSql(boxEntity);
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 await _myNoSqlIndexServerDataWriter.InsertOrReplaceAsync(
                     BoxIndexNoSql.Create(boxEntity.TenantId, boxEntity.Id, boxEntity.Name, boxEntity.Sequence));
                 _logger.LogInformation("Sent box update to MyNoSql {@context}", request);
+
+                await _publisherBoxUpdated.PublishAsync(MapToMessage(boxEntity));
+                _logger.LogInformation("Sent box update to service bus {@context}", request);
 
                 return MapToGrpc(boxEntity);
             }
@@ -108,12 +108,12 @@ namespace MarketingBox.Affiliate.Service.Services
                     throw new Exception("Update failed");
                 }
 
-                await _publisherBoxUpdated.PublishAsync(MapToMessage(boxEntity));
-                _logger.LogInformation("Sent box update to service bus {@context}", request);
-
                 var nosql = MapToNoSql(boxEntity);
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 _logger.LogInformation("Sent box update to MyNoSql {@context}", request);
+
+                await _publisherBoxUpdated.PublishAsync(MapToMessage(boxEntity));
+                _logger.LogInformation("Sent box update to service bus {@context}", request);
 
                 return MapToGrpc(boxEntity);
             }
@@ -154,16 +154,16 @@ namespace MarketingBox.Affiliate.Service.Services
                 if (boxEntity == null)
                     return new BoxResponse();
 
+                await _myNoSqlServerDataWriter.DeleteAsync(
+                    BoxNoSql.GeneratePartitionKey(boxEntity.TenantId),
+                    BoxNoSql.GenerateRowKey(boxEntity.Id));
+
                 await _publisherBoxRemoved.PublishAsync(new BoxRemoved()
                 {
                     BoxId = boxEntity.Id,
                     Sequence = boxEntity.Sequence,
                     TenantId = boxEntity.TenantId
                 });
-
-                await _myNoSqlServerDataWriter.DeleteAsync(
-                    BoxNoSql.GeneratePartitionKey(boxEntity.TenantId),
-                    BoxNoSql.GenerateRowKey(boxEntity.Id));
 
                 await ctx.Boxes.Where(x => x.Id == boxEntity.Id).DeleteAsync();
 

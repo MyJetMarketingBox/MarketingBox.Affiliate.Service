@@ -1,20 +1,21 @@
 ﻿using DotNetCoreDecorators;
 using MarketingBox.Affiliate.Postgres;
+using MarketingBox.Affiliate.Postgres.Entities.Partners;
 using MarketingBox.Affiliate.Service.Domain.Extensions;
 using MarketingBox.Affiliate.Service.Grpc;
+using MarketingBox.Affiliate.Service.Grpc.Models.Common;
 using MarketingBox.Affiliate.Service.Grpc.Models.Partners;
 using MarketingBox.Affiliate.Service.Grpc.Models.Partners.Messages;
 using MarketingBox.Affiliate.Service.Messages.Partners;
 using MarketingBox.Affiliate.Service.MyNoSql.Partners;
+using MarketingBox.Auth.Service.Grpc;
+using MarketingBox.Auth.Service.Grpc.Models.Users.Requests;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MyNoSqlServer.Abstractions;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using MarketingBox.Affiliate.Postgres.Entities.Partners;
-using MarketingBox.Affiliate.Service.Grpc.Models.Campaigns;
-using MarketingBox.Affiliate.Service.Grpc.Models.Common;
 using Z.EntityFramework.Plus;
 using Currency = MarketingBox.Affiliate.Service.Grpc.Models.Common.Currency;
 using PartnerBank = MarketingBox.Affiliate.Postgres.Entities.Partners.PartnerBank;
@@ -32,18 +33,21 @@ namespace MarketingBox.Affiliate.Service.Services
         private readonly IPublisher<PartnerUpdated> _publisherPartnerUpdated;
         private readonly IMyNoSqlServerDataWriter<PartnerNoSql> _myNoSqlServerDataWriter;
         private readonly IPublisher<PartnerRemoved> _publisherPartnerRemoved;
+        private readonly IUserService _userService;
 
         public PartnerService(ILogger<PartnerService> logger,
             DbContextOptionsBuilder<DatabaseContext> dbContextOptionsBuilder,
             IPublisher<PartnerUpdated> publisherPartnerUpdated,
             IMyNoSqlServerDataWriter<PartnerNoSql> myNoSqlServerDataWriter,
-            IPublisher<PartnerRemoved> publisherPartnerRemoved)
+            IPublisher<PartnerRemoved> publisherPartnerRemoved,
+            IUserService userService)
         {
             _logger = logger;
             _dbContextOptionsBuilder = dbContextOptionsBuilder;
             _publisherPartnerUpdated = publisherPartnerUpdated;
             _myNoSqlServerDataWriter = myNoSqlServerDataWriter;
             _publisherPartnerRemoved = publisherPartnerRemoved;
+            _userService = userService;
         }
 
         public async Task<PartnerResponse> CreateAsync(PartnerCreateRequest request)
@@ -89,15 +93,36 @@ namespace MarketingBox.Affiliate.Service.Services
 
             try
             {
-                ctx.Partners.Add(partnerEntity);
-                await ctx.SaveChangesAsync();
+                var existingEntity = await ctx.Partners.FirstOrDefaultAsync(x => x.TenantId == request.TenantId &&
+                                                                                 (x.GeneralInfo.Email == request.GeneralInfo.Email || 
+                                                                                  x.GeneralInfo.Username == request.GeneralInfo.Username));
 
-                await _publisherPartnerUpdated.PublishAsync(MapToMessage(partnerEntity));
-                _logger.LogInformation("Sent partner update to service bus {@context}", request);
+                if (existingEntity == null)
+                {
+                    ctx.Partners.Add(partnerEntity);
+                    await ctx.SaveChangesAsync();
+                }
+                else
+                {
+                    partnerEntity = existingEntity;
+
+                    var existingUsers = await _userService.GetAsync(new GetUserRequest()
+                    {
+                        ExternalUserId = partnerEntity.AffiliateId.ToString(),
+                        Email = partnerEntity.GeneralInfo.Email,
+                        Username = partnerEntity.GeneralInfo.Username,
+                        TenantId = request.TenantId
+                    });
+                }
+
+                await CreateOrUpdateUser(request.TenantId, partnerEntity);
 
                 var nosql = MapToNoSql(partnerEntity);
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 _logger.LogInformation("Sent partner update to MyNoSql {@context}", request);
+
+                await _publisherPartnerUpdated.PublishAsync(MapToMessage(partnerEntity));
+                _logger.LogInformation("Sent partner update to service bus {@context}", request);
 
                 return MapToGrpc(partnerEntity);
             }
@@ -200,12 +225,14 @@ namespace MarketingBox.Affiliate.Service.Services
                     throw new Exception("Update failed");
                 }
 
-                await _publisherPartnerUpdated.PublishAsync(MapToMessage(partnerEntity));
-                _logger.LogInformation("Sent partner update to service bus {@context}", request);
+                await CreateOrUpdateUser(request.TenantId, partnerEntity);
 
                 var nosql = MapToNoSql(partnerEntity);
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 _logger.LogInformation("Sent partner update to MyNoSql {@context}", request);
+
+                await _publisherPartnerUpdated.PublishAsync(MapToMessage(partnerEntity));
+                _logger.LogInformation("Sent partner update to service bus {@context}", request);
 
                 return MapToGrpc(partnerEntity);
             }
@@ -246,6 +273,10 @@ namespace MarketingBox.Affiliate.Service.Services
                 if (partnerEntity == null)
                     return new PartnerResponse();
 
+                await _myNoSqlServerDataWriter.DeleteAsync(
+                    PartnerNoSql.GeneratePartitionKey(partnerEntity.TenantId),
+                    PartnerNoSql.GenerateRowKey(partnerEntity.AffiliateId));
+
                 await _publisherPartnerRemoved.PublishAsync(new PartnerRemoved()
                 {
                     AffiliateId = partnerEntity.AffiliateId,
@@ -253,9 +284,7 @@ namespace MarketingBox.Affiliate.Service.Services
                     TenantId = partnerEntity.TenantId
                 });
 
-                await _myNoSqlServerDataWriter.DeleteAsync(
-                    PartnerNoSql.GeneratePartitionKey(partnerEntity.TenantId),
-                    PartnerNoSql.GenerateRowKey(partnerEntity.AffiliateId));
+                await _userService.DeleteAsync(new DeleteUserRequest() {TenantId = partnerEntity.TenantId, ExternalUserId = request.AffiliateId.ToString()});
 
                 await ctx.Partners.Where(x => x.AffiliateId == partnerEntity.AffiliateId).DeleteAsync();
 
@@ -266,6 +295,48 @@ namespace MarketingBox.Affiliate.Service.Services
                 _logger.LogError(e, "Error deleting partner {@context}", request);
 
                 return new PartnerResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+            }
+        }
+
+        private async Task CreateOrUpdateUser(string tenantId, PartnerEntity partnerEntity)
+        {
+            var existingUsers = await _userService.GetAsync(new GetUserRequest()
+            {
+                ExternalUserId = partnerEntity.AffiliateId.ToString(),
+                TenantId = tenantId
+            });
+
+            if (existingUsers.Error != null)
+                throw new InvalidOperationException($"{existingUsers.Error.Message} - {existingUsers.Error.ErrorType}");
+
+            if (existingUsers.User == null ||
+                !existingUsers.User.Any())
+            {
+                var response = await _userService.CreateAsync(new CreateUserRequest()
+                {
+                    Email = partnerEntity.GeneralInfo.Email,
+                    ExternalUserId = partnerEntity.AffiliateId.ToString(),
+                    Password = partnerEntity.GeneralInfo.Password,
+                    TenantId = partnerEntity.TenantId,
+                    Username = partnerEntity.GeneralInfo.Username
+                });
+
+                if (response.Error != null)
+                    throw new InvalidOperationException($"{response.Error.Message} - {response.Error.ErrorType}");
+            }
+            else
+            {
+                var response = await _userService.UpdateAsync(new UpdateUserRequest()
+                {
+                    Email = partnerEntity.GeneralInfo.Email,
+                    ExternalUserId = partnerEntity.AffiliateId.ToString(),
+                    Password = partnerEntity.GeneralInfo.Password,
+                    TenantId = partnerEntity.TenantId,
+                    Username = partnerEntity.GeneralInfo.Username
+                });
+
+                if (response.Error != null)
+                    throw new InvalidOperationException($"{response.Error.Message} - {response.Error.ErrorType}");
             }
         }
 

@@ -68,7 +68,11 @@ namespace MarketingBox.Affiliate.Postgres
             modelBuilder.Entity<PartnerEntity>().OwnsOne(x => x.Bank);
             modelBuilder.Entity<PartnerEntity>().OwnsOne(x => x.Company);
             modelBuilder.Entity<PartnerEntity>().OwnsOne(x => x.GeneralInfo);
-            modelBuilder.Entity<PartnerEntity>().HasIndex(e => new {e.TenantId, e.AffiliateId});
+            modelBuilder.Entity<PartnerEntity>().HasIndex(e => new { e.TenantId, e.AffiliateId});
+            
+            //TODO: This IS NOT SUPPORTED BY EF BUT IT IS WRITTEN IN MIGRATION
+            //modelBuilder.Entity<PartnerEntity>().HasIndex(e => new { e.TenantId, e.GeneralInfo.Email }).IsUnique(true);
+            //modelBuilder.Entity<PartnerEntity>().HasIndex(e => new { e.TenantId, e.GeneralInfo.Username }).IsUnique(true);
         }
 
         private void SetCampaignEntity(ModelBuilder modelBuilder)

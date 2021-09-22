@@ -33,7 +33,7 @@ namespace MarketingBox.Affiliate.Service.Messages.Partners
         [DataMember(Order = 10)]
         public DateTime CreatedAt { get; set; }
 
-        [DataMember(Order = 10)]
+        [DataMember(Order = 11)]
         public string ApiKey { get; set; }
     }
 }

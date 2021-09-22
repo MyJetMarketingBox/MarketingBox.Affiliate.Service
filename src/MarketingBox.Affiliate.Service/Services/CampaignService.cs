@@ -76,12 +76,12 @@ namespace MarketingBox.Affiliate.Service.Services
                 ctx.Campaigns.Add(campaignEntity);
                 await ctx.SaveChangesAsync();
 
-                await _publisherCampaignUpdated.PublishAsync(MapToMessage(campaignEntity));
-                _logger.LogInformation("Sent campaign update to service bus {@context}", request);
-
                 var nosql = MapToNoSql(campaignEntity);
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 _logger.LogInformation("Sent campaign update to MyNoSql {@context}", request);
+
+                await _publisherCampaignUpdated.PublishAsync(MapToMessage(campaignEntity));
+                _logger.LogInformation("Sent campaign update to service bus {@context}", request);
 
                 return MapToGrpc(campaignEntity);
             }
@@ -154,12 +154,12 @@ namespace MarketingBox.Affiliate.Service.Services
                     throw new Exception("Update failed");
                 }
 
-                await _publisherCampaignUpdated.PublishAsync(MapToMessage(campaignEntity));
-                _logger.LogInformation("Sent campaign update to service bus {@context}", request);
-
                 var nosql = MapToNoSql(campaignEntity);
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 _logger.LogInformation("Sent campaign update to MyNoSql {@context}", request);
+
+                await _publisherCampaignUpdated.PublishAsync(MapToMessage(campaignEntity));
+                _logger.LogInformation("Sent campaign update to service bus {@context}", request);
 
                 return MapToGrpc(campaignEntity);
             }
@@ -200,16 +200,16 @@ namespace MarketingBox.Affiliate.Service.Services
                 if (campaignEntity == null)
                     return new CampaignResponse();
 
+                await _myNoSqlServerDataWriter.DeleteAsync(
+                    CampaignNoSql.GeneratePartitionKey(campaignEntity.TenantId),
+                    CampaignNoSql.GenerateRowKey(campaignEntity.Id));
+
                 await _publisherCampaignRemoved.PublishAsync(new CampaignRemoved()
                 {
                     CampaignId = campaignEntity.Id,
                     Sequence = campaignEntity.Sequence,
                     TenantId = campaignEntity.TenantId
                 });
-
-                await _myNoSqlServerDataWriter.DeleteAsync(
-                    CampaignNoSql.GeneratePartitionKey(campaignEntity.TenantId),
-                    CampaignNoSql.GenerateRowKey(campaignEntity.Id));
 
                 await ctx.Campaigns.Where(x => x.Id == campaignEntity.Id).DeleteAsync();
 

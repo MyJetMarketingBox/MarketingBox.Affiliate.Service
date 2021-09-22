@@ -55,12 +55,12 @@ namespace MarketingBox.Affiliate.Service.Services
                 ctx.Brands.Add(brandEntity);
                 await ctx.SaveChangesAsync();
 
-                await _publisherBrandUpdated.PublishAsync(MapToMessage(brandEntity));
-                _logger.LogInformation("Sent brand update to service bus {@context}", request);
-
                 var nosql = MapToNoSql(brandEntity);
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 _logger.LogInformation("Sent brand update to MyNoSql {@context}", request);
+
+                await _publisherBrandUpdated.PublishAsync(MapToMessage(brandEntity));
+                _logger.LogInformation("Sent brand update to service bus {@context}", request);
 
                 return MapToGrpc(brandEntity);
             }
@@ -103,12 +103,12 @@ namespace MarketingBox.Affiliate.Service.Services
                     throw new Exception("Update failed");
                 }
 
-                await _publisherBrandUpdated.PublishAsync(MapToMessage(brandEntity));
-                _logger.LogInformation("Sent brand update to service bus {@context}", request);
-
                 var nosql = MapToNoSql(brandEntity);
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 _logger.LogInformation("Sent brand update to MyNoSql {@context}", request);
+
+                await _publisherBrandUpdated.PublishAsync(MapToMessage(brandEntity));
+                _logger.LogInformation("Sent brand update to service bus {@context}", request);
 
                 return MapToGrpc(brandEntity);
             }
@@ -149,16 +149,16 @@ namespace MarketingBox.Affiliate.Service.Services
                 if (brandEntity == null)
                     return new BrandResponse();
 
+                await _myNoSqlServerDataWriter.DeleteAsync(
+                    BrandNoSql.GeneratePartitionKey(brandEntity.TenantId),
+                    BrandNoSql.GenerateRowKey(brandEntity.Id));
+
                 await _publisherBrandRemoved.PublishAsync(new BrandRemoved()
                 {
                     BrandId = brandEntity.Id,
                     Sequence = brandEntity.Sequence,
                     TenantId = brandEntity.TenantId
                 });
-
-                await _myNoSqlServerDataWriter.DeleteAsync(
-                    BrandNoSql.GeneratePartitionKey(brandEntity.TenantId),
-                    BrandNoSql.GenerateRowKey(brandEntity.Id));
 
                 await ctx.Brands.Where(x => x.Id == brandEntity.Id).DeleteAsync();
 

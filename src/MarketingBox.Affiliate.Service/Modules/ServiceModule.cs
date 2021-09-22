@@ -11,6 +11,7 @@ using MarketingBox.Affiliate.Service.MyNoSql.Brands;
 using MarketingBox.Affiliate.Service.MyNoSql.CampaignBoxes;
 using MarketingBox.Affiliate.Service.MyNoSql.Campaigns;
 using MarketingBox.Affiliate.Service.MyNoSql.Partners;
+using MarketingBox.Auth.Service.Client;
 using MyJetWallet.Sdk.NoSql;
 using MyJetWallet.Sdk.Service;
 using MyJetWallet.Sdk.ServiceBus;
@@ -26,6 +27,7 @@ namespace MarketingBox.Affiliate.Service.Modules
                     Program.ReloadedSettings(e => e.MarketingBoxServiceBusHostPort),
                     ApplicationEnvironment.HostName, Program.LogFactory);
 
+            builder.RegisterAuthServiceClient(Program.Settings.AuthServiceUrl);
             var noSqlClient = builder.CreateNoSqlClient(Program.ReloadedSettings(e => e.MyNoSqlReaderHostPort));
 
             #region Partners

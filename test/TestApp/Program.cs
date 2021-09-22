@@ -25,7 +25,7 @@ namespace TestApp
                 AffiliateId = 0,
             });
 
-            var testTenant = "Test-Tenant";
+            var testTenant = "default-tenant-id";
             var request = new PartnerCreateRequest()
             {
                 TenantId = testTenant,
@@ -50,14 +50,16 @@ namespace TestApp
             request.GeneralInfo = new PartnerGeneralInfo()
             {
                 Currency = Currency.CHF,
-                Email = "email@email.com",
-                Password = "sadadadwad",
+                Email = "email1@email.com",
+                Password = "qwerty_123456",
                 Phone = "+79990999999",
                 Role = PartnerRole.BrandManager,
                 Skype = "skype",
                 State = PartnerState.Active,
-                Username = "User",
-                ZipCode = "414141"
+                Username = "SomeTestUser",
+                ZipCode = "414141",
+                ApiKey = "123-456-789",
+                CreatedAt = DateTime.Now
             };
 
             var partnerCreated = (await  client.CreateAsync(request)).Partner;

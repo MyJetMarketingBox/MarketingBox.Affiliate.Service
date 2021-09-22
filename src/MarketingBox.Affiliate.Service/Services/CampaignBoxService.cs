@@ -73,12 +73,12 @@ namespace MarketingBox.Affiliate.Service.Services
                 ctx.CampaignBoxes.Add(campaignBoxEntity);
                 await ctx.SaveChangesAsync();
 
-                await _publisherCampaignBoxUpdated.PublishAsync(MapToMessage(campaignBoxEntity));
-                _logger.LogInformation("Sent campaignBox update to service bus {@context}", request);
-
                 var nosql = MapToNoSql(campaignBoxEntity);
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 _logger.LogInformation("Sent campaignBox update to MyNoSql {@context}", request);
+
+                await _publisherCampaignBoxUpdated.PublishAsync(MapToMessage(campaignBoxEntity));
+                _logger.LogInformation("Sent campaignBox update to service bus {@context}", request);
 
                 return MapToGrpc(campaignBoxEntity);
             }
@@ -150,12 +150,12 @@ namespace MarketingBox.Affiliate.Service.Services
                     throw new Exception("Update failed");
                 }
 
-                await _publisherCampaignBoxUpdated.PublishAsync(MapToMessage(campaignBoxEntity));
-                _logger.LogInformation("Sent campaignBox update to service bus {@context}", request);
-
                 var nosql = MapToNoSql(campaignBoxEntity);
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 _logger.LogInformation("Sent campaignBox update to MyNoSql {@context}", request);
+
+                await _publisherCampaignBoxUpdated.PublishAsync(MapToMessage(campaignBoxEntity));
+                _logger.LogInformation("Sent campaignBox update to service bus {@context}", request);
 
                 return MapToGrpc(campaignBoxEntity);
             }
@@ -196,15 +196,15 @@ namespace MarketingBox.Affiliate.Service.Services
                 if (campaignBoxEntity == null)
                     return new CampaignBoxResponse();
 
+                await _myNoSqlServerDataWriter.DeleteAsync(
+                    CampaignBoxNoSql.GeneratePartitionKey(campaignBoxEntity.BoxId),
+                    CampaignBoxNoSql.GenerateRowKey(campaignBoxEntity.CampaignBoxId));
+
                 await _publisherCampaignBoxRemoved.PublishAsync(new CampaignBoxRemoved()
                 {
                     CampaignBoxId = campaignBoxEntity.CampaignBoxId,
                     Sequence = campaignBoxEntity.Sequence,
                 });
-
-                await _myNoSqlServerDataWriter.DeleteAsync(
-                    CampaignBoxNoSql.GeneratePartitionKey(campaignBoxEntity.BoxId),
-                    CampaignBoxNoSql.GenerateRowKey(campaignBoxEntity.CampaignBoxId));
 
                 await ctx.CampaignBoxes.Where(x => x.CampaignBoxId == campaignBoxEntity.CampaignBoxId).DeleteAsync();
 
