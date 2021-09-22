@@ -106,13 +106,13 @@ namespace MarketingBox.Affiliate.Service.Services
                 {
                     partnerEntity = existingEntity;
 
-                    var existingUsers = await _userService.GetAsync(new GetUserRequest()
-                    {
-                        ExternalUserId = partnerEntity.AffiliateId.ToString(),
-                        Email = partnerEntity.GeneralInfo.Email,
-                        Username = partnerEntity.GeneralInfo.Username,
-                        TenantId = request.TenantId
-                    });
+                    //var existingUsers = await _userService.GetAsync(new GetUserRequest()
+                    //{
+                    //    ExternalUserId = partnerEntity.AffiliateId.ToString(),
+                    //    Email = partnerEntity.GeneralInfo.Email,
+                    //    Username = partnerEntity.GeneralInfo.Username,
+                    //    TenantId = request.TenantId
+                    //});
                 }
 
                 await CreateOrUpdateUser(request.TenantId, partnerEntity);
