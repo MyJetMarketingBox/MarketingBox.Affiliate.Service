@@ -10,17 +10,17 @@ namespace MarketingBox.Affiliate.Service.MyNoSql.Partners
             $"{affiliateId}";
 
 
-        public long AffiliateId { get; private set; }
+        public long AffiliateId { get; set; }
 
-        public PartnerGeneralInfo GeneralInfo { get; private set; }
+        public PartnerGeneralInfo GeneralInfo { get; set; }
 
-        public PartnerCompany Company { get; private set; }
+        public PartnerCompany Company { get; set; }
 
-        public PartnerBank Bank { get; private set; }
+        public PartnerBank Bank { get; set; }
 
-        public string TenantId { get; private set; }
+        public string TenantId { get; set; }
 
-        public long Sequence { get; private set; }
+        public long Sequence { get; set; }
 
 
         public static PartnerNoSql Create(
