@@ -16,6 +16,7 @@ using MyNoSqlServer.Abstractions;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using MarketingBox.Affiliate.Service.Grpc.Models.Partners.Requests;
 using Z.EntityFramework.Plus;
 using Currency = MarketingBox.Affiliate.Service.Grpc.Models.Common.Currency;
 using PartnerBank = MarketingBox.Affiliate.Postgres.Entities.Partners.PartnerBank;
@@ -94,7 +95,7 @@ namespace MarketingBox.Affiliate.Service.Services
             try
             {
                 var existingEntity = await ctx.Partners.FirstOrDefaultAsync(x => x.TenantId == request.TenantId &&
-                                                                                 (x.GeneralInfo.Email == request.GeneralInfo.Email || 
+                                                                                 (x.GeneralInfo.Email == request.GeneralInfo.Email ||
                                                                                   x.GeneralInfo.Username == request.GeneralInfo.Username));
 
                 if (existingEntity == null)
@@ -284,7 +285,7 @@ namespace MarketingBox.Affiliate.Service.Services
                     TenantId = partnerEntity.TenantId
                 });
 
-                await _userService.DeleteAsync(new DeleteUserRequest() {TenantId = partnerEntity.TenantId, ExternalUserId = request.AffiliateId.ToString()});
+                await _userService.DeleteAsync(new DeleteUserRequest() { TenantId = partnerEntity.TenantId, ExternalUserId = request.AffiliateId.ToString() });
 
                 await ctx.Partners.Where(x => x.AffiliateId == partnerEntity.AffiliateId).DeleteAsync();
 
@@ -295,6 +296,86 @@ namespace MarketingBox.Affiliate.Service.Services
                 _logger.LogError(e, "Error deleting partner {@context}", request);
 
                 return new PartnerResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+            }
+        }
+
+        public async Task<PartnerSearchResponse> SearchAsync(PartnerSearchRequest request)
+        {
+            using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+
+            try
+            {
+                var query = ctx.Partners.AsQueryable();
+
+                if (!string.IsNullOrEmpty(request.TenantId))
+                {
+                    query = query.Where(x => x.TenantId == request.TenantId);
+                }
+
+                if (!string.IsNullOrEmpty(request.Username))
+                {
+                    query = query.Where(x => x.GeneralInfo.Username.Contains(request.Username));
+                }
+
+                if (request.AffiliateId.HasValue)
+                {
+                    query = query.Where(x => x.AffiliateId == request.AffiliateId.Value);
+                }
+
+                if (!string.IsNullOrEmpty(request.Email))
+                {
+                    query = query.Where(x => x.GeneralInfo.Email.Contains(request.Email));
+                }
+
+                if (request.CreatedAt.HasValue)
+                {
+                    query = query.Where(x => x.GeneralInfo.CreatedAt == request.CreatedAt);
+                }
+
+                if (request.Role.HasValue)
+                {
+                    query = query.Where(x => x.GeneralInfo.Role == request.Role.MapEnum<Domain.Partners.PartnerRole>());
+                }
+
+                var limit = request.Take <= 0 ? 1000 : request.Take;
+                if (request.Asc)
+                {
+                    if (request.Cursor != null)
+                    {
+                        query = query.Where(x => x.AffiliateId > request.Cursor);
+                    }
+
+                    query = query.OrderBy(x => x.AffiliateId);
+                }
+                else
+                {
+                    if (request.Cursor != null)
+                    {
+                        query = query.Where(x => x.AffiliateId < request.Cursor);
+                    }
+
+                    query = query.OrderByDescending(x => x.AffiliateId);
+                }
+
+                query = query.Take(limit);
+
+                await query.LoadAsync();
+
+                var response = query
+                    .AsEnumerable()
+                    .Select(MapToGrpcInner)
+                    .ToArray();
+
+                return new PartnerSearchResponse()
+                {
+                    Partners = response
+                };
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error search request {@context}", request);
+
+                return new PartnerSearchResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
             }
         }
 
@@ -344,43 +425,48 @@ namespace MarketingBox.Affiliate.Service.Services
         {
             return new PartnerResponse()
             {
-                Partner = new Partner()
+                Partner = MapToGrpcInner(partnerEntity)
+            };
+        }
+
+        private static Partner MapToGrpcInner(PartnerEntity partnerEntity)
+        {
+            return new Partner()
+            {
+                TenantId = partnerEntity.TenantId,
+                AffiliateId = partnerEntity.AffiliateId,
+                Company = new Grpc.Models.Partners.PartnerCompany()
                 {
-                    TenantId = partnerEntity.TenantId,
-                    AffiliateId = partnerEntity.AffiliateId,
-                    Company = new Grpc.Models.Partners.PartnerCompany()
-                    {
-                        Address = partnerEntity.Company.Address,
-                        Name = partnerEntity.Company.Name,
-                        RegNumber = partnerEntity.Company.RegNumber,
-                        VatId = partnerEntity.Company.VatId,
-                    },
-                    Bank = new Grpc.Models.Partners.PartnerBank()
-                    {
-                        AccountNumber = partnerEntity.Bank.AccountNumber,
-                        BankAddress = partnerEntity.Bank.BankAddress,
-                        BankName = partnerEntity.Bank.BankName,
-                        BeneficiaryAddress = partnerEntity.Bank.BeneficiaryAddress,
-                        BeneficiaryName = partnerEntity.Bank.BeneficiaryName,
-                        Iban = partnerEntity.Bank.Iban,
-                        Swift = partnerEntity.Bank.Swift
-                    },
-                    GeneralInfo = new Grpc.Models.Partners.PartnerGeneralInfo()
-                    {
-                        Currency = partnerEntity.GeneralInfo.Currency.MapEnum<Currency>(),
-                        CreatedAt = partnerEntity.GeneralInfo.CreatedAt.UtcDateTime,
-                        Email = partnerEntity.GeneralInfo.Email,
-                        Password = partnerEntity.GeneralInfo.Password,
-                        Phone = partnerEntity.GeneralInfo.Phone,
-                        Role = partnerEntity.GeneralInfo.Role.MapEnum<PartnerRole>(),
-                        Skype = partnerEntity.GeneralInfo.Skype,
-                        State = partnerEntity.GeneralInfo.State.MapEnum<PartnerState>(),
-                        Username = partnerEntity.GeneralInfo.Username,
-                        ZipCode = partnerEntity.GeneralInfo.ZipCode,
-                        ApiKey = partnerEntity.GeneralInfo.ApiKey
-                    },
-                    Sequence = partnerEntity.Sequence
-                }
+                    Address = partnerEntity.Company.Address,
+                    Name = partnerEntity.Company.Name,
+                    RegNumber = partnerEntity.Company.RegNumber,
+                    VatId = partnerEntity.Company.VatId,
+                },
+                Bank = new Grpc.Models.Partners.PartnerBank()
+                {
+                    AccountNumber = partnerEntity.Bank.AccountNumber,
+                    BankAddress = partnerEntity.Bank.BankAddress,
+                    BankName = partnerEntity.Bank.BankName,
+                    BeneficiaryAddress = partnerEntity.Bank.BeneficiaryAddress,
+                    BeneficiaryName = partnerEntity.Bank.BeneficiaryName,
+                    Iban = partnerEntity.Bank.Iban,
+                    Swift = partnerEntity.Bank.Swift
+                },
+                GeneralInfo = new Grpc.Models.Partners.PartnerGeneralInfo()
+                {
+                    Currency = partnerEntity.GeneralInfo.Currency.MapEnum<Currency>(),
+                    CreatedAt = partnerEntity.GeneralInfo.CreatedAt.UtcDateTime,
+                    Email = partnerEntity.GeneralInfo.Email,
+                    Password = partnerEntity.GeneralInfo.Password,
+                    Phone = partnerEntity.GeneralInfo.Phone,
+                    Role = partnerEntity.GeneralInfo.Role.MapEnum<PartnerRole>(),
+                    Skype = partnerEntity.GeneralInfo.Skype,
+                    State = partnerEntity.GeneralInfo.State.MapEnum<PartnerState>(),
+                    Username = partnerEntity.GeneralInfo.Username,
+                    ZipCode = partnerEntity.GeneralInfo.ZipCode,
+                    ApiKey = partnerEntity.GeneralInfo.ApiKey
+                },
+                Sequence = partnerEntity.Sequence
             };
         }
 

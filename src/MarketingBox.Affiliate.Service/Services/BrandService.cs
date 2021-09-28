@@ -172,17 +172,87 @@ namespace MarketingBox.Affiliate.Service.Services
             }
         }
 
+        public async Task<BrandSearchResponse> SearchAsync(BrandSearchRequest request)
+        {
+            using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+
+            try
+            {
+                var query = ctx.Brands.AsQueryable();
+
+                if (!string.IsNullOrEmpty(request.TenantId))
+                {
+                    query = query.Where(x => x.TenantId == request.TenantId);
+                }
+
+                if (!string.IsNullOrEmpty(request.Name))
+                {
+                    query = query.Where(x => x.Name.Contains(request.Name));
+                }
+
+                if (request.BoxId.HasValue)
+                {
+                    query = query.Where(x => x.Id == request.BoxId);
+                }
+
+                var limit = request.Take <= 0 ? 1000 : request.Take;
+                if (request.Asc)
+                {
+                    if (request.Cursor != null)
+                    {
+                        query = query.Where(x => x.Id > request.Cursor);
+                    }
+
+                    query = query.OrderBy(x => x.Id);
+                }
+                else
+                {
+                    if (request.Cursor != null)
+                    {
+                        query = query.Where(x => x.Id < request.Cursor);
+                    }
+
+                    query = query.OrderByDescending(x => x.Id);
+                }
+
+                query = query.Take(limit);
+
+                await query.LoadAsync();
+
+                var response = query
+                    .AsEnumerable()
+                    .Select(MapToGrpcInner)
+                    .ToArray();
+
+                return new BrandSearchResponse()
+                {
+                    Brands = response
+                };
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error searching boxes {@context}", request);
+
+                return new BrandSearchResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+            }
+        }
+
         private static BrandResponse MapToGrpc(BrandEntity brandEntity)
         {
             return new BrandResponse()
             {
-                Brand = new Brand()
-                {
-                    TenantId = brandEntity.TenantId,
-                    Sequence = brandEntity.Sequence,
-                    Name = brandEntity.Name,
-                    Id = brandEntity.Id
-                }
+                Brand = MapToGrpcInner(brandEntity)
+            };
+        }
+
+        private static Brand MapToGrpcInner(BrandEntity brandEntity)
+        {
+            return new Brand()
+            {
+                TenantId = brandEntity.TenantId,
+                Sequence = brandEntity.Sequence,
+                Name = brandEntity.Name,
+                Id = brandEntity.Id
             };
         }
 

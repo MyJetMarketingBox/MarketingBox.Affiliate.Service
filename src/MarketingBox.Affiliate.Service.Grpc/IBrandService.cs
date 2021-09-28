@@ -19,5 +19,8 @@ namespace MarketingBox.Affiliate.Service.Grpc
 
         [OperationContract]
         Task<BrandResponse> DeleteAsync(BrandDeleteRequest request);
+
+        [OperationContract]
+        Task<BrandSearchResponse> SearchAsync(BrandSearchRequest request);
     }
 }

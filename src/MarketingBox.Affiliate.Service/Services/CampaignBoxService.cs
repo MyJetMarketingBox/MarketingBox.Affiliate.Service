@@ -5,16 +5,15 @@ using MarketingBox.Affiliate.Service.Domain.Extensions;
 using MarketingBox.Affiliate.Service.Grpc;
 using MarketingBox.Affiliate.Service.Grpc.Models.CampaignBoxes;
 using MarketingBox.Affiliate.Service.Grpc.Models.CampaignBoxes.Requests;
+using MarketingBox.Affiliate.Service.Grpc.Models.Common;
 using MarketingBox.Affiliate.Service.Messages.CampaignBoxes;
+using MarketingBox.Affiliate.Service.MyNoSql.CampaignBoxes;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MyNoSqlServer.Abstractions;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using MarketingBox.Affiliate.Service.Grpc.Models.Brands;
-using MarketingBox.Affiliate.Service.Grpc.Models.Common;
-using MarketingBox.Affiliate.Service.MyNoSql.CampaignBoxes;
 using Z.EntityFramework.Plus;
 using ActivityHours = MarketingBox.Affiliate.Postgres.Entities.CampaignBoxes.ActivityHours;
 using CapType = MarketingBox.Affiliate.Service.Domain.CampaignBoxes.CapType;
@@ -218,11 +217,77 @@ namespace MarketingBox.Affiliate.Service.Services
             }
         }
 
+        public async Task<CampaignBoxSearchResponse> SearchAsync(CampaignBoxSearchRequest request)
+        {
+            using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+
+            try
+            {
+                var query = ctx.CampaignBoxes.AsQueryable();
+
+                if (request.CampaignId.HasValue)
+                {
+                    query = query.Where(x => x.CampaignId == request.CampaignId);
+                }
+
+                if (request.BoxId.HasValue)
+                {
+                    query = query.Where(x => x.BoxId == request.BoxId);
+                }
+
+                var limit = request.Take <= 0 ? 1000 : request.Take;
+                if (request.Asc)
+                {
+                    if (request.Cursor != null)
+                    {
+                        query = query.Where(x => x.CampaignBoxId > request.Cursor);
+                    }
+
+                    query = query.OrderBy(x => x.CampaignBoxId);
+                }
+                else
+                {
+                    if (request.Cursor != null)
+                    {
+                        query = query.Where(x => x.CampaignBoxId < request.Cursor);
+                    }
+
+                    query = query.OrderByDescending(x => x.CampaignBoxId);
+                }
+
+                query = query.Take(limit);
+
+                await query.LoadAsync();
+
+                var response = query
+                    .AsEnumerable()
+                    .Select(MapToGrpcInner)
+                    .ToArray();
+
+                return new CampaignBoxSearchResponse()
+                {
+                    CampaignBoxes = response
+                };
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error searching for boxes {@context}", request);
+
+                return new CampaignBoxSearchResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+            }
+        }
+
         private static CampaignBoxResponse MapToGrpc(CampaignBoxEntity campaignBoxEntity)
         {
             return new CampaignBoxResponse()
             {
-                CampaignBox = new CampaignBox()
+                CampaignBox = MapToGrpcInner(campaignBoxEntity)
+            };
+        }
+
+        private static CampaignBox MapToGrpcInner(CampaignBoxEntity campaignBoxEntity)
+        {
+            return new CampaignBox()
                 {
                     Sequence = campaignBoxEntity.Sequence,
                     BoxId = campaignBoxEntity.BoxId,
@@ -243,8 +308,7 @@ namespace MarketingBox.Affiliate.Service.Services
                     Information = campaignBoxEntity.Information,
                     Priority = campaignBoxEntity.Priority,
                     Weight = campaignBoxEntity.Weight
-                }
-            };
+                };
         }
 
         private static CampaignBoxUpdated MapToMessage(CampaignBoxEntity campaignBoxEntity)

@@ -2,6 +2,7 @@
 using MarketingBox.Affiliate.Service.Grpc.Models.Partners.Messages;
 using System.ServiceModel;
 using System.Threading.Tasks;
+using MarketingBox.Affiliate.Service.Grpc.Models.Partners.Requests;
 
 namespace MarketingBox.Affiliate.Service.Grpc
 {
@@ -19,5 +20,8 @@ namespace MarketingBox.Affiliate.Service.Grpc
 
         [OperationContract]
         Task<PartnerResponse> DeleteAsync(PartnerDeleteRequest request);
+
+        [OperationContract]
+        Task<PartnerSearchResponse> SearchAsync(PartnerSearchRequest request);
     }
 }

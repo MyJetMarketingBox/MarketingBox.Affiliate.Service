@@ -14,6 +14,7 @@ using MyNoSqlServer.Abstractions;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using MarketingBox.Affiliate.Service.Grpc.Models.Partners;
 using Z.EntityFramework.Plus;
 using CampaignPrivacy = MarketingBox.Affiliate.Service.Messages.Campaigns.CampaignPrivacy;
 using CampaignStatus = MarketingBox.Affiliate.Service.Messages.Campaigns.CampaignStatus;
@@ -223,32 +224,112 @@ namespace MarketingBox.Affiliate.Service.Services
             }
         }
 
+        public async Task<CampaignSearchResponse> SearchAsync(CampaignSearchRequest request)
+        {
+            using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+
+            try
+            {
+                var query = ctx.Campaigns.AsQueryable();
+
+                if (!string.IsNullOrEmpty(request.TenantId))
+                {
+                    query = query.Where(x => x.TenantId == request.TenantId);
+                }
+
+                if (!string.IsNullOrEmpty(request.Name))
+                {
+                    query = query.Where(x => x.Name.Contains(request.Name));
+                }
+
+                if (request.CampaignId.HasValue)
+                {
+                    query = query.Where(x => x.Id == request.CampaignId.Value);
+                }
+
+                if (request.BrandId.HasValue)
+                {
+                    query = query.Where(x => x.BrandId == request.BrandId.Value);
+                }
+
+                if (request.Status.HasValue)
+                {
+                    query = query.Where(x => x.Status == request.Status.MapEnum<Domain.Campaigns.CampaignStatus>());
+                }
+
+                var limit = request.Take <= 0 ? 1000 : request.Take;
+                if (request.Asc)
+                {
+                    if (request.Cursor != null)
+                    {
+                        query = query.Where(x => x.Id > request.Cursor);
+                    }
+
+                    query = query.OrderBy(x => x.Id);
+                }
+                else
+                {
+                    if (request.Cursor != null)
+                    {
+                        query = query.Where(x => x.Id < request.Cursor);
+                    }
+
+                    query = query.OrderByDescending(x => x.Id);
+                }
+
+                query = query.Take(limit);
+
+                await query.LoadAsync();
+
+                var response = query
+                    .AsEnumerable()
+                    .Select(MapToGrpcInner)
+                    .ToArray();
+
+                return new CampaignSearchResponse() 
+                {
+                    Campaigns = response
+                };
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error searching for campaigns {@context}", request);
+
+                return new CampaignSearchResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+            }
+        }
+
         private static CampaignResponse MapToGrpc(CampaignEntity campaignEntity)
         {
             return new CampaignResponse()
             {
-                Campaign = new Campaign()
+                Campaign = MapToGrpcInner(campaignEntity) 
+            };
+        }
+
+        private static Campaign MapToGrpcInner(CampaignEntity campaignEntity)
+        {
+            return new Campaign()
+            {
+                TenantId = campaignEntity.TenantId,
+                Id = campaignEntity.Id,
+                Name = campaignEntity.Name,
+                BrandId = campaignEntity.BrandId,
+                Sequence = campaignEntity.Sequence,
+                Revenue = new Grpc.Models.Campaigns.Revenue()
                 {
-                    TenantId = campaignEntity.TenantId,
-                    Id = campaignEntity.Id,
-                    Name = campaignEntity.Name,
-                    BrandId = campaignEntity.BrandId,
-                    Sequence = campaignEntity.Sequence,
-                    Revenue = new Grpc.Models.Campaigns.Revenue()
-                    {
-                        Currency = campaignEntity.Revenue.Currency.MapEnum<Grpc.Models.Common.Currency>(),
-                        Plan = campaignEntity.Revenue.Plan.MapEnum<Grpc.Models.Campaigns.Plan>(),
-                        Amount = campaignEntity.Revenue.Amount
-                    },
-                    Payout = new Grpc.Models.Campaigns.Payout()
-                    {
-                        Currency = campaignEntity.Payout.Currency.MapEnum<Grpc.Models.Common.Currency>(),
-                        Plan = campaignEntity.Payout.Plan.MapEnum<Grpc.Models.Campaigns.Plan>(),
-                        Amount = campaignEntity.Payout.Amount
-                    },
-                    Privacy = campaignEntity.Privacy.MapEnum<Grpc.Models.Campaigns.CampaignPrivacy>(),
-                    Status = campaignEntity.Status.MapEnum<Grpc.Models.Campaigns.CampaignStatus>(),
-                }
+                    Currency = campaignEntity.Revenue.Currency.MapEnum<Grpc.Models.Common.Currency>(),
+                    Plan = campaignEntity.Revenue.Plan.MapEnum<Grpc.Models.Campaigns.Plan>(),
+                    Amount = campaignEntity.Revenue.Amount
+                },
+                Payout = new Grpc.Models.Campaigns.Payout()
+                {
+                    Currency = campaignEntity.Payout.Currency.MapEnum<Grpc.Models.Common.Currency>(),
+                    Plan = campaignEntity.Payout.Plan.MapEnum<Grpc.Models.Campaigns.Plan>(),
+                    Amount = campaignEntity.Payout.Amount
+                },
+                Privacy = campaignEntity.Privacy.MapEnum<Grpc.Models.Campaigns.CampaignPrivacy>(),
+                Status = campaignEntity.Status.MapEnum<Grpc.Models.Campaigns.CampaignStatus>(),
             };
         }
 

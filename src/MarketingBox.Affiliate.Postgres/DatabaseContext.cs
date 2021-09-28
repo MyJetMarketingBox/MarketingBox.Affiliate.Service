@@ -69,10 +69,11 @@ namespace MarketingBox.Affiliate.Postgres
             modelBuilder.Entity<PartnerEntity>().OwnsOne(x => x.Company);
             modelBuilder.Entity<PartnerEntity>().OwnsOne(x => x.GeneralInfo);
             modelBuilder.Entity<PartnerEntity>().HasIndex(e => new { e.TenantId, e.AffiliateId});
-            
             //TODO: This IS NOT SUPPORTED BY EF BUT IT IS WRITTEN IN MIGRATION
-            //modelBuilder.Entity<PartnerEntity>().HasIndex(e => new { e.TenantId, e.GeneralInfo.Email }).IsUnique(true);
-            //modelBuilder.Entity<PartnerEntity>().HasIndex(e => new { e.TenantId, e.GeneralInfo.Username }).IsUnique(true);
+            // modelBuilder.Entity<PartnerEntity>().HasIndex(e => new { e.TenantId, e.GeneralInfo.Email }).IsUnique(true);
+            // modelBuilder.Entity<PartnerEntity>().HasIndex(e => new { e.TenantId, e.GeneralInfo.Username }).IsUnique(true);
+            // modelBuilder.Entity<PartnerEntity>().HasIndex(e => new { e.TenantId, e.GeneralInfo.CreatedAt });
+            // modelBuilder.Entity<PartnerEntity>().HasIndex(e => new { e.TenantId, e.GeneralInfo.Role });
         }
 
         private void SetCampaignEntity(ModelBuilder modelBuilder)
@@ -87,6 +88,8 @@ namespace MarketingBox.Affiliate.Postgres
                 .HasForeignKey(x => x.BrandId);
 
             modelBuilder.Entity<CampaignEntity>().HasIndex(e => new { e.TenantId, e.Id });
+            modelBuilder.Entity<CampaignEntity>().HasIndex(e => new { e.TenantId, e.BrandId });
+            modelBuilder.Entity<CampaignEntity>().HasIndex(e => new { e.TenantId, e.Status });
         }
 
         private void SetCampaignBoxEntity(ModelBuilder modelBuilder)
@@ -112,7 +115,9 @@ namespace MarketingBox.Affiliate.Postgres
                         JsonConvert.DeserializeObject<ActivityHours[]>(v,
                             JsonSerializingSettings));
 
-            modelBuilder.Entity<CampaignEntity>().HasIndex(e => new { e.TenantId, e.Id });
+            modelBuilder.Entity<CampaignBoxEntity>().HasIndex(e => new { e.BoxId });
+            modelBuilder.Entity<CampaignBoxEntity>().HasIndex(e => new { e.CampaignId });
+            modelBuilder.Entity<CampaignBoxEntity>().HasIndex(e => new { e.CountryCode });
         }
 
         private void SetBrandEntity(ModelBuilder modelBuilder)
@@ -120,6 +125,7 @@ namespace MarketingBox.Affiliate.Postgres
             modelBuilder.Entity<BrandEntity>().ToTable(BrandTableName);
             modelBuilder.Entity<BrandEntity>().HasKey(e => e.Id);
             modelBuilder.Entity<BrandEntity>().HasIndex(e => new { e.TenantId, e.Id });
+            modelBuilder.Entity<BrandEntity>().HasIndex(e => new { e.TenantId, e.Name });
         }
 
         private void SetBoxEntity(ModelBuilder modelBuilder)
@@ -127,6 +133,7 @@ namespace MarketingBox.Affiliate.Postgres
             modelBuilder.Entity<BoxEntity>().ToTable(BoxTableName);
             modelBuilder.Entity<BoxEntity>().HasKey(e => e.Id);
             modelBuilder.Entity<BoxEntity>().HasIndex(e => new { e.TenantId, e.Id });
+            modelBuilder.Entity<BoxEntity>().HasIndex(e => new { e.TenantId, e.Name });
         }
 
         public override void Dispose()
