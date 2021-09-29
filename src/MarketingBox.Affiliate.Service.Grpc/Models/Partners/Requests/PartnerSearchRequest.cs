@@ -22,7 +22,7 @@ namespace MarketingBox.Affiliate.Service.Grpc.Models.Partners.Requests
         public string Email { get; set; }
 
         [DataMember(Order = 6)]
-        public DateTimeOffset? CreatedAt { get; set; }
+        public DateTime CreatedAt { get; set; }
 
         [DataMember(Order = 7)]
         public string Note { get; set; }

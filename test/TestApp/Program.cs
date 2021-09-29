@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Threading.Tasks;
 using MarketingBox.Affiliate.Service.Client;
+using MarketingBox.Affiliate.Service.Grpc.Models.Boxes.Messages;
 using MarketingBox.Affiliate.Service.Grpc.Models.Common;
 using MarketingBox.Affiliate.Service.Grpc.Models.Partners;
 using MarketingBox.Affiliate.Service.Grpc.Models.Partners.Messages;
+using MarketingBox.Affiliate.Service.Grpc.Models.Partners.Requests;
 using ProtoBuf.Grpc.Client;
 
 namespace TestApp
@@ -16,16 +18,27 @@ namespace TestApp
 
             Console.Write("Press enter to start");
             Console.ReadLine();
-
+            var testTenant = "default-tenant-id";
             var factory = new AffiliateServiceClientFactory("http://localhost:12347");
             var client = factory.GetPartnerService();
+            var boxClient = factory.GetBoxService();
+
+            var boxes = await boxClient.SearchAsync(new BoxSearchRequest()
+            {
+                TenantId = testTenant
+            });
+
+            var partners = await client.SearchAsync(new PartnerSearchRequest()
+            {
+                TenantId = testTenant,
+            });
 
             var check = await client.GetAsync(new PartnerGetRequest()
             {
                 AffiliateId = 0,
             });
 
-            var testTenant = "default-tenant-id";
+            
             var request = new PartnerCreateRequest()
             {
                 TenantId = testTenant,

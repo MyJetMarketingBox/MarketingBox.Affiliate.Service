@@ -327,9 +327,10 @@ namespace MarketingBox.Affiliate.Service.Services
                     query = query.Where(x => x.GeneralInfo.Email.Contains(request.Email));
                 }
 
-                if (request.CreatedAt.HasValue)
+                if (request.CreatedAt != default)
                 {
-                    query = query.Where(x => x.GeneralInfo.CreatedAt == request.CreatedAt);
+                    DateTimeOffset date = request.CreatedAt;
+                    query = query.Where(x => x.GeneralInfo.CreatedAt == date);
                 }
 
                 if (request.Role.HasValue)
