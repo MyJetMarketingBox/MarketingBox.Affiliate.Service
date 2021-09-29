@@ -17,7 +17,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MyJetWallet.Sdk.Service" Version="1.5.5" />
+    <PackageReference Include="MyJetWallet.Sdk.Service" Version="1.6.0" />
     <PackageReference Include="MyJetWallet.Sdk.ServiceBus" Version="1.0.4" />
   </ItemGroup>
 

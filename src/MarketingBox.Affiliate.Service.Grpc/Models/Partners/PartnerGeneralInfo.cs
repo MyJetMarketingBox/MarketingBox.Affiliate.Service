@@ -20,14 +20,15 @@ namespace MarketingBox.Affiliate.Service.Grpc.Models.Partners
         public string Email { get; set; }
         
         [DataMember(Order = 4)]
-        [LogMasked(PreserveLength = true, ShowFirst = 2, ShowLast = 2)]
+        [LogMasked(PreserveLength = true, ShowFirst = 1, ShowLast = 1)]
         public string Phone { get; set; }
 
         [DataMember(Order = 5)]
-        [LogMasked(PreserveLength = true, ShowFirst = 2, ShowLast = 2)]
+        [LogMasked(PreserveLength = true, ShowFirst = 1, ShowLast = 1)]
         public string Skype { get; set; }
         
         [DataMember(Order = 6)]
+        [LogMasked(PreserveLength = true, ShowFirst = 1, ShowLast = 1)]
         public string ZipCode { get; set; }
         
         [DataMember(Order = 7)]

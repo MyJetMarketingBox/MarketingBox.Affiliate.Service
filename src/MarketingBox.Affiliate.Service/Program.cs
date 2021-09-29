@@ -1,6 +1,4 @@
-﻿using System;
-using System.Net;
-using Autofac.Extensions.DependencyInjection;
+﻿using Autofac.Extensions.DependencyInjection;
 using MarketingBox.Affiliate.Service.Settings;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
@@ -9,6 +7,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MyJetWallet.Sdk.Service;
 using MySettingsReader;
+using System;
+using System.Net;
 
 namespace MarketingBox.Affiliate.Service
 {

@@ -63,13 +63,13 @@ namespace TestApp
             request.GeneralInfo = new PartnerGeneralInfo()
             {
                 Currency = Currency.CHF,
-                Email = "email1@email.com",
+                Email = "email123@email.com",
                 Password = "qwerty_123456",
                 Phone = "+79990999999",
                 Role = PartnerRole.BrandManager,
                 Skype = "skype",
                 State = PartnerState.Active,
-                Username = "SomeTestUser",
+                Username = "SomeTestUser1",
                 ZipCode = "414141",
                 ApiKey = "123-456-789",
                 CreatedAt = DateTime.Now
