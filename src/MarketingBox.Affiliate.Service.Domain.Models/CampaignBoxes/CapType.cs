@@ -1,4 +1,4 @@
-﻿namespace MarketingBox.Affiliate.Service.MyNoSql.CampaignBoxes
+﻿namespace MarketingBox.Affiliate.Service.Domain.Models.CampaignBoxes
 {
     public enum CapType
     {

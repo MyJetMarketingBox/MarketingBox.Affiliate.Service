@@ -1,5 +1,6 @@
 ﻿using System.Runtime.Serialization;
-using MarketingBox.Affiliate.Service.Messages.Common;
+using MarketingBox.Affiliate.Service.Domain.Models.Campaigns;
+using MarketingBox.Affiliate.Service.Domain.Models.Common;
 
 namespace MarketingBox.Affiliate.Service.Messages.Campaigns
 {

@@ -1,4 +1,4 @@
-﻿namespace MarketingBox.Affiliate.Service.Messages.Campaigns
+﻿namespace MarketingBox.Affiliate.Service.Domain.Models.Campaigns
 {
     public enum CampaignPrivacy
     {

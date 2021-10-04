@@ -1,5 +1,4 @@
 ﻿using Autofac;
-using MarketingBox.Affiliate.Service.Grpc.Models.CampaignBoxes;
 using MarketingBox.Affiliate.Service.Messages;
 using MarketingBox.Affiliate.Service.Messages.Boxes;
 using MarketingBox.Affiliate.Service.Messages.Brands;

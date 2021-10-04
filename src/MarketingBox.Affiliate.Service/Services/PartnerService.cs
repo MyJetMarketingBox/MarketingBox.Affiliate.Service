@@ -496,14 +496,14 @@ namespace MarketingBox.Affiliate.Service.Services
                 },
                 GeneralInfo = new Messages.Partners.PartnerGeneralInfo()
                 {
-                    Currency = partnerEntity.GeneralInfo.Currency.MapEnum<Messages.Common.Currency>(),
+                    Currency = partnerEntity.GeneralInfo.Currency.MapEnum< Domain.Models.Common.Currency >(),
                     CreatedAt = partnerEntity.GeneralInfo.CreatedAt.UtcDateTime,
                     Email = partnerEntity.GeneralInfo.Email,
                     //Password = partnerEntity.GeneralInfo.Password,
                     Phone = partnerEntity.GeneralInfo.Phone,
-                    Role = partnerEntity.GeneralInfo.Role.MapEnum<Messages.Partners.PartnerRole>(),
+                    Role = partnerEntity.GeneralInfo.Role.MapEnum<Domain.Models.Partners.PartnerRole>(),
                     Skype = partnerEntity.GeneralInfo.Skype,
-                    State = partnerEntity.GeneralInfo.State.MapEnum<Messages.Partners.PartnerState>(),
+                    State = partnerEntity.GeneralInfo.State.MapEnum<Domain.Models.Partners.PartnerState>(),
                     Username = partnerEntity.GeneralInfo.Username,
                     ZipCode = partnerEntity.GeneralInfo.ZipCode,
                     ApiKey = partnerEntity.GeneralInfo.ApiKey
@@ -518,14 +518,14 @@ namespace MarketingBox.Affiliate.Service.Services
                 partnerEntity.AffiliateId,
                 new MyNoSql.Partners.PartnerGeneralInfo()
                 {
-                    Currency = partnerEntity.GeneralInfo.Currency.MapEnum<MyNoSql.Common.Currency>(),
+                    Currency = partnerEntity.GeneralInfo.Currency.MapEnum<Domain.Models.Common.Currency>(),
                     CreatedAt = partnerEntity.GeneralInfo.CreatedAt.UtcDateTime,
                     Email = partnerEntity.GeneralInfo.Email,
                     //Password = partnerEntity.GeneralInfo.Password,
                     Phone = partnerEntity.GeneralInfo.Phone,
-                    Role = partnerEntity.GeneralInfo.Role.MapEnum<MyNoSql.Partners.PartnerRole>(),
+                    Role = partnerEntity.GeneralInfo.Role.MapEnum<Domain.Models.Partners.PartnerRole>(),
                     Skype = partnerEntity.GeneralInfo.Skype,
-                    State = partnerEntity.GeneralInfo.State.MapEnum<MyNoSql.Partners.PartnerState>(),
+                    State = partnerEntity.GeneralInfo.State.MapEnum<Domain.Models.Partners.PartnerState>(),
                     Username = partnerEntity.GeneralInfo.Username,
                     ZipCode = partnerEntity.GeneralInfo.ZipCode,
                     ApiKey = partnerEntity.GeneralInfo.ApiKey

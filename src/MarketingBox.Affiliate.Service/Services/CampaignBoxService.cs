@@ -327,7 +327,7 @@ namespace MarketingBox.Affiliate.Service.Services
                         IsActive = x.IsActive
                     }).ToArray(),
                 CampaignBoxId = campaignBoxEntity.CampaignBoxId,
-                CapType = campaignBoxEntity.CapType.MapEnum<Messages.CampaignBoxes.CapType>(),
+                CapType = campaignBoxEntity.CapType.MapEnum< Domain.Models.CampaignBoxes.CapType>(),
                 CountryCode = campaignBoxEntity.CountryCode,
                 DailyCapValue = campaignBoxEntity.DailyCapValue,
                 EnableTraffic = campaignBoxEntity.EnableTraffic,
@@ -346,7 +346,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 campaignBoxEntity.CountryCode,
                 campaignBoxEntity.Priority,
                 campaignBoxEntity.Weight,
-                campaignBoxEntity.CapType.MapEnum<MyNoSql.CampaignBoxes.CapType>(),
+                campaignBoxEntity.CapType.MapEnum< Domain.Models.CampaignBoxes.CapType >(),
                 campaignBoxEntity.DailyCapValue,
                 campaignBoxEntity.ActivityHours.Select(x => new MyNoSql.CampaignBoxes.ActivityHours()
                 {

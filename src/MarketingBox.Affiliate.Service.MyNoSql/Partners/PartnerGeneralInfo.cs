@@ -1,5 +1,6 @@
 ﻿using System;
-using MarketingBox.Affiliate.Service.MyNoSql.Common;
+using MarketingBox.Affiliate.Service.Domain.Models.Common;
+using MarketingBox.Affiliate.Service.Domain.Models.Partners;
 
 namespace MarketingBox.Affiliate.Service.MyNoSql.Partners
 {

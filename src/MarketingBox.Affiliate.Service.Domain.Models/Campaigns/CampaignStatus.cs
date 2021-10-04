@@ -1,4 +1,4 @@
-﻿namespace MarketingBox.Affiliate.Service.MyNoSql.Campaigns
+﻿namespace MarketingBox.Affiliate.Service.Domain.Models.Campaigns
 {
     public enum CampaignStatus 
     {

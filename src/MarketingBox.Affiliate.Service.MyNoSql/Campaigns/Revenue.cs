@@ -1,4 +1,5 @@
-﻿using MarketingBox.Affiliate.Service.MyNoSql.Common;
+﻿using MarketingBox.Affiliate.Service.Domain.Models.Campaigns;
+using MarketingBox.Affiliate.Service.Domain.Models.Common;
 
 namespace MarketingBox.Affiliate.Service.MyNoSql.Campaigns
 {

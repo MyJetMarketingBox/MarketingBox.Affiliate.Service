@@ -35,6 +35,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MarketingBox.Affiliate.Serv
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MarketingBox.Affiliate.Service.MyNoSql", "src\MarketingBox.Affiliate.Service.MyNoSql\MarketingBox.Affiliate.Service.MyNoSql.csproj", "{CD23B436-D600-473D-8833-C61659EFECCF}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MarketingBox.Affiliate.Service.Domain.Models", "src\MarketingBox.Affiliate.Service.Domain.Models\MarketingBox.Affiliate.Service.Domain.Models.csproj", "{57F470C5-4D1B-4FB3-AE10-574367BEA276}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -77,6 +79,10 @@ Global
 		{CD23B436-D600-473D-8833-C61659EFECCF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CD23B436-D600-473D-8833-C61659EFECCF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CD23B436-D600-473D-8833-C61659EFECCF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{57F470C5-4D1B-4FB3-AE10-574367BEA276}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{57F470C5-4D1B-4FB3-AE10-574367BEA276}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{57F470C5-4D1B-4FB3-AE10-574367BEA276}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{57F470C5-4D1B-4FB3-AE10-574367BEA276}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -90,6 +96,7 @@ Global
 		{383F8FCD-D53C-4720-82F4-1C4E327F9E71} = {446301A0-97F2-4921-BA0B-32B76039C73B}
 		{72A91A60-8D6E-423F-AD7C-AFACBEDF5991} = {446301A0-97F2-4921-BA0B-32B76039C73B}
 		{CD23B436-D600-473D-8833-C61659EFECCF} = {446301A0-97F2-4921-BA0B-32B76039C73B}
+		{57F470C5-4D1B-4FB3-AE10-574367BEA276} = {446301A0-97F2-4921-BA0B-32B76039C73B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6BF00C9D-AD55-40F2-8FE3-E5C3559B3E26}

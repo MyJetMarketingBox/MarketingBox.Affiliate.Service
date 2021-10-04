@@ -5,11 +5,4 @@
     <LangVersion>8.0</LangVersion>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Folder Include="Brands\" />
-    <Folder Include="Boxes\" />
-    <Folder Include="Campaigns\" />
-    <Folder Include="CampaignBoxes\" />
-  </ItemGroup>
-
 </Project>
