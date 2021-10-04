@@ -314,18 +314,18 @@ namespace MarketingBox.Affiliate.Service.Services
                 Sequence = campaignEntity.Sequence,
                 Revenue = new Grpc.Models.Campaigns.Revenue()
                 {
-                    Currency = campaignEntity.Revenue.Currency.MapEnum<Grpc.Models.Common.Currency>(),
-                    Plan = campaignEntity.Revenue.Plan.MapEnum<Grpc.Models.Campaigns.Plan>(),
+                    Currency = campaignEntity.Revenue.Currency.MapEnum<Domain.Models.Common.Currency>(),
+                    Plan = campaignEntity.Revenue.Plan.MapEnum<Domain.Models.Campaigns.Plan>(),
                     Amount = campaignEntity.Revenue.Amount
                 },
                 Payout = new Grpc.Models.Campaigns.Payout()
                 {
-                    Currency = campaignEntity.Payout.Currency.MapEnum<Grpc.Models.Common.Currency>(),
-                    Plan = campaignEntity.Payout.Plan.MapEnum<Grpc.Models.Campaigns.Plan>(),
+                    Currency = campaignEntity.Payout.Currency.MapEnum<Domain.Models.Common.Currency>(),
+                    Plan = campaignEntity.Payout.Plan.MapEnum<Domain.Models.Campaigns.Plan>(),
                     Amount = campaignEntity.Payout.Amount
                 },
-                Privacy = campaignEntity.Privacy.MapEnum<Grpc.Models.Campaigns.CampaignPrivacy>(),
-                Status = campaignEntity.Status.MapEnum<Grpc.Models.Campaigns.CampaignStatus>(),
+                Privacy = campaignEntity.Privacy.MapEnum<Domain.Models.Campaigns.CampaignPrivacy>(),
+                Status = campaignEntity.Status.MapEnum<  Domain.Models.Campaigns.CampaignStatus>(),
             };
         }
 

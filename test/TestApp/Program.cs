@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
 using MarketingBox.Affiliate.Service.Client;
+using MarketingBox.Affiliate.Service.Domain.Models.Common;
+using MarketingBox.Affiliate.Service.Domain.Models.Partners;
 using MarketingBox.Affiliate.Service.Grpc.Models.Boxes.Messages;
 using MarketingBox.Affiliate.Service.Grpc.Models.Common;
 using MarketingBox.Affiliate.Service.Grpc.Models.Partners;

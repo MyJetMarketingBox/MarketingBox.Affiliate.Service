@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Runtime.Serialization;
 using Destructurama.Attributed;
+using MarketingBox.Affiliate.Service.Domain.Models.Common;
+using MarketingBox.Affiliate.Service.Domain.Models.Partners;
 using MarketingBox.Affiliate.Service.Grpc.Models.Common;
 
 namespace MarketingBox.Affiliate.Service.Grpc.Models.Partners

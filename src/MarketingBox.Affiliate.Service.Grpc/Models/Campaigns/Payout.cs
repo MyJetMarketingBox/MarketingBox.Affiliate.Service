@@ -1,4 +1,6 @@
 ﻿using System.Runtime.Serialization;
+using MarketingBox.Affiliate.Service.Domain.Models.Campaigns;
+using MarketingBox.Affiliate.Service.Domain.Models.Common;
 using MarketingBox.Affiliate.Service.Grpc.Models.Common;
 
 namespace MarketingBox.Affiliate.Service.Grpc.Models.Campaigns

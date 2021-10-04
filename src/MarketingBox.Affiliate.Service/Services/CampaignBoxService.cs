@@ -301,7 +301,7 @@ namespace MarketingBox.Affiliate.Service.Services
                             IsActive = x.IsActive
                         }).ToArray(),
                     CampaignBoxId = campaignBoxEntity.CampaignBoxId,
-                    CapType = campaignBoxEntity.CapType.MapEnum<Grpc.Models.CampaignBoxes.CapType>(),
+                    CapType = campaignBoxEntity.CapType.MapEnum<Domain.Models.CampaignBoxes.CapType>(),
                     CountryCode = campaignBoxEntity.CountryCode,
                     DailyCapValue = campaignBoxEntity.DailyCapValue,
                     EnableTraffic = campaignBoxEntity.EnableTraffic,

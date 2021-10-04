@@ -16,14 +16,12 @@ using MyNoSqlServer.Abstractions;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using MarketingBox.Affiliate.Service.Domain.Models.Partners;
 using MarketingBox.Affiliate.Service.Grpc.Models.Partners.Requests;
 using Z.EntityFramework.Plus;
-using Currency = MarketingBox.Affiliate.Service.Grpc.Models.Common.Currency;
 using PartnerBank = MarketingBox.Affiliate.Postgres.Entities.Partners.PartnerBank;
 using PartnerCompany = MarketingBox.Affiliate.Postgres.Entities.Partners.PartnerCompany;
 using PartnerGeneralInfo = MarketingBox.Affiliate.Postgres.Entities.Partners.PartnerGeneralInfo;
-using PartnerRole = MarketingBox.Affiliate.Service.Grpc.Models.Partners.PartnerRole;
-using PartnerState = MarketingBox.Affiliate.Service.Grpc.Models.Partners.PartnerState;
 
 namespace MarketingBox.Affiliate.Service.Services
 {
@@ -455,7 +453,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 },
                 GeneralInfo = new Grpc.Models.Partners.PartnerGeneralInfo()
                 {
-                    Currency = partnerEntity.GeneralInfo.Currency.MapEnum<Currency>(),
+                    Currency = partnerEntity.GeneralInfo.Currency.MapEnum<Domain.Models.Common.Currency>(),
                     CreatedAt = partnerEntity.GeneralInfo.CreatedAt.UtcDateTime,
                     Email = partnerEntity.GeneralInfo.Email,
                     Password = partnerEntity.GeneralInfo.Password,

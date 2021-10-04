@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.Serialization;
+using MarketingBox.Affiliate.Service.Domain.Models.Partners;
 
 namespace MarketingBox.Affiliate.Service.Grpc.Models.Partners.Requests
 {
