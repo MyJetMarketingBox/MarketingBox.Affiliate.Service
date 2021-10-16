@@ -12,6 +12,7 @@ using MarketingBox.Affiliate.Service.Messages.Brands;
 using MarketingBox.Affiliate.Service.MyNoSql.Brands;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using MyJetWallet.Sdk.ServiceBus;
 using MyNoSqlServer.Abstractions;
 using Z.EntityFramework.Plus;
 
@@ -21,15 +22,15 @@ namespace MarketingBox.Affiliate.Service.Services
     {
         private readonly ILogger<BrandService> _logger;
         private readonly DbContextOptionsBuilder<DatabaseContext> _dbContextOptionsBuilder;
-        private readonly IPublisher<BrandUpdated> _publisherBrandUpdated;
+        private readonly IServiceBusPublisher<BrandUpdated> _publisherBrandUpdated;
         private readonly IMyNoSqlServerDataWriter<BrandNoSql> _myNoSqlServerDataWriter;
-        private readonly IPublisher<BrandRemoved> _publisherBrandRemoved;
+        private readonly IServiceBusPublisher<BrandRemoved> _publisherBrandRemoved;
 
         public BrandService(ILogger<BrandService> logger,
             DbContextOptionsBuilder<DatabaseContext> dbContextOptionsBuilder,
-            IPublisher<BrandUpdated> publisherBrandUpdated,
+            IServiceBusPublisher<BrandUpdated> publisherBrandUpdated,
             IMyNoSqlServerDataWriter<BrandNoSql> myNoSqlServerDataWriter,
-            IPublisher<BrandRemoved> publisherBrandRemoved)
+            IServiceBusPublisher<BrandRemoved> publisherBrandRemoved)
         {
             _logger = logger;
             _dbContextOptionsBuilder = dbContextOptionsBuilder;

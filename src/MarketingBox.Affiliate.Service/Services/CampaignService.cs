@@ -14,6 +14,7 @@ using MyNoSqlServer.Abstractions;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using MyJetWallet.Sdk.ServiceBus;
 using Z.EntityFramework.Plus;
 using Payout = MarketingBox.Affiliate.Postgres.Entities.Campaigns.Payout;
 using Revenue = MarketingBox.Affiliate.Postgres.Entities.Campaigns.Revenue;
@@ -24,15 +25,15 @@ namespace MarketingBox.Affiliate.Service.Services
     {
         private readonly ILogger<CampaignService> _logger;
         private readonly DbContextOptionsBuilder<DatabaseContext> _dbContextOptionsBuilder;
-        private readonly IPublisher<CampaignUpdated> _publisherCampaignUpdated;
+        private readonly IServiceBusPublisher<CampaignUpdated> _publisherCampaignUpdated;
         private readonly IMyNoSqlServerDataWriter<CampaignNoSql> _myNoSqlServerDataWriter;
-        private readonly IPublisher<CampaignRemoved> _publisherCampaignRemoved;
+        private readonly IServiceBusPublisher<CampaignRemoved> _publisherCampaignRemoved;
 
         public CampaignService(ILogger<CampaignService> logger,
             DbContextOptionsBuilder<DatabaseContext> dbContextOptionsBuilder,
-            IPublisher<CampaignUpdated> publisherCampaignUpdated,
+            IServiceBusPublisher<CampaignUpdated> publisherCampaignUpdated,
             IMyNoSqlServerDataWriter<CampaignNoSql> myNoSqlServerDataWriter,
-            IPublisher<CampaignRemoved> publisherCampaignRemoved)
+            IServiceBusPublisher<CampaignRemoved> publisherCampaignRemoved)
         {
             _logger = logger;
             _dbContextOptionsBuilder = dbContextOptionsBuilder;

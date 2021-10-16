@@ -13,6 +13,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using MarketingBox.Affiliate.Service.Grpc.Models.Common;
+using MyJetWallet.Sdk.ServiceBus;
 using Z.EntityFramework.Plus;
 
 namespace MarketingBox.Affiliate.Service.Services
@@ -21,16 +22,16 @@ namespace MarketingBox.Affiliate.Service.Services
     {
         private readonly ILogger<BoxService> _logger;
         private readonly DbContextOptionsBuilder<DatabaseContext> _dbContextOptionsBuilder;
-        private readonly IPublisher<BoxUpdated> _publisherBoxUpdated;
+        private readonly IServiceBusPublisher<BoxUpdated> _publisherBoxUpdated;
         private readonly IMyNoSqlServerDataWriter<BoxNoSql> _myNoSqlServerDataWriter;
-        private readonly IPublisher<BoxRemoved> _publisherBoxRemoved;
+        private readonly IServiceBusPublisher<BoxRemoved> _publisherBoxRemoved;
         private readonly IMyNoSqlServerDataWriter<BoxIndexNoSql> _myNoSqlIndexServerDataWriter;
 
         public BoxService(ILogger<BoxService> logger,
             DbContextOptionsBuilder<DatabaseContext> dbContextOptionsBuilder,
-            IPublisher<BoxUpdated> publisherBoxUpdated,
+            IServiceBusPublisher<BoxUpdated> publisherBoxUpdated,
             IMyNoSqlServerDataWriter<BoxNoSql> myNoSqlServerDataWriter,
-            IPublisher<BoxRemoved> publisherBoxRemoved,
+            IServiceBusPublisher<BoxRemoved> publisherBoxRemoved,
             IMyNoSqlServerDataWriter<BoxIndexNoSql> myNoSqlIndexServerDataWriter)
         {
             _logger = logger;

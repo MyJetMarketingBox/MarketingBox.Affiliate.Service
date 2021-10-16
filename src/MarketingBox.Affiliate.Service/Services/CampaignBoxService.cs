@@ -14,6 +14,7 @@ using MyNoSqlServer.Abstractions;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using MyJetWallet.Sdk.ServiceBus;
 using Z.EntityFramework.Plus;
 using ActivityHours = MarketingBox.Affiliate.Postgres.Entities.CampaignBoxes.ActivityHours;
 using CapType = MarketingBox.Affiliate.Service.Domain.CampaignBoxes.CapType;
@@ -24,15 +25,15 @@ namespace MarketingBox.Affiliate.Service.Services
     {
         private readonly ILogger<CampaignBoxService> _logger;
         private readonly DbContextOptionsBuilder<DatabaseContext> _dbContextOptionsBuilder;
-        private readonly IPublisher<CampaignBoxUpdated> _publisherCampaignBoxUpdated;
+        private readonly IServiceBusPublisher<CampaignBoxUpdated> _publisherCampaignBoxUpdated;
         private readonly IMyNoSqlServerDataWriter<CampaignBoxNoSql> _myNoSqlServerDataWriter;
-        private readonly IPublisher<CampaignBoxRemoved> _publisherCampaignBoxRemoved;
+        private readonly IServiceBusPublisher<CampaignBoxRemoved> _publisherCampaignBoxRemoved;
 
         public CampaignBoxService(ILogger<CampaignBoxService> logger,
             DbContextOptionsBuilder<DatabaseContext> dbContextOptionsBuilder,
-            IPublisher<CampaignBoxUpdated> publisherCampaignBoxUpdated,
+            IServiceBusPublisher<CampaignBoxUpdated> publisherCampaignBoxUpdated,
             IMyNoSqlServerDataWriter<CampaignBoxNoSql> myNoSqlServerDataWriter,
-            IPublisher<CampaignBoxRemoved> publisherCampaignBoxRemoved)
+            IServiceBusPublisher<CampaignBoxRemoved> publisherCampaignBoxRemoved)
         {
             _logger = logger;
             _dbContextOptionsBuilder = dbContextOptionsBuilder;

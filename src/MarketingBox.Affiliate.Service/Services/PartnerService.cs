@@ -18,6 +18,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using MarketingBox.Affiliate.Service.Domain.Models.Partners;
 using MarketingBox.Affiliate.Service.Grpc.Models.Partners.Requests;
+using MyJetWallet.Sdk.ServiceBus;
 using Z.EntityFramework.Plus;
 using PartnerBank = MarketingBox.Affiliate.Postgres.Entities.Partners.PartnerBank;
 using PartnerCompany = MarketingBox.Affiliate.Postgres.Entities.Partners.PartnerCompany;
@@ -29,16 +30,16 @@ namespace MarketingBox.Affiliate.Service.Services
     {
         private readonly ILogger<PartnerService> _logger;
         private readonly DbContextOptionsBuilder<DatabaseContext> _dbContextOptionsBuilder;
-        private readonly IPublisher<PartnerUpdated> _publisherPartnerUpdated;
+        private readonly IServiceBusPublisher<PartnerUpdated> _publisherPartnerUpdated;
         private readonly IMyNoSqlServerDataWriter<PartnerNoSql> _myNoSqlServerDataWriter;
-        private readonly IPublisher<PartnerRemoved> _publisherPartnerRemoved;
+        private readonly IServiceBusPublisher<PartnerRemoved> _publisherPartnerRemoved;
         private readonly IUserService _userService;
 
         public PartnerService(ILogger<PartnerService> logger,
             DbContextOptionsBuilder<DatabaseContext> dbContextOptionsBuilder,
-            IPublisher<PartnerUpdated> publisherPartnerUpdated,
+            IServiceBusPublisher<PartnerUpdated> publisherPartnerUpdated,
             IMyNoSqlServerDataWriter<PartnerNoSql> myNoSqlServerDataWriter,
-            IPublisher<PartnerRemoved> publisherPartnerRemoved,
+            IServiceBusPublisher<PartnerRemoved> publisherPartnerRemoved,
             IUserService userService)
         {
             _logger = logger;
