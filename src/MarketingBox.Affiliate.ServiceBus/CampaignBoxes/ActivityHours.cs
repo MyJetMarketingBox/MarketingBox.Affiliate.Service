@@ -13,9 +13,9 @@ namespace MarketingBox.Affiliate.Service.Messages.CampaignBoxes
         public bool IsActive { get; set; }
 
         [DataMember(Order = 3)]
-        public DateTime? From { get; set; }
+        public TimeSpan? From { get; set; }
 
         [DataMember(Order = 4)]
-        public DateTime? To { get; set; }
+        public TimeSpan? To { get; set; }
     }
 }

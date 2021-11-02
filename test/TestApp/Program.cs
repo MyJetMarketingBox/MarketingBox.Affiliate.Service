@@ -1,9 +1,13 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using MarketingBox.Affiliate.Service.Client;
+using MarketingBox.Affiliate.Service.Domain.Models.CampaignBoxes;
 using MarketingBox.Affiliate.Service.Domain.Models.Common;
 using MarketingBox.Affiliate.Service.Domain.Models.Partners;
 using MarketingBox.Affiliate.Service.Grpc.Models.Boxes.Messages;
+using MarketingBox.Affiliate.Service.Grpc.Models.CampaignBoxes;
+using MarketingBox.Affiliate.Service.Grpc.Models.CampaignBoxes.Requests;
 using MarketingBox.Affiliate.Service.Grpc.Models.Common;
 using MarketingBox.Affiliate.Service.Grpc.Models.Partners;
 using MarketingBox.Affiliate.Service.Grpc.Models.Partners.Messages;
@@ -24,23 +28,78 @@ namespace TestApp
             var factory = new AffiliateServiceClientFactory("http://localhost:12347");
             var client = factory.GetPartnerService();
             var boxClient = factory.GetBoxService();
+            var campaignBoxClient = factory.GetCampaignBoxService();
 
-            var boxes = await boxClient.SearchAsync(new BoxSearchRequest()
+            //var boxes = await boxClient.SearchAsync(new BoxSearchRequest()
+            //{
+            //    TenantId = testTenant
+            //});
+
+            //var partners = await client.SearchAsync(new PartnerSearchRequest()
+            //{
+            //    TenantId = testTenant,
+            //});
+
+            //var check = await client.GetAsync(new PartnerGetRequest()
+            //{
+            //    AffiliateId = 0,
+            //});
+
+            var boxId = 4;
+            var activityHours = Enum.GetValues<DayOfWeek>().Select(x => new ActivityHours()
             {
-                TenantId = testTenant
+                To = new TimeSpan(23, 59, 59),
+                Day = x,
+                From = new TimeSpan(0, 0, 0),
+                IsActive = true
+            }).ToArray();
+
+            var campaignBox1= await campaignBoxClient.CreateAsync(new CampaignBoxCreateRequest()
+            {
+                Sequence = 0,
+                ActivityHours = activityHours,
+                BoxId = boxId,
+                CampaignId = 3,
+                CapType = CapType.Lead,
+                CountryCode = "UK",
+                DailyCapValue = 20,
+                EnableTraffic = true,
+                Information = null,
+                Priority = 1,
+                Weight = 10
             });
 
-            var partners = await client.SearchAsync(new PartnerSearchRequest()
+            var campaignBox2 = await campaignBoxClient.CreateAsync(new CampaignBoxCreateRequest()
             {
-                TenantId = testTenant,
+                Sequence = 0,
+                ActivityHours = activityHours,
+                BoxId = boxId,
+                CampaignId = 4,
+                CapType = CapType.Lead,
+                CountryCode = "UK",
+                DailyCapValue = 20,
+                EnableTraffic = true,
+                Information = null,
+                Priority = 1,
+                Weight = 5
             });
 
-            var check = await client.GetAsync(new PartnerGetRequest()
+            var campaignBox3 = await campaignBoxClient.CreateAsync(new CampaignBoxCreateRequest()
             {
-                AffiliateId = 0,
+                Sequence = 0,
+                ActivityHours = activityHours,
+                BoxId = boxId,
+                CampaignId = 5,
+                CapType = CapType.Lead,
+                CountryCode = "UK",
+                DailyCapValue = 20,
+                EnableTraffic = true,
+                Information = null,
+                Priority = 1,
+                Weight = 5
             });
 
-            
+
             var request = new PartnerCreateRequest()
             {
                 TenantId = testTenant,

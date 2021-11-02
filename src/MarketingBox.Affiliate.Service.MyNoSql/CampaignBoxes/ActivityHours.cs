@@ -7,8 +7,8 @@ namespace MarketingBox.Affiliate.Service.MyNoSql.CampaignBoxes
         public DayOfWeek Day { get; set; }
         public bool IsActive { get; set; }
 
-        public DateTime? From { get; set; }
+        public TimeSpan? From { get; set; }
 
-        public DateTime? To { get; set; }
+        public TimeSpan? To { get; set; }
     }
 }
