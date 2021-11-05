@@ -6,6 +6,6 @@ namespace MarketingBox.Affiliate.Service.Grpc.Models.Brands.Requests
     public class BrandDeleteRequest
     {
         [DataMember(Order = 1)]
-        public long CampaignId { get; set; }
+        public long BrandId { get; set; }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using System.Runtime.Serialization;
 
-namespace MarketingBox.Affiliate.Service.Messages.Partners
+namespace MarketingBox.Affiliate.Service.Messages.Affiliates
 {
     [DataContract]
     public class AffiliateBank

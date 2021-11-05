@@ -2,7 +2,7 @@
 using MarketingBox.Affiliate.Service.Domain.Models.Affiliates;
 using MarketingBox.Affiliate.Service.Domain.Models.Common;
 
-namespace MarketingBox.Affiliate.Service.MyNoSql.Partners
+namespace MarketingBox.Affiliate.Service.MyNoSql.Affiliates
 {
     public class AffiliateGeneralInfo
     {

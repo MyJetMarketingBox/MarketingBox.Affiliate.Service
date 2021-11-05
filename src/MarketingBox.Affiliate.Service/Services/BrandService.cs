@@ -176,7 +176,7 @@ namespace MarketingBox.Affiliate.Service.Services
 
             try
             {
-                var brandEntity = await ctx.Brands.FirstOrDefaultAsync(x => x.Id == request.CampaignId);
+                var brandEntity = await ctx.Brands.FirstOrDefaultAsync(x => x.Id == request.BrandId);
 
                 return brandEntity != null ? MapToGrpc(brandEntity) : new BrandResponse();
             }
@@ -194,7 +194,7 @@ namespace MarketingBox.Affiliate.Service.Services
 
             try
             {
-                var brandEntity = await ctx.Brands.FirstOrDefaultAsync(x => x.Id == request.CampaignId);
+                var brandEntity = await ctx.Brands.FirstOrDefaultAsync(x => x.Id == request.BrandId);
 
                 if (brandEntity == null)
                     return new BrandResponse();

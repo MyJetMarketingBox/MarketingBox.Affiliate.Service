@@ -1,12 +1,8 @@
 ﻿using DotNetCoreDecorators;
 using MarketingBox.Affiliate.Postgres;
-using MarketingBox.Affiliate.Postgres.Entities.Partners;
 using MarketingBox.Affiliate.Service.Domain.Extensions;
 using MarketingBox.Affiliate.Service.Grpc;
 using MarketingBox.Affiliate.Service.Grpc.Models.Common;
-using MarketingBox.Affiliate.Service.Grpc.Models.Partners;
-using MarketingBox.Affiliate.Service.Messages.Partners;
-using MarketingBox.Affiliate.Service.MyNoSql.Partners;
 using MarketingBox.Auth.Service.Grpc;
 using MarketingBox.Auth.Service.Grpc.Models.Users.Requests;
 using Microsoft.EntityFrameworkCore;
@@ -15,10 +11,17 @@ using MyNoSqlServer.Abstractions;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using MarketingBox.Affiliate.Postgres.Entities.Affiliates;
 using MarketingBox.Affiliate.Service.Domain.Affiliates;
-using MarketingBox.Affiliate.Service.Grpc.Models.Partners.Requests;
+using MarketingBox.Affiliate.Service.Grpc.Models.Affiliates;
+using MarketingBox.Affiliate.Service.Grpc.Models.Affiliates.Requests;
+using MarketingBox.Affiliate.Service.Messages.Affiliates;
+using MarketingBox.Affiliate.Service.MyNoSql.Affiliates;
 using MyJetWallet.Sdk.ServiceBus;
 using Z.EntityFramework.Plus;
+using AffiliateBank = MarketingBox.Affiliate.Service.Grpc.Models.Affiliates.AffiliateBank;
+using AffiliateCompany = MarketingBox.Affiliate.Service.Grpc.Models.Affiliates.AffiliateCompany;
+using AffiliateGeneralInfo = MarketingBox.Affiliate.Service.Grpc.Models.Affiliates.AffiliateGeneralInfo;
 
 namespace MarketingBox.Affiliate.Service.Services
 {
@@ -400,20 +403,20 @@ namespace MarketingBox.Affiliate.Service.Services
             };
         }
 
-        private static Grpc.Models.Partners.Affiliate MapToGrpcInner(AffiliateEntity affiliateEntity)
+        private static Grpc.Models.Affiliates.Affiliate MapToGrpcInner(AffiliateEntity affiliateEntity)
         {
-            return new Grpc.Models.Partners.Affiliate()
+            return new Grpc.Models.Affiliates.Affiliate()
             {
                 TenantId = affiliateEntity.TenantId,
                 AffiliateId = affiliateEntity.AffiliateId,
-                Company = new Grpc.Models.Partners.AffiliateCompany()
+                Company = new AffiliateCompany()
                 {
                     Address = affiliateEntity.CompanyAddress,
                     Name = affiliateEntity.CompanyName,
                     RegNumber = affiliateEntity.CompanyRegNumber,
                     VatId = affiliateEntity.CompanyVatId,
                 },
-                Bank = new Grpc.Models.Partners.AffiliateBank()
+                Bank = new AffiliateBank()
                 {
                     AccountNumber = affiliateEntity.BankAccountNumber,
                     BankAddress = affiliateEntity.BankAddress,
@@ -423,7 +426,7 @@ namespace MarketingBox.Affiliate.Service.Services
                     Iban = affiliateEntity.BankIban,
                     Swift = affiliateEntity.BankSwift
                 },
-                GeneralInfo = new Grpc.Models.Partners.AffiliateGeneralInfo()
+                GeneralInfo = new AffiliateGeneralInfo()
                 {
                     Currency = affiliateEntity.GeneralInfoCurrency.MapEnum<Domain.Models.Common.Currency>(),
                     CreatedAt = affiliateEntity.CreatedAt.UtcDateTime,
@@ -447,14 +450,14 @@ namespace MarketingBox.Affiliate.Service.Services
             {
                 TenantId = affiliateEntity.TenantId,
                 AffiliateId = affiliateEntity.AffiliateId,
-                Company = new Messages.Partners.AffiliateCompany()
+                Company = new Messages.Affiliates.AffiliateCompany()
                 {
                     Address = affiliateEntity.CompanyAddress,
                     Name = affiliateEntity.CompanyName,
                     RegNumber = affiliateEntity.CompanyRegNumber,
                     VatId = affiliateEntity.CompanyVatId,
                 },
-                Bank = new Messages.Partners.AffiliateBank()
+                Bank = new Messages.Affiliates.AffiliateBank()
                 {
                     AccountNumber = affiliateEntity.BankAccountNumber,
                     BankAddress = affiliateEntity.BankAddress,
@@ -464,7 +467,7 @@ namespace MarketingBox.Affiliate.Service.Services
                     Iban = affiliateEntity.BankIban,
                     Swift = affiliateEntity.BankSwift
                 },
-                GeneralInfo = new Messages.Partners.AffiliateGeneralInfo()
+                GeneralInfo = new Messages.Affiliates.AffiliateGeneralInfo()
                 {
                     Currency = affiliateEntity.GeneralInfoCurrency.MapEnum<Domain.Models.Common.Currency>(),
                     CreatedAt = affiliateEntity.CreatedAt.UtcDateTime,
@@ -486,7 +489,7 @@ namespace MarketingBox.Affiliate.Service.Services
             return AffiliateNoSql.Create(
                 affiliateEntity.TenantId,
                 affiliateEntity.AffiliateId,
-                new MyNoSql.Partners.AffiliateGeneralInfo()
+                new MyNoSql.Affiliates.AffiliateGeneralInfo()
                 {
                     Currency = affiliateEntity.GeneralInfoCurrency.MapEnum<Domain.Models.Common.Currency>(),
                     CreatedAt = affiliateEntity.CreatedAt.UtcDateTime,
@@ -500,14 +503,14 @@ namespace MarketingBox.Affiliate.Service.Services
                     ZipCode = affiliateEntity.GeneralInfoZipCode,
                     ApiKey = affiliateEntity.GeneralInfoApiKey
                 },
-                new MyNoSql.Partners.AffiliateCompany()
+                new MyNoSql.Affiliates.AffiliateCompany()
                 {
                     Address = affiliateEntity.CompanyAddress,
                     Name = affiliateEntity.CompanyName,
                     RegNumber = affiliateEntity.CompanyRegNumber,
                     VatId = affiliateEntity.CompanyVatId,
                 },
-                new MyNoSql.Partners.AffiliateBank()
+                new MyNoSql.Affiliates.AffiliateBank()
                 {
                     AccountNumber = affiliateEntity.BankAccountNumber,
                     BankAddress = affiliateEntity.BankAddress,

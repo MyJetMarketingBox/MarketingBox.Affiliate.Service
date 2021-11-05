@@ -1,8 +1,8 @@
-﻿using MarketingBox.Affiliate.Postgres.Entities.Brands;
+﻿using MarketingBox.Affiliate.Postgres.Entities.Affiliates;
+using MarketingBox.Affiliate.Postgres.Entities.Brands;
 using MarketingBox.Affiliate.Postgres.Entities.CampaignRows;
 using MarketingBox.Affiliate.Postgres.Entities.Campaigns;
 using MarketingBox.Affiliate.Postgres.Entities.Integrations;
-using MarketingBox.Affiliate.Postgres.Entities.Partners;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;

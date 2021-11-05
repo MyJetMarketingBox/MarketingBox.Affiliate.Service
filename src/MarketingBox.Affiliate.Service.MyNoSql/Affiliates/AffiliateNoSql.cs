@@ -1,6 +1,6 @@
 ﻿using MyNoSqlServer.Abstractions;
 
-namespace MarketingBox.Affiliate.Service.MyNoSql.Partners
+namespace MarketingBox.Affiliate.Service.MyNoSql.Affiliates
 {
     public class AffiliateNoSql : MyNoSqlDbEntity
     {

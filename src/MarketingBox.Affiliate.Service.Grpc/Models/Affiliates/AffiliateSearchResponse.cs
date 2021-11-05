@@ -2,7 +2,7 @@
 using System.Runtime.Serialization;
 using MarketingBox.Affiliate.Service.Grpc.Models.Common;
 
-namespace MarketingBox.Affiliate.Service.Grpc.Models.Partners
+namespace MarketingBox.Affiliate.Service.Grpc.Models.Affiliates
 {
     [DataContract]
     public class AffiliateSearchResponse

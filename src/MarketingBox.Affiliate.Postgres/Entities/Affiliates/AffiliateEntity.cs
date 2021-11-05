@@ -2,7 +2,7 @@
 using MarketingBox.Affiliate.Service.Domain.Affiliates;
 using MarketingBox.Affiliate.Service.Domain.Common;
 
-namespace MarketingBox.Affiliate.Postgres.Entities.Partners
+namespace MarketingBox.Affiliate.Postgres.Entities.Affiliates
 {
     public class AffiliateEntity
     {

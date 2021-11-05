@@ -3,7 +3,7 @@ using System.Runtime.Serialization;
 using MarketingBox.Affiliate.Service.Domain.Models.Affiliates;
 using MarketingBox.Affiliate.Service.Domain.Models.Common;
 
-namespace MarketingBox.Affiliate.Service.Messages.Partners
+namespace MarketingBox.Affiliate.Service.Messages.Affiliates
 {
     [DataContract]
     public class AffiliateGeneralInfo

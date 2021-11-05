@@ -1,6 +1,6 @@
 ﻿using System.Runtime.Serialization;
 
-namespace MarketingBox.Affiliate.Service.Grpc.Models.Partners
+namespace MarketingBox.Affiliate.Service.Grpc.Models.Affiliates
 {
     [DataContract]
     public class Affiliate

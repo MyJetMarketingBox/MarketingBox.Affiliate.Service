@@ -1,7 +1,7 @@
 ﻿using System.Runtime.Serialization;
 using Destructurama.Attributed;
 
-namespace MarketingBox.Affiliate.Service.Grpc.Models.Partners
+namespace MarketingBox.Affiliate.Service.Grpc.Models.Affiliates
 {
     [DataContract]
     public class AffiliateCompany

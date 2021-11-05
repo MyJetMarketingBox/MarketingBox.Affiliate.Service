@@ -1,15 +1,15 @@
 ﻿using Autofac;
 using MarketingBox.Affiliate.Service.Messages;
+using MarketingBox.Affiliate.Service.Messages.Affiliates;
 using MarketingBox.Affiliate.Service.Messages.Brands;
 using MarketingBox.Affiliate.Service.Messages.CampaignRows;
 using MarketingBox.Affiliate.Service.Messages.Campaigns;
 using MarketingBox.Affiliate.Service.Messages.Integrations;
-using MarketingBox.Affiliate.Service.Messages.Partners;
+using MarketingBox.Affiliate.Service.MyNoSql.Affiliates;
 using MarketingBox.Affiliate.Service.MyNoSql.Brands;
 using MarketingBox.Affiliate.Service.MyNoSql.CampaignRows;
 using MarketingBox.Affiliate.Service.MyNoSql.Campaigns;
 using MarketingBox.Affiliate.Service.MyNoSql.Integrations;
-using MarketingBox.Affiliate.Service.MyNoSql.Partners;
 using MarketingBox.Auth.Service.Client;
 using MyJetWallet.Sdk.NoSql;
 using MyJetWallet.Sdk.Service;

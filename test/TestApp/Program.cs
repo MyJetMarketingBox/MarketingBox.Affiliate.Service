@@ -5,11 +5,11 @@ using MarketingBox.Affiliate.Service.Client;
 using MarketingBox.Affiliate.Service.Domain.Models.Affiliates;
 using MarketingBox.Affiliate.Service.Domain.Models.CampaignRows;
 using MarketingBox.Affiliate.Service.Domain.Models.Common;
+using MarketingBox.Affiliate.Service.Grpc.Models.Affiliates;
+using MarketingBox.Affiliate.Service.Grpc.Models.Affiliates.Requests;
 using MarketingBox.Affiliate.Service.Grpc.Models.CampaignRows;
 using MarketingBox.Affiliate.Service.Grpc.Models.CampaignRows.Requests;
 using MarketingBox.Affiliate.Service.Grpc.Models.Common;
-using MarketingBox.Affiliate.Service.Grpc.Models.Partners;
-using MarketingBox.Affiliate.Service.Grpc.Models.Partners.Requests;
 using ProtoBuf.Grpc.Client;
 
 namespace TestApp

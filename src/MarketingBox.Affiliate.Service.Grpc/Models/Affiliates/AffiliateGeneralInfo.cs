@@ -3,9 +3,8 @@ using System.Runtime.Serialization;
 using Destructurama.Attributed;
 using MarketingBox.Affiliate.Service.Domain.Models.Affiliates;
 using MarketingBox.Affiliate.Service.Domain.Models.Common;
-using MarketingBox.Affiliate.Service.Grpc.Models.Common;
 
-namespace MarketingBox.Affiliate.Service.Grpc.Models.Partners
+namespace MarketingBox.Affiliate.Service.Grpc.Models.Affiliates
 {
     [DataContract]
     public class AffiliateGeneralInfo
