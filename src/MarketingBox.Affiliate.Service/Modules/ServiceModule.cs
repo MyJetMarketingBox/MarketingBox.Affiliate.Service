@@ -1,13 +1,13 @@
 ﻿using Autofac;
 using MarketingBox.Affiliate.Service.Messages;
 using MarketingBox.Affiliate.Service.Messages.Boxes;
+using MarketingBox.Affiliate.Service.Messages.Brands;
 using MarketingBox.Affiliate.Service.Messages.CampaignBoxes;
-using MarketingBox.Affiliate.Service.Messages.Campaigns;
 using MarketingBox.Affiliate.Service.Messages.Integrations;
 using MarketingBox.Affiliate.Service.Messages.Partners;
 using MarketingBox.Affiliate.Service.MyNoSql.Boxes;
+using MarketingBox.Affiliate.Service.MyNoSql.Brands;
 using MarketingBox.Affiliate.Service.MyNoSql.CampaignBoxes;
-using MarketingBox.Affiliate.Service.MyNoSql.Campaigns;
 using MarketingBox.Affiliate.Service.MyNoSql.Integrations;
 using MarketingBox.Affiliate.Service.MyNoSql.Partners;
 using MarketingBox.Auth.Service.Client;
@@ -71,16 +71,16 @@ namespace MarketingBox.Affiliate.Service.Modules
 
             #endregion
 
-            #region Campaign
+            #region Brand
 
-            // publisher (IServiceBusPublisher<CampaignUpdated>)
-            builder.RegisterMyServiceBusPublisher<CampaignUpdated>(serviceBusClient, Topics.CampaignUpdatedTopic, false);
+            // publisher (IServiceBusPublisher<BrandUpdated>)
+            builder.RegisterMyServiceBusPublisher<BrandUpdated>(serviceBusClient, Topics.CampaignUpdatedTopic, false);
 
-            // publisher (IServiceBusPublisher<CampaignRemoved>)
-            builder.RegisterMyServiceBusPublisher<CampaignRemoved>(serviceBusClient, Topics.CampaignRemovedTopic, false);
+            // publisher (IServiceBusPublisher<BrandRemoved>)
+            builder.RegisterMyServiceBusPublisher<BrandRemoved>(serviceBusClient, Topics.CampaignRemovedTopic, false);
 
-            // register writer (IMyNoSqlServerDataWriter<CampaignNoSql>)
-            builder.RegisterMyNoSqlWriter<CampaignNoSql>(Program.ReloadedSettings(e => e.MyNoSqlWriterUrl), CampaignNoSql.TableName);
+            // register writer (IMyNoSqlServerDataWriter<BrandNoSql>)
+            builder.RegisterMyNoSqlWriter<BrandNoSql>(Program.ReloadedSettings(e => e.MyNoSqlWriterUrl), BrandNoSql.TableName);
 
             #endregion
 
