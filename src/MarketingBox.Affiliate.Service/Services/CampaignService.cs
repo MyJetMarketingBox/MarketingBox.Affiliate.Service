@@ -14,6 +14,7 @@ using MyNoSqlServer.Abstractions;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using MarketingBox.Affiliate.Service.Domain.Integrations;
 using MyJetWallet.Sdk.ServiceBus;
 using Z.EntityFramework.Plus;
 using Payout = MarketingBox.Affiliate.Postgres.Entities.Campaigns.Payout;
@@ -52,23 +53,23 @@ namespace MarketingBox.Affiliate.Service.Services
                 var campaignEntity = new CampaignEntity()
                 {
                     TenantId = request.TenantId,
-                    BrandId = request.BrandId,
+                    IntegrationId = request.IntegrationId,
                     Name = request.Name,
                     Sequence = 0,
                     Payout = new Payout()
                     {
                         Currency = request.Payout.Currency.MapEnum<Domain.Common.Currency>(),
                         Amount = request.Payout.Amount,
-                        Plan = request.Payout.Plan.MapEnum<Domain.Campaigns.Plan>(),
+                        Plan = request.Payout.Plan.MapEnum<Plan>(),
                     },
-                    Privacy = request.Privacy.MapEnum<Domain.Campaigns.CampaignPrivacy>(),
+                    Privacy = request.Privacy.MapEnum<CampaignPrivacy>(),
                     Revenue = new Revenue()
                     {
                         Amount = request.Revenue.Amount,
-                        Plan = request.Payout.Plan.MapEnum<Domain.Campaigns.Plan>(),
+                        Plan = request.Payout.Plan.MapEnum<Plan>(),
                         Currency = request.Payout.Currency.MapEnum<Domain.Common.Currency>(),
                     },
-                    Status = request.Status.MapEnum<Domain.Campaigns.CampaignStatus>(),
+                    Status = request.Status.MapEnum<CampaignStatus>(),
                 };
 
                 ctx.Campaigns.Add(campaignEntity);
@@ -101,23 +102,23 @@ namespace MarketingBox.Affiliate.Service.Services
                 var campaignEntity = new CampaignEntity()
                 {
                     TenantId = request.TenantId,
-                    BrandId = request.BrandId,
+                    IntegrationId = request.IntegrationId,
                     Name = request.Name,
                     Sequence = request.Sequence,
                     Payout = new Payout()
                     {
                         Currency = request.Payout.Currency.MapEnum<Domain.Common.Currency>(),
                         Amount = request.Payout.Amount,
-                        Plan = request.Payout.Plan.MapEnum<Domain.Campaigns.Plan>(),
+                        Plan = request.Payout.Plan.MapEnum<Plan>(),
                     },
-                    Privacy = request.Privacy.MapEnum<Domain.Campaigns.CampaignPrivacy>(),
+                    Privacy = request.Privacy.MapEnum<CampaignPrivacy>(),
                     Revenue = new Revenue()
                     {
                         Amount = request.Revenue.Amount,
-                        Plan = request.Payout.Plan.MapEnum<Domain.Campaigns.Plan>(),
+                        Plan = request.Payout.Plan.MapEnum<Plan>(),
                         Currency = request.Payout.Currency.MapEnum<Domain.Common.Currency>(),
                     },
-                    Status = request.Status.MapEnum<Domain.Campaigns.CampaignStatus>(),
+                    Status = request.Status.MapEnum<CampaignStatus>(),
                     Id = request.Id
                 };
 
@@ -127,23 +128,23 @@ namespace MarketingBox.Affiliate.Service.Services
                     .UpdateAsync(x => new CampaignEntity()
                     {
                         TenantId = request.TenantId,
-                        BrandId = request.BrandId,
+                        IntegrationId = request.IntegrationId,
                         Name = request.Name,
                         Sequence = request.Sequence,
                         Payout = new Payout()
                         {
                             Currency = request.Payout.Currency.MapEnum<Domain.Common.Currency>(),
                             Amount = request.Payout.Amount,
-                            Plan = request.Payout.Plan.MapEnum<Domain.Campaigns.Plan>(),
+                            Plan = request.Payout.Plan.MapEnum<Plan>(),
                         },
-                        Privacy = request.Privacy.MapEnum<Domain.Campaigns.CampaignPrivacy>(),
+                        Privacy = request.Privacy.MapEnum<CampaignPrivacy>(),
                         Revenue = new Revenue()
                         {
                             Amount = request.Revenue.Amount,
-                            Plan = request.Payout.Plan.MapEnum<Domain.Campaigns.Plan>(),
+                            Plan = request.Payout.Plan.MapEnum<Plan>(),
                             Currency = request.Payout.Currency.MapEnum<Domain.Common.Currency>(),
                         },
-                        Status = request.Status.MapEnum<Domain.Campaigns.CampaignStatus>(),
+                        Status = request.Status.MapEnum<CampaignStatus>(),
                         Id = request.Id
                     });
 
@@ -244,14 +245,14 @@ namespace MarketingBox.Affiliate.Service.Services
                     query = query.Where(x => x.Id == request.CampaignId.Value);
                 }
 
-                if (request.BrandId.HasValue)
+                if (request.IntegrationId.HasValue)
                 {
-                    query = query.Where(x => x.BrandId == request.BrandId.Value);
+                    query = query.Where(x => x.IntegrationId == request.IntegrationId.Value);
                 }
 
                 if (request.Status.HasValue)
                 {
-                    query = query.Where(x => x.Status == request.Status.MapEnum<Domain.Campaigns.CampaignStatus>());
+                    query = query.Where(x => x.Status == request.Status.MapEnum<CampaignStatus>());
                 }
 
                 var limit = request.Take <= 0 ? 1000 : request.Take;
@@ -311,22 +312,22 @@ namespace MarketingBox.Affiliate.Service.Services
                 TenantId = campaignEntity.TenantId,
                 Id = campaignEntity.Id,
                 Name = campaignEntity.Name,
-                BrandId = campaignEntity.BrandId,
+                IntegrationId = campaignEntity.IntegrationId,
                 Sequence = campaignEntity.Sequence,
                 Revenue = new Grpc.Models.Campaigns.Revenue()
                 {
                     Currency = campaignEntity.Revenue.Currency.MapEnum<Domain.Models.Common.Currency>(),
-                    Plan = campaignEntity.Revenue.Plan.MapEnum<Domain.Models.Campaigns.Plan>(),
+                    Plan = campaignEntity.Revenue.Plan.MapEnum<Domain.Models.Integrations.Plan>(),
                     Amount = campaignEntity.Revenue.Amount
                 },
                 Payout = new Grpc.Models.Campaigns.Payout()
                 {
                     Currency = campaignEntity.Payout.Currency.MapEnum<Domain.Models.Common.Currency>(),
-                    Plan = campaignEntity.Payout.Plan.MapEnum<Domain.Models.Campaigns.Plan>(),
+                    Plan = campaignEntity.Payout.Plan.MapEnum<Domain.Models.Integrations.Plan>(),
                     Amount = campaignEntity.Payout.Amount
                 },
-                Privacy = campaignEntity.Privacy.MapEnum<Domain.Models.Campaigns.CampaignPrivacy>(),
-                Status = campaignEntity.Status.MapEnum<  Domain.Models.Campaigns.CampaignStatus>(),
+                Privacy = campaignEntity.Privacy.MapEnum<Domain.Models.Integrations.CampaignPrivacy>(),
+                Status = campaignEntity.Status.MapEnum<  Domain.Models.Integrations.CampaignStatus>(),
             };
         }
 
@@ -338,21 +339,21 @@ namespace MarketingBox.Affiliate.Service.Services
                 Revenue = new Messages.Campaigns.Revenue()
                 {
                     Currency = campaignEntity.Revenue.Currency.MapEnum<Domain.Models.Common.Currency>(),
-                    Plan = campaignEntity.Revenue.Plan.MapEnum<Domain.Models.Campaigns.Plan>(),
+                    Plan = campaignEntity.Revenue.Plan.MapEnum<Domain.Models.Integrations.Plan>(),
                     Amount = campaignEntity.Revenue.Amount
                 },
-                BrandId = campaignEntity.BrandId,
+                IntegrationId = campaignEntity.IntegrationId,
                 Id = campaignEntity.Id,
                 Name = campaignEntity.Name,
                 Sequence = campaignEntity.Sequence,
                 Payout = new Messages.Campaigns.Payout()
                 {
                     Currency = campaignEntity.Payout.Currency.MapEnum< Domain.Models.Common.Currency >(),
-                    Plan = campaignEntity.Payout.Plan.MapEnum<Domain.Models.Campaigns.Plan>(),
+                    Plan = campaignEntity.Payout.Plan.MapEnum<Domain.Models.Integrations.Plan>(),
                     Amount = campaignEntity.Payout.Amount
                 },
-                Privacy = campaignEntity.Privacy.MapEnum<Domain.Models.Campaigns.CampaignPrivacy>(),
-                Status = campaignEntity.Status.MapEnum<Domain.Models.Campaigns.CampaignStatus>()
+                Privacy = campaignEntity.Privacy.MapEnum<Domain.Models.Integrations.CampaignPrivacy>(),
+                Status = campaignEntity.Status.MapEnum<Domain.Models.Integrations.CampaignStatus>()
             };
         }
 
@@ -362,21 +363,21 @@ namespace MarketingBox.Affiliate.Service.Services
                 campaignEntity.TenantId,
                 campaignEntity.Id,
                 campaignEntity.Name,
-                campaignEntity.BrandId,
+                campaignEntity.IntegrationId,
                 new MyNoSql.Campaigns.Payout()
                 {
                     Amount = campaignEntity.Payout.Amount,
                     Currency = campaignEntity.Payout.Currency.MapEnum<Domain.Models.Common.Currency>(),
-                    Plan = campaignEntity.Payout.Plan.MapEnum<Domain.Models.Campaigns.Plan>(),
+                    Plan = campaignEntity.Payout.Plan.MapEnum<Domain.Models.Integrations.Plan>(),
                 },
                 new MyNoSql.Campaigns.Revenue()
                 {
                     Amount = campaignEntity.Revenue.Amount,
                     Currency = campaignEntity.Revenue.Currency.MapEnum<Domain.Models.Common.Currency>(),
-                    Plan = campaignEntity.Revenue.Plan.MapEnum<Domain.Models.Campaigns.Plan>(),
+                    Plan = campaignEntity.Revenue.Plan.MapEnum<Domain.Models.Integrations.Plan>(),
                 },
-                campaignEntity.Status.MapEnum< Domain.Models.Campaigns.CampaignStatus> (),
-                campaignEntity.Privacy.MapEnum<Domain.Models.Campaigns.CampaignPrivacy>(),
+                campaignEntity.Status.MapEnum< Domain.Models.Integrations.CampaignStatus> (),
+                campaignEntity.Privacy.MapEnum<Domain.Models.Integrations.CampaignPrivacy>(),
                 campaignEntity.Sequence);
         }
     }

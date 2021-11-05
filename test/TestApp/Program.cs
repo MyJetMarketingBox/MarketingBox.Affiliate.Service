@@ -2,15 +2,13 @@
 using System.Linq;
 using System.Threading.Tasks;
 using MarketingBox.Affiliate.Service.Client;
-using MarketingBox.Affiliate.Service.Domain.Models.CampaignBoxes;
+using MarketingBox.Affiliate.Service.Domain.Models.Affiliates;
+using MarketingBox.Affiliate.Service.Domain.Models.CampaignRows;
 using MarketingBox.Affiliate.Service.Domain.Models.Common;
-using MarketingBox.Affiliate.Service.Domain.Models.Partners;
-using MarketingBox.Affiliate.Service.Grpc.Models.Boxes.Messages;
 using MarketingBox.Affiliate.Service.Grpc.Models.CampaignBoxes;
 using MarketingBox.Affiliate.Service.Grpc.Models.CampaignBoxes.Requests;
 using MarketingBox.Affiliate.Service.Grpc.Models.Common;
 using MarketingBox.Affiliate.Service.Grpc.Models.Partners;
-using MarketingBox.Affiliate.Service.Grpc.Models.Partners.Messages;
 using MarketingBox.Affiliate.Service.Grpc.Models.Partners.Requests;
 using ProtoBuf.Grpc.Client;
 
@@ -127,7 +125,7 @@ namespace TestApp
                 Email = "email123@email.com",
                 Password = "qwerty_123456",
                 Phone = "+79990999999",
-                Role = PartnerRole.BrandManager,
+                Role = PartnerRole.IntegrationManager,
                 Skype = "skype",
                 State = PartnerState.Active,
                 Username = "SomeTestUser1",

@@ -1,5 +1,5 @@
-﻿using MarketingBox.Affiliate.Service.Domain.Campaigns;
-using MarketingBox.Affiliate.Service.Domain.Common;
+﻿using MarketingBox.Affiliate.Service.Domain.Common;
+using MarketingBox.Affiliate.Service.Domain.Integrations;
 
 namespace MarketingBox.Affiliate.Postgres.Entities.Campaigns
 {

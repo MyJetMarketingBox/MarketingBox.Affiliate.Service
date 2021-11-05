@@ -10,9 +10,9 @@
 
         public const string BoxRemovedTopic = "marketing-box-affiliate-service-box-removed";
 
-        public const string BrandUpdatedTopic = "marketing-box-affiliate-service-brand-update";
+        public const string IntegrationUpdatedTopic = "marketing-box-affiliate-service-integration-update";
 
-        public const string BrandRemovedTopic = "marketing-box-affiliate-service-brand-removed";
+        public const string IntegrationRemovedTopic = "marketing-box-affiliate-service-integration-removed";
 
         public const string CampaignUpdatedTopic = "marketing-box-affiliate-service-campaign-update";
 

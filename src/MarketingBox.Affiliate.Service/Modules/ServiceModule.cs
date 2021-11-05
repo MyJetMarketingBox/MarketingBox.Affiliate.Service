@@ -1,14 +1,14 @@
 ﻿using Autofac;
 using MarketingBox.Affiliate.Service.Messages;
 using MarketingBox.Affiliate.Service.Messages.Boxes;
-using MarketingBox.Affiliate.Service.Messages.Brands;
 using MarketingBox.Affiliate.Service.Messages.CampaignBoxes;
 using MarketingBox.Affiliate.Service.Messages.Campaigns;
+using MarketingBox.Affiliate.Service.Messages.Integrations;
 using MarketingBox.Affiliate.Service.Messages.Partners;
 using MarketingBox.Affiliate.Service.MyNoSql.Boxes;
-using MarketingBox.Affiliate.Service.MyNoSql.Brands;
 using MarketingBox.Affiliate.Service.MyNoSql.CampaignBoxes;
 using MarketingBox.Affiliate.Service.MyNoSql.Campaigns;
+using MarketingBox.Affiliate.Service.MyNoSql.Integrations;
 using MarketingBox.Affiliate.Service.MyNoSql.Partners;
 using MarketingBox.Auth.Service.Client;
 using MyJetWallet.Sdk.NoSql;
@@ -58,16 +58,16 @@ namespace MarketingBox.Affiliate.Service.Modules
 
             #endregion
 
-            #region Brands
+            #region Integrations
 
-            // publisher (IServiceBusPublisher<BrandUpdated>)
-            builder.RegisterMyServiceBusPublisher<BrandUpdated>(serviceBusClient, Topics.BrandUpdatedTopic, false);
+            // publisher (IServiceBusPublisher<IntegrationUpdated>)
+            builder.RegisterMyServiceBusPublisher<IntegrationUpdated>(serviceBusClient, Topics.IntegrationUpdatedTopic, false);
 
             // publisher (IServiceBusPublisher<BoxRemoved>)
-            builder.RegisterMyServiceBusPublisher<BrandRemoved>(serviceBusClient, Topics.BrandRemovedTopic, false);
+            builder.RegisterMyServiceBusPublisher<IntegrationRemoved>(serviceBusClient, Topics.IntegrationRemovedTopic, false);
 
-            // register writer (IMyNoSqlServerDataWriter<BrandNoSql>)
-            builder.RegisterMyNoSqlWriter<BrandNoSql>(Program.ReloadedSettings(e => e.MyNoSqlWriterUrl), BrandNoSql.TableName);
+            // register writer (IMyNoSqlServerDataWriter<IntegrationNoSql>)
+            builder.RegisterMyNoSqlWriter<IntegrationNoSql>(Program.ReloadedSettings(e => e.MyNoSqlWriterUrl), IntegrationNoSql.TableName);
 
             #endregion
 

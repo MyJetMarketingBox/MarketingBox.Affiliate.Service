@@ -1,5 +1,5 @@
 ﻿using System.Runtime.Serialization;
-using MarketingBox.Affiliate.Service.Domain.Models.Campaigns;
+using MarketingBox.Affiliate.Service.Domain.Models.Integrations;
 
 namespace MarketingBox.Affiliate.Service.Grpc.Models.Campaigns.Requests
 {
@@ -13,7 +13,7 @@ namespace MarketingBox.Affiliate.Service.Grpc.Models.Campaigns.Requests
         public string Name { get; set; }
 
         [DataMember(Order = 3)]
-        public long? BrandId { get; set; }
+        public long? IntegrationId { get; set; }
 
         [DataMember(Order = 4)]
         public CampaignStatus? Status { get; set; }

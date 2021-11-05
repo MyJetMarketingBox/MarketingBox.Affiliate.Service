@@ -5,7 +5,6 @@ using MarketingBox.Affiliate.Service.Domain.Extensions;
 using MarketingBox.Affiliate.Service.Grpc;
 using MarketingBox.Affiliate.Service.Grpc.Models.Common;
 using MarketingBox.Affiliate.Service.Grpc.Models.Partners;
-using MarketingBox.Affiliate.Service.Grpc.Models.Partners.Messages;
 using MarketingBox.Affiliate.Service.Messages.Partners;
 using MarketingBox.Affiliate.Service.MyNoSql.Partners;
 using MarketingBox.Auth.Service.Grpc;
@@ -16,7 +15,7 @@ using MyNoSqlServer.Abstractions;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using MarketingBox.Affiliate.Service.Domain.Models.Partners;
+using MarketingBox.Affiliate.Service.Domain.Affiliates;
 using MarketingBox.Affiliate.Service.Grpc.Models.Partners.Requests;
 using MyJetWallet.Sdk.ServiceBus;
 using Z.EntityFramework.Plus;
@@ -79,9 +78,9 @@ namespace MarketingBox.Affiliate.Service.Services
                 {
                     CreatedAt = DateTime.UtcNow,
                     Currency = request.GeneralInfo.Currency.MapEnum<Domain.Common.Currency>(),
-                    Role = request.GeneralInfo.Role.MapEnum<Domain.Partners.PartnerRole>(),
+                    Role = request.GeneralInfo.Role.MapEnum<PartnerRole>(),
                     Skype = request.GeneralInfo.Skype,
-                    State = request.GeneralInfo.State.MapEnum<Domain.Partners.PartnerState>(),
+                    State = request.GeneralInfo.State.MapEnum<PartnerState>(),
                     Username = request.GeneralInfo.Username,
                     ZipCode = request.GeneralInfo.ZipCode,
                     Email = request.GeneralInfo.Email,
@@ -164,9 +163,9 @@ namespace MarketingBox.Affiliate.Service.Services
                 {
                     CreatedAt = DateTime.UtcNow,
                     Currency = request.GeneralInfo.Currency.MapEnum<Domain.Common.Currency>(),
-                    Role = request.GeneralInfo.Role.MapEnum<Domain.Partners.PartnerRole>(),
+                    Role = request.GeneralInfo.Role.MapEnum<PartnerRole>(),
                     Skype = request.GeneralInfo.Skype,
-                    State = request.GeneralInfo.State.MapEnum<Domain.Partners.PartnerState>(),
+                    State = request.GeneralInfo.State.MapEnum<PartnerState>(),
                     Username = request.GeneralInfo.Username,
                     ZipCode = request.GeneralInfo.ZipCode,
                     Email = request.GeneralInfo.Email,
@@ -207,9 +206,9 @@ namespace MarketingBox.Affiliate.Service.Services
                     {
                         CreatedAt = DateTime.UtcNow,
                         Currency = request.GeneralInfo.Currency.MapEnum<Domain.Common.Currency>(),
-                        Role = request.GeneralInfo.Role.MapEnum<Domain.Partners.PartnerRole>(),
+                        Role = request.GeneralInfo.Role.MapEnum<PartnerRole>(),
                         Skype = request.GeneralInfo.Skype,
-                        State = request.GeneralInfo.State.MapEnum<Domain.Partners.PartnerState>(),
+                        State = request.GeneralInfo.State.MapEnum<PartnerState>(),
                         Username = request.GeneralInfo.Username,
                         ZipCode = request.GeneralInfo.ZipCode,
                         Email = request.GeneralInfo.Email,
@@ -334,7 +333,7 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 if (request.Role.HasValue)
                 {
-                    query = query.Where(x => x.GeneralInfo.Role == request.Role.MapEnum<Domain.Partners.PartnerRole>());
+                    query = query.Where(x => x.GeneralInfo.Role == request.Role.MapEnum<PartnerRole>());
                 }
 
                 var limit = request.Take <= 0 ? 1000 : request.Take;
@@ -459,9 +458,9 @@ namespace MarketingBox.Affiliate.Service.Services
                     Email = partnerEntity.GeneralInfo.Email,
                     Password = partnerEntity.GeneralInfo.Password,
                     Phone = partnerEntity.GeneralInfo.Phone,
-                    Role = partnerEntity.GeneralInfo.Role.MapEnum<PartnerRole>(),
+                    Role = partnerEntity.GeneralInfo.Role.MapEnum<Domain.Models.Affiliates.PartnerRole>(),
                     Skype = partnerEntity.GeneralInfo.Skype,
-                    State = partnerEntity.GeneralInfo.State.MapEnum<PartnerState>(),
+                    State = partnerEntity.GeneralInfo.State.MapEnum<Domain.Models.Affiliates.PartnerState>(),
                     Username = partnerEntity.GeneralInfo.Username,
                     ZipCode = partnerEntity.GeneralInfo.ZipCode,
                     ApiKey = partnerEntity.GeneralInfo.ApiKey
@@ -500,9 +499,9 @@ namespace MarketingBox.Affiliate.Service.Services
                     Email = partnerEntity.GeneralInfo.Email,
                     //Password = partnerEntity.GeneralInfo.Password,
                     Phone = partnerEntity.GeneralInfo.Phone,
-                    Role = partnerEntity.GeneralInfo.Role.MapEnum<Domain.Models.Partners.PartnerRole>(),
+                    Role = partnerEntity.GeneralInfo.Role.MapEnum<Domain.Models.Affiliates.PartnerRole>(),
                     Skype = partnerEntity.GeneralInfo.Skype,
-                    State = partnerEntity.GeneralInfo.State.MapEnum<Domain.Models.Partners.PartnerState>(),
+                    State = partnerEntity.GeneralInfo.State.MapEnum<Domain.Models.Affiliates.PartnerState>(),
                     Username = partnerEntity.GeneralInfo.Username,
                     ZipCode = partnerEntity.GeneralInfo.ZipCode,
                     ApiKey = partnerEntity.GeneralInfo.ApiKey
@@ -522,9 +521,9 @@ namespace MarketingBox.Affiliate.Service.Services
                     Email = partnerEntity.GeneralInfo.Email,
                     //Password = partnerEntity.GeneralInfo.Password,
                     Phone = partnerEntity.GeneralInfo.Phone,
-                    Role = partnerEntity.GeneralInfo.Role.MapEnum<Domain.Models.Partners.PartnerRole>(),
+                    Role = partnerEntity.GeneralInfo.Role.MapEnum<Domain.Models.Affiliates.PartnerRole>(),
                     Skype = partnerEntity.GeneralInfo.Skype,
-                    State = partnerEntity.GeneralInfo.State.MapEnum<Domain.Models.Partners.PartnerState>(),
+                    State = partnerEntity.GeneralInfo.State.MapEnum<Domain.Models.Affiliates.PartnerState>(),
                     Username = partnerEntity.GeneralInfo.Username,
                     ZipCode = partnerEntity.GeneralInfo.ZipCode,
                     ApiKey = partnerEntity.GeneralInfo.ApiKey

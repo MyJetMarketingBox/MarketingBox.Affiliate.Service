@@ -1,5 +1,4 @@
 ﻿using MarketingBox.Affiliate.Service.Grpc.Models.Partners;
-using MarketingBox.Affiliate.Service.Grpc.Models.Partners.Messages;
 using System.ServiceModel;
 using System.Threading.Tasks;
 using MarketingBox.Affiliate.Service.Grpc.Models.Partners.Requests;

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using MarketingBox.Affiliate.Postgres.Entities.Brands;
 using MarketingBox.Affiliate.Postgres.Entities.CampaignBoxes;
-using MarketingBox.Affiliate.Service.Domain.Campaigns;
+using MarketingBox.Affiliate.Postgres.Entities.Integrations;
+using MarketingBox.Affiliate.Service.Domain.Integrations;
 
 namespace MarketingBox.Affiliate.Postgres.Entities.Campaigns
 {
@@ -12,9 +12,9 @@ namespace MarketingBox.Affiliate.Postgres.Entities.Campaigns
 
         public string Name { get; set; }
 
-        public long BrandId { get; set; }
+        public long IntegrationId { get; set; }
 
-        public BrandEntity Brand { get; set; }
+        public IntegrationEntity Integration { get; set; }
 
         public Payout Payout { get; set; }
 

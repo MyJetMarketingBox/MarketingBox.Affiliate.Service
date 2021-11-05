@@ -1,4 +1,4 @@
-﻿using MarketingBox.Affiliate.Service.Domain.Models.Campaigns;
+﻿using MarketingBox.Affiliate.Service.Domain.Models.Integrations;
 using MyNoSqlServer.Abstractions;
 
 namespace MarketingBox.Affiliate.Service.MyNoSql.Campaigns
@@ -13,7 +13,7 @@ namespace MarketingBox.Affiliate.Service.MyNoSql.Campaigns
 
         public string Name { get; set; }
 
-        public long BrandId { get; set; }
+        public long IntegrationId { get; set; }
 
         public Payout Payout { get; set; }
 
@@ -31,7 +31,7 @@ namespace MarketingBox.Affiliate.Service.MyNoSql.Campaigns
             string tenantId,
             long campaignId,
             string name,
-            long brandId,
+            long integrationId,
             Payout payout,
             Revenue revenue,
             CampaignStatus status,
@@ -45,7 +45,7 @@ namespace MarketingBox.Affiliate.Service.MyNoSql.Campaigns
                 Id = campaignId,
                 TenantId = tenantId,
                 Sequence = sequence,
-                BrandId = brandId,
+                IntegrationId = integrationId,
                 Name = name,
                 Payout = payout,
                 Privacy = campaignPrivacy,

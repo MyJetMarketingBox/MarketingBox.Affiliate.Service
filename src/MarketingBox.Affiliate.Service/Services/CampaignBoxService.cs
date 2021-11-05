@@ -17,7 +17,7 @@ using System.Threading.Tasks;
 using MyJetWallet.Sdk.ServiceBus;
 using Z.EntityFramework.Plus;
 using ActivityHours = MarketingBox.Affiliate.Postgres.Entities.CampaignBoxes.ActivityHours;
-using CapType = MarketingBox.Affiliate.Service.Domain.CampaignBoxes.CapType;
+using CapType = MarketingBox.Affiliate.Service.Domain.CampaignRows.CapType;
 
 namespace MarketingBox.Affiliate.Service.Services
 {
@@ -302,7 +302,7 @@ namespace MarketingBox.Affiliate.Service.Services
                             IsActive = x.IsActive
                         }).ToArray(),
                     CampaignBoxId = campaignBoxEntity.CampaignBoxId,
-                    CapType = campaignBoxEntity.CapType.MapEnum<Domain.Models.CampaignBoxes.CapType>(),
+                    CapType = campaignBoxEntity.CapType.MapEnum<Domain.Models.CampaignRows.CapType>(),
                     CountryCode = campaignBoxEntity.CountryCode,
                     DailyCapValue = campaignBoxEntity.DailyCapValue,
                     EnableTraffic = campaignBoxEntity.EnableTraffic,
@@ -328,7 +328,7 @@ namespace MarketingBox.Affiliate.Service.Services
                         IsActive = x.IsActive
                     }).ToArray(),
                 CampaignBoxId = campaignBoxEntity.CampaignBoxId,
-                CapType = campaignBoxEntity.CapType.MapEnum< Domain.Models.CampaignBoxes.CapType>(),
+                CapType = campaignBoxEntity.CapType.MapEnum< Domain.Models.CampaignRows.CapType>(),
                 CountryCode = campaignBoxEntity.CountryCode,
                 DailyCapValue = campaignBoxEntity.DailyCapValue,
                 EnableTraffic = campaignBoxEntity.EnableTraffic,
@@ -347,7 +347,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 campaignBoxEntity.CountryCode,
                 campaignBoxEntity.Priority,
                 campaignBoxEntity.Weight,
-                campaignBoxEntity.CapType.MapEnum< Domain.Models.CampaignBoxes.CapType >(),
+                campaignBoxEntity.CapType.MapEnum< Domain.Models.CampaignRows.CapType >(),
                 campaignBoxEntity.DailyCapValue,
                 campaignBoxEntity.ActivityHours.Select(x => new MyNoSql.CampaignBoxes.ActivityHours()
                 {

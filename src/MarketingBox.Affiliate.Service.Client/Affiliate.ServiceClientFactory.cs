@@ -15,7 +15,7 @@ namespace MarketingBox.Affiliate.Service.Client
 
         public IBoxService GetBoxService() => CreateGrpcService<IBoxService>();
 
-        public IBrandService GetBrandService() => CreateGrpcService<IBrandService>();
+        public IIntegrationService GetIntegrationService() => CreateGrpcService<IIntegrationService>();
 
         public ICampaignService GetCampaignService() => CreateGrpcService<ICampaignService>();
 

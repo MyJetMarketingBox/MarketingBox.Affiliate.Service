@@ -1,6 +1,6 @@
 ﻿using MarketingBox.Affiliate.Postgres.Entities.Boxes;
 using MarketingBox.Affiliate.Postgres.Entities.Campaigns;
-using MarketingBox.Affiliate.Service.Domain.CampaignBoxes;
+using MarketingBox.Affiliate.Service.Domain.CampaignRows;
 
 namespace MarketingBox.Affiliate.Postgres.Entities.CampaignBoxes
 {

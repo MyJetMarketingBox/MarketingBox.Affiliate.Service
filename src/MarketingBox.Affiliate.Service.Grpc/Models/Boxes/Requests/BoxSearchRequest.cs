@@ -1,6 +1,6 @@
 ﻿using System.Runtime.Serialization;
 
-namespace MarketingBox.Affiliate.Service.Grpc.Models.Boxes.Messages
+namespace MarketingBox.Affiliate.Service.Grpc.Models.Boxes.Requests
 {
     [DataContract]
     public class BoxSearchRequest

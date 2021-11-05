@@ -1,4 +1,4 @@
-﻿using MarketingBox.Affiliate.Service.Domain.Models.CampaignBoxes;
+﻿using MarketingBox.Affiliate.Service.Domain.Models.CampaignRows;
 using MyNoSqlServer.Abstractions;
 
 namespace MarketingBox.Affiliate.Service.MyNoSql.CampaignBoxes

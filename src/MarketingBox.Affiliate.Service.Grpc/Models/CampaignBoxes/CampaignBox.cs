@@ -1,5 +1,5 @@
 ﻿using System.Runtime.Serialization;
-using MarketingBox.Affiliate.Service.Domain.Models.CampaignBoxes;
+using MarketingBox.Affiliate.Service.Domain.Models.CampaignRows;
 
 namespace MarketingBox.Affiliate.Service.Grpc.Models.CampaignBoxes
 {

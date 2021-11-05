@@ -1,6 +1,6 @@
 ﻿using System.Runtime.Serialization;
 
-namespace MarketingBox.Affiliate.Service.Grpc.Models.Partners.Messages
+namespace MarketingBox.Affiliate.Service.Grpc.Models.Partners.Requests
 {
     [DataContract]
     public class PartnerUpdateRequest
