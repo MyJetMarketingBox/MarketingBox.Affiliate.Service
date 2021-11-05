@@ -1,5 +1,5 @@
 ﻿using MarketingBox.Affiliate.Postgres.Entities.Brands;
-using MarketingBox.Affiliate.Postgres.Entities.CampaignBoxes;
+using MarketingBox.Affiliate.Postgres.Entities.CampaignRows;
 using MarketingBox.Affiliate.Postgres.Entities.Campaigns;
 using MarketingBox.Affiliate.Postgres.Entities.Integrations;
 using MarketingBox.Affiliate.Postgres.Entities.Partners;
@@ -19,7 +19,7 @@ namespace MarketingBox.Affiliate.Postgres
         private const string PartnerTableName = "partners";
         private const string BrandTableName = "brands";
         private const string CampaignTableName = "campaigns";
-        private const string CampaignBoxTableName = "campaign-boxes";
+        private const string CampaignBoxTableName = "campaign-rows";
         private const string IntegrationTableName = "integrations";
 
         public DbSet<PartnerEntity> Partners { get; set; }
@@ -30,7 +30,7 @@ namespace MarketingBox.Affiliate.Postgres
 
         public DbSet<BrandEntity> Brands { get; set; }
 
-        public DbSet<CampaignBoxEntity> CampaignBoxes { get; set; }
+        public DbSet<CampaignRowEntity> CampaignRows { get; set; }
 
 
 
@@ -56,7 +56,7 @@ namespace MarketingBox.Affiliate.Postgres
             SetCampaignEntity(modelBuilder);
             SetIntegrationEntity(modelBuilder);
             SetBrandEntity(modelBuilder);
-            SetCampaignBoxEntity(modelBuilder);
+            SetCampaignRowEntity(modelBuilder);
 
             base.OnModelCreating(modelBuilder);
         }
@@ -92,21 +92,21 @@ namespace MarketingBox.Affiliate.Postgres
             modelBuilder.Entity<BrandEntity>().HasIndex(e => new { e.TenantId, e.Status });
         }
 
-        private void SetCampaignBoxEntity(ModelBuilder modelBuilder)
+        private void SetCampaignRowEntity(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<CampaignBoxEntity>().ToTable(CampaignBoxTableName);
-            modelBuilder.Entity<CampaignBoxEntity>().HasKey(e => e.CampaignBoxId);
-            modelBuilder.Entity<CampaignBoxEntity>()
+            modelBuilder.Entity<CampaignRowEntity>().ToTable(CampaignBoxTableName);
+            modelBuilder.Entity<CampaignRowEntity>().HasKey(e => e.CampaignBoxId);
+            modelBuilder.Entity<CampaignRowEntity>()
                 .HasOne(x => x.Campaign)
-                .WithMany(x => x.CampaignBoxes)
-                .HasForeignKey(x => x.BoxId);
-
-            modelBuilder.Entity<CampaignBoxEntity>()
-                .HasOne(x => x.Brand)
                 .WithMany(x => x.CampaignBoxes)
                 .HasForeignKey(x => x.CampaignId);
 
-            modelBuilder.Entity<CampaignBoxEntity>()
+            modelBuilder.Entity<CampaignRowEntity>()
+                .HasOne(x => x.Brand)
+                .WithMany(x => x.CampaignBoxes)
+                .HasForeignKey(x => x.BrandId);
+
+            modelBuilder.Entity<CampaignRowEntity>()
                 .Property(e => e.ActivityHours)
                 .HasConversion(
                     v => JsonConvert.SerializeObject(v,
@@ -115,9 +115,9 @@ namespace MarketingBox.Affiliate.Postgres
                         JsonConvert.DeserializeObject<ActivityHours[]>(v,
                             JsonSerializingSettings));
 
-            modelBuilder.Entity<CampaignBoxEntity>().HasIndex(e => new { e.BoxId });
-            modelBuilder.Entity<CampaignBoxEntity>().HasIndex(e => new { e.CampaignId });
-            modelBuilder.Entity<CampaignBoxEntity>().HasIndex(e => new { e.CountryCode });
+            modelBuilder.Entity<CampaignRowEntity>().HasIndex(e => new {e.CampaignId});
+            modelBuilder.Entity<CampaignRowEntity>().HasIndex(e => new {e.BrandId});
+            modelBuilder.Entity<CampaignRowEntity>().HasIndex(e => new { e.CountryCode });
         }
 
         private void SetIntegrationEntity(ModelBuilder modelBuilder)

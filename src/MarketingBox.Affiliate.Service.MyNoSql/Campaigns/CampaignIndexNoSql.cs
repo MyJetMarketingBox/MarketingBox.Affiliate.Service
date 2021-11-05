@@ -4,7 +4,7 @@ namespace MarketingBox.Affiliate.Service.MyNoSql.Campaigns
 {
     public class CampaignIndexNoSql : MyNoSqlDbEntity
     {
-        public const string TableName = "marketingbox-affiliateservice-campaign-indiciess";
+        public const string TableName = "marketingbox-affiliateservice-campaign-indicies";
         public static string GeneratePartitionKey(long campaignId) => $"{campaignId}";
         public static string GenerateRowKey(string tenantId) =>
             $"{tenantId}";

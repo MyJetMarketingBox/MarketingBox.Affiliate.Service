@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using MarketingBox.Affiliate.Postgres.Entities.CampaignBoxes;
+using MarketingBox.Affiliate.Postgres.Entities.CampaignRows;
 
 namespace MarketingBox.Affiliate.Postgres.Entities.Campaigns
 {
@@ -12,6 +12,6 @@ namespace MarketingBox.Affiliate.Postgres.Entities.Campaigns
 
         public long Sequence { get; set; }
 
-        public ICollection<CampaignBoxEntity> CampaignBoxes { get; set; }
+        public ICollection<CampaignRowEntity> CampaignBoxes { get; set; }
     }
 }

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace MarketingBox.Affiliate.Service.Messages.CampaignBoxes
+namespace MarketingBox.Affiliate.Service.Grpc.Models.CampaignRows
 {
     [DataContract]
     public class ActivityHours

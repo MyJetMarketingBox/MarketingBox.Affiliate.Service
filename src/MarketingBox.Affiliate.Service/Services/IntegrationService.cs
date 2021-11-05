@@ -191,9 +191,9 @@ namespace MarketingBox.Affiliate.Service.Services
                     query = query.Where(x => x.Name.Contains(request.Name));
                 }
 
-                if (request.BoxId.HasValue)
+                if (request.IntegrationId.HasValue)
                 {
-                    query = query.Where(x => x.Id == request.BoxId);
+                    query = query.Where(x => x.Id == request.IntegrationId);
                 }
 
                 var limit = request.Take <= 0 ? 1000 : request.Take;

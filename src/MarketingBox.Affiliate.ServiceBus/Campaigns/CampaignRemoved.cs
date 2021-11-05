@@ -6,7 +6,7 @@ namespace MarketingBox.Affiliate.Service.Messages.Campaigns
     public class CampaignRemoved
     {
         [DataMember(Order = 1)]
-        public long BoxId { get; set; }
+        public long CampaignId { get; set; }
 
         [DataMember(Order = 2)]
         public string TenantId { get; set; }

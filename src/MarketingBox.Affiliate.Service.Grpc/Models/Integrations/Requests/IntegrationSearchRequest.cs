@@ -6,7 +6,7 @@ namespace MarketingBox.Affiliate.Service.Grpc.Models.Integrations.Requests
     public class IntegrationSearchRequest
     {
         [DataMember(Order = 1)]
-        public long? BoxId { get; set; }
+        public long? IntegrationId { get; set; }
 
         [DataMember(Order = 2)]
         public string Name { get; set; }

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MarketingBox.Affiliate.Service.MyNoSql.CampaignBoxes
+namespace MarketingBox.Affiliate.Service.MyNoSql.CampaignRows
 {
     public class ActivityHours
     {

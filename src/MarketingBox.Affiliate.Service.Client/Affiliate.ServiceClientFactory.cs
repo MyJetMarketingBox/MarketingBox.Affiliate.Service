@@ -19,6 +19,6 @@ namespace MarketingBox.Affiliate.Service.Client
 
         public IBrandService GetBrandService() => CreateGrpcService<IBrandService>();
 
-        public ICampaignBoxService GetCampaignBoxService() => CreateGrpcService<ICampaignBoxService>();
+        public ICampaignRowService GetCampaignRowService() => CreateGrpcService<ICampaignRowService>();
     }
 }

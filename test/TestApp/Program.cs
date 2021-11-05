@@ -5,8 +5,8 @@ using MarketingBox.Affiliate.Service.Client;
 using MarketingBox.Affiliate.Service.Domain.Models.Affiliates;
 using MarketingBox.Affiliate.Service.Domain.Models.CampaignRows;
 using MarketingBox.Affiliate.Service.Domain.Models.Common;
-using MarketingBox.Affiliate.Service.Grpc.Models.CampaignBoxes;
-using MarketingBox.Affiliate.Service.Grpc.Models.CampaignBoxes.Requests;
+using MarketingBox.Affiliate.Service.Grpc.Models.CampaignRows;
+using MarketingBox.Affiliate.Service.Grpc.Models.CampaignRows.Requests;
 using MarketingBox.Affiliate.Service.Grpc.Models.Common;
 using MarketingBox.Affiliate.Service.Grpc.Models.Partners;
 using MarketingBox.Affiliate.Service.Grpc.Models.Partners.Requests;
@@ -26,7 +26,7 @@ namespace TestApp
             var factory = new AffiliateServiceClientFactory("http://localhost:12347");
             var client = factory.GetPartnerService();
             var boxClient = factory.GetCampaignService();
-            var campaignBoxClient = factory.GetCampaignBoxService();
+            var campaignBoxClient = factory.GetCampaignRowService();
 
             //var boxes = await boxClient.SearchAsync(new CampaignSearchRequest()
             //{
@@ -52,12 +52,12 @@ namespace TestApp
                 IsActive = true
             }).ToArray();
 
-            var campaignBox1= await campaignBoxClient.CreateAsync(new CampaignBoxCreateRequest()
+            var campaignBox1= await campaignBoxClient.CreateAsync(new CampaignRowCreateRequest()
             {
                 Sequence = 0,
                 ActivityHours = activityHours,
-                BoxId = boxId,
-                CampaignId = 3,
+                CampaignId = boxId,
+                BrandId = 3,
                 CapType = CapType.Lead,
                 CountryCode = "UK",
                 DailyCapValue = 20,
@@ -67,12 +67,12 @@ namespace TestApp
                 Weight = 10
             });
 
-            var campaignBox2 = await campaignBoxClient.CreateAsync(new CampaignBoxCreateRequest()
+            var campaignBox2 = await campaignBoxClient.CreateAsync(new CampaignRowCreateRequest()
             {
                 Sequence = 0,
                 ActivityHours = activityHours,
-                BoxId = boxId,
-                CampaignId = 4,
+                CampaignId = boxId,
+                BrandId = 4,
                 CapType = CapType.Lead,
                 CountryCode = "UK",
                 DailyCapValue = 20,
@@ -82,12 +82,12 @@ namespace TestApp
                 Weight = 5
             });
 
-            var campaignBox3 = await campaignBoxClient.CreateAsync(new CampaignBoxCreateRequest()
+            var campaignBox3 = await campaignBoxClient.CreateAsync(new CampaignRowCreateRequest()
             {
                 Sequence = 0,
                 ActivityHours = activityHours,
-                BoxId = boxId,
-                CampaignId = 5,
+                CampaignId = boxId,
+                BrandId = 5,
                 CapType = CapType.Lead,
                 CountryCode = "UK",
                 DailyCapValue = 20,

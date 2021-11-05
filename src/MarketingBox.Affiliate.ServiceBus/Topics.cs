@@ -18,9 +18,9 @@
 
         public const string BrandRemovedTopic = "marketing-box-affiliate-service-brand-removed";
 
-        public const string CampaignBoxUpdatedTopic = "marketing-box-affiliate-service-campaignbox-update";
+        public const string CampaignRowUpdatedTopic = "marketing-box-affiliate-service-campaignrow-update";
 
-        public const string CampaignBoxRemovedTopic = "marketing-box-affiliate-service-campaignbox-removed";
+        public const string CampaignRowRemovedTopic = "marketing-box-affiliate-service-campaignrow-removed";
 
     }
 }

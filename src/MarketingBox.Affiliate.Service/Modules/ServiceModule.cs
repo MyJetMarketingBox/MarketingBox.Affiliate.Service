@@ -1,12 +1,12 @@
 ﻿using Autofac;
 using MarketingBox.Affiliate.Service.Messages;
 using MarketingBox.Affiliate.Service.Messages.Brands;
-using MarketingBox.Affiliate.Service.Messages.CampaignBoxes;
+using MarketingBox.Affiliate.Service.Messages.CampaignRows;
 using MarketingBox.Affiliate.Service.Messages.Campaigns;
 using MarketingBox.Affiliate.Service.Messages.Integrations;
 using MarketingBox.Affiliate.Service.Messages.Partners;
 using MarketingBox.Affiliate.Service.MyNoSql.Brands;
-using MarketingBox.Affiliate.Service.MyNoSql.CampaignBoxes;
+using MarketingBox.Affiliate.Service.MyNoSql.CampaignRows;
 using MarketingBox.Affiliate.Service.MyNoSql.Campaigns;
 using MarketingBox.Affiliate.Service.MyNoSql.Integrations;
 using MarketingBox.Affiliate.Service.MyNoSql.Partners;
@@ -84,16 +84,16 @@ namespace MarketingBox.Affiliate.Service.Modules
 
             #endregion
 
-            #region CampaignBox
+            #region CampaignRow
 
-            // publisher (IServiceBusPublisher<CampaignBoxUpdated>)
-            builder.RegisterMyServiceBusPublisher<CampaignBoxUpdated>(serviceBusClient, Topics.CampaignBoxUpdatedTopic, false);
+            // publisher (IServiceBusPublisher<CampaignRowUpdated>)
+            builder.RegisterMyServiceBusPublisher<CampaignRowUpdated>(serviceBusClient, Topics.CampaignRowUpdatedTopic, false);
 
-            // publisher (IServiceBusPublisher<CampaignBoxRemoved>)
-            builder.RegisterMyServiceBusPublisher<CampaignBoxRemoved>(serviceBusClient, Topics.CampaignBoxRemovedTopic, false);
+            // publisher (IServiceBusPublisher<CampaignRowRemoved>)
+            builder.RegisterMyServiceBusPublisher<CampaignRowRemoved>(serviceBusClient, Topics.CampaignRowRemovedTopic, false);
 
-            // register writer (IMyNoSqlServerDataWriter<CampaignBoxNoSql>)
-            builder.RegisterMyNoSqlWriter<CampaignBoxNoSql>(Program.ReloadedSettings(e => e.MyNoSqlWriterUrl), CampaignBoxNoSql.TableName);
+            // register writer (IMyNoSqlServerDataWriter<CampaignRowNoSql>)
+            builder.RegisterMyNoSqlWriter<CampaignRowNoSql>(Program.ReloadedSettings(e => e.MyNoSqlWriterUrl), CampaignRowNoSql.TableName);
 
             #endregion
         }

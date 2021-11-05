@@ -1,16 +1,16 @@
 ﻿using System.Runtime.Serialization;
 using MarketingBox.Affiliate.Service.Domain.Models.CampaignRows;
 
-namespace MarketingBox.Affiliate.Service.Grpc.Models.CampaignBoxes
+namespace MarketingBox.Affiliate.Service.Messages.CampaignRows
 {
     [DataContract]
-    public class CampaignBox
+    public class CampaignRowUpdated
     {
-        [DataMember(Order = 1)] public long CampaignBoxId { get; set; }
+        [DataMember(Order = 1)] public long CampaignRowId { get; set; }
 
-        [DataMember(Order = 2)] public long BoxId { get; set; }
+        [DataMember(Order = 2)] public long CampaignId { get; set; }
 
-        [DataMember(Order = 3)] public long CampaignId { get; set; }
+        [DataMember(Order = 3)] public long BrandId { get; set; }
 
         [DataMember(Order = 4)] public string CountryCode { get; set; }
 

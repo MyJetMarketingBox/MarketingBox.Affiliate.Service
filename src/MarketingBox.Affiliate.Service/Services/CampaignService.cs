@@ -161,7 +161,7 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 await _publisherCampaignRemoved.PublishAsync(new CampaignRemoved()
                 {
-                    BoxId = campaignEntity.Id,
+                    CampaignId = campaignEntity.Id,
                     Sequence = campaignEntity.Sequence,
                     TenantId = campaignEntity.TenantId
                 });

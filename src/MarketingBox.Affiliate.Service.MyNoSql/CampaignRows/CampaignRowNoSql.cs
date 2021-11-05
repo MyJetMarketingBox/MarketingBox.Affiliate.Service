@@ -1,20 +1,20 @@
 ﻿using MarketingBox.Affiliate.Service.Domain.Models.CampaignRows;
 using MyNoSqlServer.Abstractions;
 
-namespace MarketingBox.Affiliate.Service.MyNoSql.CampaignBoxes
+namespace MarketingBox.Affiliate.Service.MyNoSql.CampaignRows
 {
-    public class CampaignBoxNoSql : MyNoSqlDbEntity
+    public class CampaignRowNoSql : MyNoSqlDbEntity
     {
-        public const string TableName = "marketingbox-affiliateservice-campaignboxes";
-        public static string GeneratePartitionKey(long boxId) => $"{boxId}";
-        public static string GenerateRowKey(long campaignBoxId) =>
-            $"{campaignBoxId}";
+        public const string TableName = "marketingbox-affiliateservice-campaignrows";
+        public static string GeneratePartitionKey(long campaignId) => $"{campaignId}";
+        public static string GenerateRowKey(long campaignRowId) =>
+            $"{campaignRowId}";
 
-        public long CampaignBoxId { get; set; }
-
-        public long BoxId { get; set; }
+        public long CampaignRowId { get; set; }
 
         public long CampaignId { get; set; }
+
+        public long BrandId { get; set; }
 
         public string CountryCode { get; set; }
 
@@ -34,10 +34,10 @@ namespace MarketingBox.Affiliate.Service.MyNoSql.CampaignBoxes
 
         public long Sequence { get; set; }
 
-        public static CampaignBoxNoSql Create(
-            long boxId,
-            long campaignBoxId,
+        public static CampaignRowNoSql Create(
             long campaignId,
+            long campaignRowId,
+            long brandId,
             string countryCode,
             int priority,
             int weight,
@@ -49,13 +49,13 @@ namespace MarketingBox.Affiliate.Service.MyNoSql.CampaignBoxes
             long sequence) =>
             new()
             {
-                PartitionKey = GeneratePartitionKey(boxId),
-                RowKey = GenerateRowKey(campaignBoxId),
+                PartitionKey = GeneratePartitionKey(campaignId),
+                RowKey = GenerateRowKey(campaignRowId),
                 Sequence = sequence,
-                BoxId = boxId,
                 CampaignId = campaignId,
+                BrandId = brandId,
                 ActivityHours = activityHours,
-                CampaignBoxId = campaignBoxId,
+                CampaignRowId = campaignRowId,
                 CapType = capType,
                 CountryCode = countryCode,
                 DailyCapValue = dailyCapValue,
