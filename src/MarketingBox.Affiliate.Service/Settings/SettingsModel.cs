@@ -28,5 +28,8 @@ namespace MarketingBox.Affiliate.Service.Settings
         
         [YamlProperty("MarketingBoxAffiliateService.AuthServiceUrl")]
         public string AuthServiceUrl { get; set; }
+
+        [YamlProperty("MarketingBoxAffiliateService.JaegerUrl")]
+        public string JaegerUrl { get; set; }
     }
 }

@@ -16,13 +16,13 @@ namespace MarketingBox.Affiliate.Postgres
 
         public const string Schema = "affiliate-service";
 
-        private const string PartnerTableName = "partners";
+        private const string AffiliateTableName = "affiliates";
         private const string BrandTableName = "brands";
         private const string CampaignTableName = "campaigns";
         private const string CampaignBoxTableName = "campaign-rows";
         private const string IntegrationTableName = "integrations";
 
-        public DbSet<PartnerEntity> Partners { get; set; }
+        public DbSet<AffiliateEntity> Affiliates { get; set; }
 
         public DbSet<CampaignEntity> Campaigns { get; set; }
 
@@ -63,17 +63,13 @@ namespace MarketingBox.Affiliate.Postgres
 
         private void SetPartnerEntity(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<PartnerEntity>().ToTable(PartnerTableName);
-            modelBuilder.Entity<PartnerEntity>().HasKey(e => e.AffiliateId);
-            modelBuilder.Entity<PartnerEntity>().OwnsOne(x => x.Bank);
-            modelBuilder.Entity<PartnerEntity>().OwnsOne(x => x.Company);
-            modelBuilder.Entity<PartnerEntity>().OwnsOne(x => x.GeneralInfo);
-            modelBuilder.Entity<PartnerEntity>().HasIndex(e => new { e.TenantId, e.AffiliateId});
-            //TODO: This IS NOT SUPPORTED BY EF BUT IT IS WRITTEN IN MIGRATION
-            // modelBuilder.Entity<PartnerEntity>().HasIndex(e => new { e.TenantId, e.GeneralInfo.Email }).IsUnique(true);
-            // modelBuilder.Entity<PartnerEntity>().HasIndex(e => new { e.TenantId, e.GeneralInfo.Username }).IsUnique(true);
-            // modelBuilder.Entity<PartnerEntity>().HasIndex(e => new { e.TenantId, e.GeneralInfo.CreatedAt });
-            // modelBuilder.Entity<PartnerEntity>().HasIndex(e => new { e.TenantId, e.GeneralInfo.Role });
+            modelBuilder.Entity<AffiliateEntity>().ToTable(AffiliateTableName);
+            modelBuilder.Entity<AffiliateEntity>().HasKey(e => e.AffiliateId);
+            modelBuilder.Entity<AffiliateEntity>().HasIndex(e => new { e.TenantId, e.AffiliateId});
+            modelBuilder.Entity<AffiliateEntity>().HasIndex(e => new { e.TenantId, e.GeneralInfoEmail }).IsUnique(true);
+            modelBuilder.Entity<AffiliateEntity>().HasIndex(e => new { e.TenantId, e.GeneralInfoUsername }).IsUnique(true);
+            modelBuilder.Entity<AffiliateEntity>().HasIndex(e => new { e.TenantId, e.CreatedAt });
+            modelBuilder.Entity<AffiliateEntity>().HasIndex(e => new { e.TenantId, e.GeneralInfoRole });
         }
 
         private void SetBrandEntity(ModelBuilder modelBuilder)

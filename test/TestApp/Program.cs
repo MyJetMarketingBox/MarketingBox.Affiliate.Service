@@ -24,7 +24,7 @@ namespace TestApp
             Console.ReadLine();
             var testTenant = "default-tenant-id";
             var factory = new AffiliateServiceClientFactory("http://localhost:12347");
-            var client = factory.GetPartnerService();
+            var client = factory.GetAffiliateService();
             var boxClient = factory.GetCampaignService();
             var campaignBoxClient = factory.GetCampaignRowService();
 
@@ -33,12 +33,12 @@ namespace TestApp
             //    TenantId = testTenant
             //});
 
-            //var partners = await client.SearchAsync(new PartnerSearchRequest()
+            //var partners = await client.SearchAsync(new AffiliateSearchRequest()
             //{
             //    TenantId = testTenant,
             //});
 
-            //var check = await client.GetAsync(new PartnerGetRequest()
+            //var check = await client.GetAsync(new AffiliateGetRequest()
             //{
             //    AffiliateId = 0,
             //});
@@ -98,17 +98,17 @@ namespace TestApp
             });
 
 
-            var request = new PartnerCreateRequest()
+            var request = new AffiliateCreateRequest()
             {
                 TenantId = testTenant,
-                Company = new PartnerCompany()
+                Company = new AffiliateCompany()
                 {
                     Address = "a1",
                     Name = "a2",
                     RegNumber = "a3",
                     VatId = "a4"
                 },
-                Bank = new PartnerBank()
+                Bank = new AffiliateBank()
                 {
                     AccountNumber = "a1",
                     BankAddress = "a1",
@@ -119,26 +119,26 @@ namespace TestApp
                     Swift = "a1"
                 }
             };
-            request.GeneralInfo = new PartnerGeneralInfo()
+            request.GeneralInfo = new AffiliateGeneralInfo()
             {
                 Currency = Currency.CHF,
                 Email = "email123@email.com",
                 Password = "qwerty_123456",
                 Phone = "+79990999999",
-                Role = PartnerRole.IntegrationManager,
+                Role = AffiliateRole.IntegrationManager,
                 Skype = "skype",
-                State = PartnerState.Active,
+                State = AffiliateState.Active,
                 Username = "SomeTestUser1",
                 ZipCode = "414141",
                 ApiKey = "123-456-789",
                 CreatedAt = DateTime.Now
             };
 
-            var partnerCreated = (await  client.CreateAsync(request)).Partner;
+            var partnerCreated = (await  client.CreateAsync(request)).Affiliate;
 
             Console.WriteLine(partnerCreated.AffiliateId);
 
-            var partnerUpdated = (await client.UpdateAsync(new PartnerUpdateRequest()
+            var partnerUpdated = (await client.UpdateAsync(new AffiliateUpdateRequest()
             {
                 AffiliateId = partnerCreated.AffiliateId,
                 TenantId = partnerCreated.TenantId,
@@ -146,14 +146,14 @@ namespace TestApp
                 Company = request.Company,
                 GeneralInfo = request.GeneralInfo,
                 Sequence = 1
-            })).Partner;
+            })).Affiliate;
 
-            await client.DeleteAsync(new PartnerDeleteRequest()
+            await client.DeleteAsync(new AffiliateDeleteRequest()
             {
                 AffiliateId = partnerUpdated.AffiliateId,
             });
 
-            var shouldBeNull =await client.GetAsync(new PartnerGetRequest()
+            var shouldBeNull =await client.GetAsync(new AffiliateGetRequest()
             {
                 AffiliateId = partnerUpdated.AffiliateId,
             });

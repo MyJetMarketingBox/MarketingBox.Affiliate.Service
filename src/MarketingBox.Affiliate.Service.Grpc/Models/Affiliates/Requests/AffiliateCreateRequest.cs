@@ -1,0 +1,21 @@
+﻿using System.Runtime.Serialization;
+
+namespace MarketingBox.Affiliate.Service.Grpc.Models.Partners.Requests
+{
+    [DataContract]
+    public class AffiliateCreateRequest
+    {
+        [DataMember(Order = 1)]
+        public AffiliateGeneralInfo GeneralInfo { get; set; }
+
+        [DataMember(Order = 2)]
+        public AffiliateCompany Company { get; set; }
+
+        [DataMember(Order = 3)]
+        public AffiliateBank Bank { get; set; }
+
+        [DataMember(Order = 4)]
+        public string TenantId { get; set; }
+
+    }
+}

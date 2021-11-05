@@ -29,16 +29,16 @@ namespace MarketingBox.Affiliate.Service.Modules
             builder.RegisterAuthServiceClient(Program.Settings.AuthServiceUrl);
             var noSqlClient = builder.CreateNoSqlClient(Program.ReloadedSettings(e => e.MyNoSqlReaderHostPort));
 
-            #region Partners
+            #region Affiliates
 
-            // publisher (IServiceBusPublisher<PartnerUpdated>)
-            builder.RegisterMyServiceBusPublisher<PartnerUpdated>(serviceBusClient, Topics.PartnerUpdatedTopic, false);
+            // publisher (IServiceBusPublisher<AffiliateUpdated>)
+            builder.RegisterMyServiceBusPublisher<AffiliateUpdated>(serviceBusClient, Topics.AffiliateUpdatedTopic, false);
 
-            // publisher (IServiceBusPublisher<PartnerRemoved>)
-            builder.RegisterMyServiceBusPublisher<PartnerRemoved>(serviceBusClient, Topics.PartnerRemovedTopic, false);
+            // publisher (IServiceBusPublisher<AffiliateRemoved>)
+            builder.RegisterMyServiceBusPublisher<AffiliateRemoved>(serviceBusClient, Topics.AffiliateRemovedTopic, false);
 
-            // register writer (IMyNoSqlServerDataWriter<PartnerNoSql>)
-            builder.RegisterMyNoSqlWriter<PartnerNoSql>(Program.ReloadedSettings(e => e.MyNoSqlWriterUrl), PartnerNoSql.TableName);
+            // register writer (IMyNoSqlServerDataWriter<AffiliateNoSql>)
+            builder.RegisterMyNoSqlWriter<AffiliateNoSql>(Program.ReloadedSettings(e => e.MyNoSqlWriterUrl), AffiliateNoSql.TableName);
             
             #endregion
 

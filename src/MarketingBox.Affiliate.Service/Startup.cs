@@ -17,6 +17,7 @@ using Prometheus;
 using ProtoBuf.Grpc.Server;
 using SimpleTrading.BaseMetrics;
 using SimpleTrading.ServiceStatusReporterConnector;
+using SimpleTrading.Telemetry;
 
 namespace MarketingBox.Affiliate.Service
 {
@@ -33,9 +34,8 @@ namespace MarketingBox.Affiliate.Service
                 Program.Settings.PostgresConnectionString, 
                 o => new DatabaseContext(o));
             DatabaseContext.LoggerFactory = null;
-            
 
-            services.AddMyTelemetry("SP-", Program.Settings.ZipkinUrl);
+            services.BindTelemetry("AffiliateService","MB-", Program.Settings.JaegerUrl);
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -55,7 +55,7 @@ namespace MarketingBox.Affiliate.Service
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapGrpcSchema<PartnerService, IPartnerService>();
+                endpoints.MapGrpcSchema<AffiliateService, IAffiliateService>();
                 endpoints.MapGrpcSchema<CampaignService, ICampaignService>();
                 endpoints.MapGrpcSchema<IntegrationService, IIntegrationService>();
                 endpoints.MapGrpcSchema<BrandService, IBrandService>();
