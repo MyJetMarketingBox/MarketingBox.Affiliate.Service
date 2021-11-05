@@ -2,13 +2,13 @@
 using System.Runtime.Serialization;
 using MarketingBox.Affiliate.Service.Grpc.Models.Common;
 
-namespace MarketingBox.Affiliate.Service.Grpc.Models.Boxes
+namespace MarketingBox.Affiliate.Service.Grpc.Models.Campaigns
 {
     [DataContract]
-    public class BoxSearchResponse
+    public class CampaignSearchResponse
     {
         [DataMember(Order = 1)]
-        public IReadOnlyCollection<Box> Boxes { get; set; }
+        public IReadOnlyCollection<Campaign> Boxes { get; set; }
 
         [DataMember(Order = 100)]
         public Error Error { get; set; }

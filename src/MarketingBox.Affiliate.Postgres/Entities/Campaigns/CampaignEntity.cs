@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using MarketingBox.Affiliate.Postgres.Entities.CampaignBoxes;
 
-namespace MarketingBox.Affiliate.Postgres.Entities.Boxes
+namespace MarketingBox.Affiliate.Postgres.Entities.Campaigns
 {
-    public class BoxEntity
+    public class CampaignEntity
     {
         public long Id { get; set; }
         public string TenantId { get; set; }

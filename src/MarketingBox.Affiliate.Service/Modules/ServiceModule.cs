@@ -1,13 +1,13 @@
 ﻿using Autofac;
 using MarketingBox.Affiliate.Service.Messages;
-using MarketingBox.Affiliate.Service.Messages.Boxes;
 using MarketingBox.Affiliate.Service.Messages.Brands;
 using MarketingBox.Affiliate.Service.Messages.CampaignBoxes;
+using MarketingBox.Affiliate.Service.Messages.Campaigns;
 using MarketingBox.Affiliate.Service.Messages.Integrations;
 using MarketingBox.Affiliate.Service.Messages.Partners;
-using MarketingBox.Affiliate.Service.MyNoSql.Boxes;
 using MarketingBox.Affiliate.Service.MyNoSql.Brands;
 using MarketingBox.Affiliate.Service.MyNoSql.CampaignBoxes;
+using MarketingBox.Affiliate.Service.MyNoSql.Campaigns;
 using MarketingBox.Affiliate.Service.MyNoSql.Integrations;
 using MarketingBox.Affiliate.Service.MyNoSql.Partners;
 using MarketingBox.Auth.Service.Client;
@@ -42,19 +42,19 @@ namespace MarketingBox.Affiliate.Service.Modules
             
             #endregion
 
-            #region Boxes
+            #region Campaigns
 
-            // publisher (IServiceBusPublisher<BoxUpdated>)
-            builder.RegisterMyServiceBusPublisher<BoxUpdated>(serviceBusClient, Topics.BoxUpdatedTopic, false);
+            // publisher (IServiceBusPublisher<CampaignUpdated>)
+            builder.RegisterMyServiceBusPublisher<CampaignUpdated>(serviceBusClient, Topics.CampaignUpdatedTopic, false);
 
-            // publisher (IServiceBusPublisher<BoxRemoved>)
-            builder.RegisterMyServiceBusPublisher<BoxRemoved>(serviceBusClient, Topics.BoxRemovedTopic, false);
+            // publisher (IServiceBusPublisher<CampaignRemoved>)
+            builder.RegisterMyServiceBusPublisher<CampaignRemoved>(serviceBusClient, Topics.CampaignRemovedTopic, false);
 
-            // register writer (IMyNoSqlServerDataWriter<BoxNoSql>)
-            builder.RegisterMyNoSqlWriter<BoxNoSql>(Program.ReloadedSettings(e => e.MyNoSqlWriterUrl), BoxNoSql.TableName);
+            // register writer (IMyNoSqlServerDataWriter<CampaignNoSql>)
+            builder.RegisterMyNoSqlWriter<CampaignNoSql>(Program.ReloadedSettings(e => e.MyNoSqlWriterUrl), CampaignNoSql.TableName);
 
-            // register writer (IMyNoSqlServerDataWriter<BoxIndexNoSql>)
-            builder.RegisterMyNoSqlWriter<BoxIndexNoSql>(Program.ReloadedSettings(e => e.MyNoSqlWriterUrl), BoxIndexNoSql.TableName);
+            // register writer (IMyNoSqlServerDataWriter<CampaignIndexNoSql>)
+            builder.RegisterMyNoSqlWriter<CampaignIndexNoSql>(Program.ReloadedSettings(e => e.MyNoSqlWriterUrl), CampaignIndexNoSql.TableName);
 
             #endregion
 
@@ -63,7 +63,7 @@ namespace MarketingBox.Affiliate.Service.Modules
             // publisher (IServiceBusPublisher<IntegrationUpdated>)
             builder.RegisterMyServiceBusPublisher<IntegrationUpdated>(serviceBusClient, Topics.IntegrationUpdatedTopic, false);
 
-            // publisher (IServiceBusPublisher<BoxRemoved>)
+            // publisher (IServiceBusPublisher<CampaignRemoved>)
             builder.RegisterMyServiceBusPublisher<IntegrationRemoved>(serviceBusClient, Topics.IntegrationRemovedTopic, false);
 
             // register writer (IMyNoSqlServerDataWriter<IntegrationNoSql>)
@@ -74,10 +74,10 @@ namespace MarketingBox.Affiliate.Service.Modules
             #region Brand
 
             // publisher (IServiceBusPublisher<BrandUpdated>)
-            builder.RegisterMyServiceBusPublisher<BrandUpdated>(serviceBusClient, Topics.CampaignUpdatedTopic, false);
+            builder.RegisterMyServiceBusPublisher<BrandUpdated>(serviceBusClient, Topics.BrandUpdatedTopic, false);
 
             // publisher (IServiceBusPublisher<BrandRemoved>)
-            builder.RegisterMyServiceBusPublisher<BrandRemoved>(serviceBusClient, Topics.CampaignRemovedTopic, false);
+            builder.RegisterMyServiceBusPublisher<BrandRemoved>(serviceBusClient, Topics.BrandRemovedTopic, false);
 
             // register writer (IMyNoSqlServerDataWriter<BrandNoSql>)
             builder.RegisterMyNoSqlWriter<BrandNoSql>(Program.ReloadedSettings(e => e.MyNoSqlWriterUrl), BrandNoSql.TableName);

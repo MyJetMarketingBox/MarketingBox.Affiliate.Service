@@ -25,10 +25,10 @@ namespace TestApp
             var testTenant = "default-tenant-id";
             var factory = new AffiliateServiceClientFactory("http://localhost:12347");
             var client = factory.GetPartnerService();
-            var boxClient = factory.GetBoxService();
+            var boxClient = factory.GetCampaignService();
             var campaignBoxClient = factory.GetCampaignBoxService();
 
-            //var boxes = await boxClient.SearchAsync(new BoxSearchRequest()
+            //var boxes = await boxClient.SearchAsync(new CampaignSearchRequest()
             //{
             //    TenantId = testTenant
             //});

@@ -1,15 +1,15 @@
 ﻿using MyNoSqlServer.Abstractions;
 
-namespace MarketingBox.Affiliate.Service.MyNoSql.Boxes
+namespace MarketingBox.Affiliate.Service.MyNoSql.Campaigns
 {
-    public class BoxNoSql : MyNoSqlDbEntity
+    public class CampaignNoSql : MyNoSqlDbEntity
     {
-        public const string TableName = "marketingbox-affiliateservice-boxes";
+        public const string TableName = "marketingbox-affiliateservice-campaigns";
         public static string GeneratePartitionKey(string tenantId) => $"{tenantId}";
-        public static string GenerateRowKey(long boxId) =>
-            $"{boxId}";
+        public static string GenerateRowKey(long campaignId) =>
+            $"{campaignId}";
 
-        public long BoxId { get; set; }
+        public long CampaignId { get; set; }
 
         public string Name { get; set; }
 
@@ -17,19 +17,19 @@ namespace MarketingBox.Affiliate.Service.MyNoSql.Boxes
 
         public long SequenceId { get; set; }
 
-        public static BoxNoSql Create(
+        public static CampaignNoSql Create(
             string tenantId,
-            long boxId,
+            long campaignId,
             string name,
             long sequence) =>
             new()
             {
                 PartitionKey = GeneratePartitionKey(tenantId),
-                RowKey = GenerateRowKey(boxId),
+                RowKey = GenerateRowKey(campaignId),
                 TenantId = tenantId,
                 SequenceId = sequence,
                 Name = name,
-                BoxId = boxId,
+                CampaignId = campaignId,
             };
 
     }

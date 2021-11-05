@@ -1,12 +1,12 @@
 ﻿using System.Runtime.Serialization;
 
-namespace MarketingBox.Affiliate.Service.Grpc.Models.Boxes.Requests
+namespace MarketingBox.Affiliate.Service.Grpc.Models.Campaigns.Requests
 {
     [DataContract]
-    public class BoxSearchRequest
+    public class CampaignSearchRequest
     {
         [DataMember(Order = 1)]
-        public long? BoxId { get; set; }
+        public long? CampaignId { get; set; }
 
         [DataMember(Order = 2)]
         public string Name { get; set; }

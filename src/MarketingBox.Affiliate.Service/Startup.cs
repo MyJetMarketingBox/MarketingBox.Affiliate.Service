@@ -56,7 +56,7 @@ namespace MarketingBox.Affiliate.Service
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapGrpcSchema<PartnerService, IPartnerService>();
-                endpoints.MapGrpcSchema<BoxService, IBoxService>();
+                endpoints.MapGrpcSchema<CampaignService, ICampaignService>();
                 endpoints.MapGrpcSchema<IntegrationService, IIntegrationService>();
                 endpoints.MapGrpcSchema<BrandService, IBrandService>();
                 endpoints.MapGrpcSchema<CampaignBoxService, ICampaignBoxService>();

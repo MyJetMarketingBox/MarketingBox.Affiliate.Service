@@ -1,9 +1,9 @@
 ﻿using System.Runtime.Serialization;
 
-namespace MarketingBox.Affiliate.Service.Grpc.Models.Boxes.Requests
+namespace MarketingBox.Affiliate.Service.Grpc.Models.Campaigns.Requests
 {
     [DataContract]
-    public class BoxCreateRequest
+    public class CampaignCreateRequest
     {
         [DataMember(Order = 1)] 
         public string Name { get; set; }

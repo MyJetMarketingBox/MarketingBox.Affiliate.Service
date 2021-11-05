@@ -1,6 +1,6 @@
-﻿using MarketingBox.Affiliate.Postgres.Entities.Boxes;
-using MarketingBox.Affiliate.Postgres.Entities.Brands;
+﻿using MarketingBox.Affiliate.Postgres.Entities.Brands;
 using MarketingBox.Affiliate.Postgres.Entities.CampaignBoxes;
+using MarketingBox.Affiliate.Postgres.Entities.Campaigns;
 using MarketingBox.Affiliate.Postgres.Entities.Integrations;
 using MarketingBox.Affiliate.Postgres.Entities.Partners;
 using Microsoft.EntityFrameworkCore;
@@ -18,13 +18,13 @@ namespace MarketingBox.Affiliate.Postgres
 
         private const string PartnerTableName = "partners";
         private const string BrandTableName = "brands";
-        private const string BoxTableName = "boxes";
+        private const string CampaignTableName = "campaigns";
         private const string CampaignBoxTableName = "campaign-boxes";
         private const string IntegrationTableName = "integrations";
 
         public DbSet<PartnerEntity> Partners { get; set; }
 
-        public DbSet<BoxEntity> Boxes { get; set; }
+        public DbSet<CampaignEntity> Campaigns { get; set; }
 
         public DbSet<IntegrationEntity> Integrations { get; set; }
 
@@ -53,7 +53,7 @@ namespace MarketingBox.Affiliate.Postgres
             modelBuilder.HasDefaultSchema(Schema);
 
             SetPartnerEntity(modelBuilder);
-            SetBoxEntity(modelBuilder);
+            SetCampaignEntity(modelBuilder);
             SetIntegrationEntity(modelBuilder);
             SetBrandEntity(modelBuilder);
             SetCampaignBoxEntity(modelBuilder);
@@ -97,7 +97,7 @@ namespace MarketingBox.Affiliate.Postgres
             modelBuilder.Entity<CampaignBoxEntity>().ToTable(CampaignBoxTableName);
             modelBuilder.Entity<CampaignBoxEntity>().HasKey(e => e.CampaignBoxId);
             modelBuilder.Entity<CampaignBoxEntity>()
-                .HasOne(x => x.Box)
+                .HasOne(x => x.Campaign)
                 .WithMany(x => x.CampaignBoxes)
                 .HasForeignKey(x => x.BoxId);
 
@@ -128,12 +128,12 @@ namespace MarketingBox.Affiliate.Postgres
             modelBuilder.Entity<IntegrationEntity>().HasIndex(e => new { e.TenantId, e.Name });
         }
 
-        private void SetBoxEntity(ModelBuilder modelBuilder)
+        private void SetCampaignEntity(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<BoxEntity>().ToTable(BoxTableName);
-            modelBuilder.Entity<BoxEntity>().HasKey(e => e.Id);
-            modelBuilder.Entity<BoxEntity>().HasIndex(e => new { e.TenantId, e.Id });
-            modelBuilder.Entity<BoxEntity>().HasIndex(e => new { e.TenantId, e.Name });
+            modelBuilder.Entity<CampaignEntity>().ToTable(CampaignTableName);
+            modelBuilder.Entity<CampaignEntity>().HasKey(e => e.Id);
+            modelBuilder.Entity<CampaignEntity>().HasIndex(e => new { e.TenantId, e.Id });
+            modelBuilder.Entity<CampaignEntity>().HasIndex(e => new { e.TenantId, e.Name });
         }
 
         public override void Dispose()
