@@ -35,7 +35,7 @@ namespace MarketingBox.Affiliate.Service
                 o => new DatabaseContext(o));
             DatabaseContext.LoggerFactory = null;
 
-            services.BindTelemetry("AffiliateService","MB-", Program.Settings.JaegerUrl);
+            services.AddMyTelemetry("MB-", Program.Settings.JaegerUrl);
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

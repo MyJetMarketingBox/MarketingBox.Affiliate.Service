@@ -43,7 +43,7 @@ namespace TestApp
             //    AffiliateId = 0,
             //});
 
-            var boxId = 4;
+            var boxId = 1;
             var activityHours = Enum.GetValues<DayOfWeek>().Select(x => new ActivityHours()
             {
                 To = new TimeSpan(23, 59, 59),
@@ -57,14 +57,14 @@ namespace TestApp
                 Sequence = 0,
                 ActivityHours = activityHours,
                 CampaignId = boxId,
-                BrandId = 3,
+                BrandId = 1,
                 CapType = CapType.Lead,
-                CountryCode = "UK",
-                DailyCapValue = 20,
+                CountryCode = "UA",
+                DailyCapValue = 1000,
                 EnableTraffic = true,
                 Information = null,
                 Priority = 1,
-                Weight = 10
+                Weight = 5
             });
 
             var campaignBox2 = await campaignBoxClient.CreateAsync(new CampaignRowCreateRequest()
@@ -72,14 +72,14 @@ namespace TestApp
                 Sequence = 0,
                 ActivityHours = activityHours,
                 CampaignId = boxId,
-                BrandId = 4,
+                BrandId = 2,
                 CapType = CapType.Lead,
-                CountryCode = "UK",
-                DailyCapValue = 20,
+                CountryCode = "UA",
+                DailyCapValue = 1000,
                 EnableTraffic = true,
                 Information = null,
                 Priority = 1,
-                Weight = 5
+                Weight = 2
             });
 
             var campaignBox3 = await campaignBoxClient.CreateAsync(new CampaignRowCreateRequest()
@@ -87,14 +87,14 @@ namespace TestApp
                 Sequence = 0,
                 ActivityHours = activityHours,
                 CampaignId = boxId,
-                BrandId = 5,
+                BrandId = 3,
                 CapType = CapType.Lead,
-                CountryCode = "UK",
-                DailyCapValue = 20,
+                CountryCode = "UA",
+                DailyCapValue = 1000,
                 EnableTraffic = true,
                 Information = null,
                 Priority = 1,
-                Weight = 5
+                Weight = 1
             });
 
 
