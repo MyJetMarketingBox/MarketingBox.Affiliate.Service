@@ -17,6 +17,7 @@ using MarketingBox.Affiliate.Service.Grpc.Models.Affiliates;
 using MarketingBox.Affiliate.Service.Grpc.Models.Affiliates.Requests;
 using MarketingBox.Affiliate.Service.Messages.Affiliates;
 using MarketingBox.Affiliate.Service.MyNoSql.Affiliates;
+using MarketingBox.Auth.Service.Domain.Models.Users;
 using MyJetWallet.Sdk.ServiceBus;
 using Z.EntityFramework.Plus;
 using AffiliateBank = MarketingBox.Affiliate.Service.Grpc.Models.Affiliates.AffiliateBank;
@@ -373,7 +374,14 @@ namespace MarketingBox.Affiliate.Service.Services
                     ExternalUserId = affiliateEntity.AffiliateId.ToString(),
                     Password = affiliateEntity.GeneralInfoPassword,
                     TenantId = affiliateEntity.TenantId,
-                    Username = affiliateEntity.GeneralInfoUsername
+                    Username = affiliateEntity.GeneralInfoUsername,
+                    Role = affiliateEntity.GeneralInfoRole switch {
+                        AffiliateRole.Affiliate => UserRole.Affiliate,
+                        AffiliateRole.AffiliateManager => UserRole.AffiliateManager,
+                        AffiliateRole.IntegrationManager => UserRole.Admin,
+                        AffiliateRole.MasterAffiliate => UserRole.MasterAffiliate,
+                        _ => throw new ArgumentOutOfRangeException(nameof(affiliateEntity.GeneralInfoRole), affiliateEntity.GeneralInfoRole, null)
+                    }
                 });
 
                 if (response.Error != null)
@@ -387,7 +395,15 @@ namespace MarketingBox.Affiliate.Service.Services
                     ExternalUserId = affiliateEntity.AffiliateId.ToString(),
                     Password = affiliateEntity.GeneralInfoPassword,
                     TenantId = affiliateEntity.TenantId,
-                    Username = affiliateEntity.GeneralInfoUsername
+                    Username = affiliateEntity.GeneralInfoUsername,
+                    Role = affiliateEntity.GeneralInfoRole switch
+                    {
+                        AffiliateRole.Affiliate => UserRole.Affiliate,
+                        AffiliateRole.AffiliateManager => UserRole.AffiliateManager,
+                        AffiliateRole.IntegrationManager => UserRole.Admin,
+                        AffiliateRole.MasterAffiliate => UserRole.MasterAffiliate,
+                        _ => throw new ArgumentOutOfRangeException(nameof(affiliateEntity.GeneralInfoRole), affiliateEntity.GeneralInfoRole, null)
+                    }
                 });
 
                 if (response.Error != null)
