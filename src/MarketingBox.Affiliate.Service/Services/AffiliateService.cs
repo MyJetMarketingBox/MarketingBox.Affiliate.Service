@@ -380,6 +380,7 @@ namespace MarketingBox.Affiliate.Service.Services
                         AffiliateRole.AffiliateManager => UserRole.AffiliateManager,
                         AffiliateRole.IntegrationManager => UserRole.Admin,
                         AffiliateRole.MasterAffiliate => UserRole.MasterAffiliate,
+                        AffiliateRole.MasterAffiliateReferral => UserRole.MasterAffiliateReferral,
                         _ => throw new ArgumentOutOfRangeException(nameof(affiliateEntity.GeneralInfoRole), affiliateEntity.GeneralInfoRole, null)
                     }
                 });
@@ -402,6 +403,7 @@ namespace MarketingBox.Affiliate.Service.Services
                         AffiliateRole.AffiliateManager => UserRole.AffiliateManager,
                         AffiliateRole.IntegrationManager => UserRole.Admin,
                         AffiliateRole.MasterAffiliate => UserRole.MasterAffiliate,
+                        AffiliateRole.MasterAffiliateReferral => UserRole.MasterAffiliateReferral,
                         _ => throw new ArgumentOutOfRangeException(nameof(affiliateEntity.GeneralInfoRole), affiliateEntity.GeneralInfoRole, null)
                     }
                 });

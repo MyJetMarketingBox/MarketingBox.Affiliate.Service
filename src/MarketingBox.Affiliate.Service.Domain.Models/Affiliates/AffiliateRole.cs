@@ -6,5 +6,6 @@
         AffiliateManager,
         IntegrationManager,
         MasterAffiliate,
+        MasterAffiliateReferral,
     }
 }
