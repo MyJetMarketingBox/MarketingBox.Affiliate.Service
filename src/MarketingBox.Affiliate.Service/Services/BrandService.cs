@@ -104,7 +104,7 @@ namespace MarketingBox.Affiliate.Service.Services
                     TenantId = request.TenantId,
                     IntegrationId = request.IntegrationId,
                     Name = request.Name,
-                    Sequence = request.Sequence,
+                    Sequence = request.Sequence + 1,
                     Payout = new Payout()
                     {
                         Currency = request.Payout.Currency.MapEnum<Domain.Common.Currency>(),
@@ -123,30 +123,10 @@ namespace MarketingBox.Affiliate.Service.Services
                 };
 
                 var affectedRowsCount = await ctx.Brands
-                    .Where(x => x.Id == request.Id &&
-                                x.Sequence <= request.Sequence)
-                    .UpdateAsync(x => new BrandEntity()
-                    {
-                        TenantId = request.TenantId,
-                        IntegrationId = request.IntegrationId,
-                        Name = request.Name,
-                        Sequence = request.Sequence,
-                        Payout = new Payout()
-                        {
-                            Currency = request.Payout.Currency.MapEnum<Domain.Common.Currency>(),
-                            Amount = request.Payout.Amount,
-                            Plan = request.Payout.Plan.MapEnum<Plan>(),
-                        },
-                        Privacy = request.Privacy.MapEnum<BrandPrivacy>(),
-                        Revenue = new Revenue()
-                        {
-                            Amount = request.Revenue.Amount,
-                            Plan = request.Payout.Plan.MapEnum<Plan>(),
-                            Currency = request.Payout.Currency.MapEnum<Domain.Common.Currency>(),
-                        },
-                        Status = request.Status.MapEnum<BrandStatus>(),
-                        Id = request.Id
-                    });
+                    .Upsert(brandEntity)
+                    .On(x => x.Id == brandEntity.Id &&
+                                x.Sequence < brandEntity.Sequence)
+                    .RunAsync();
 
                 if (affectedRowsCount != 1)
                 {
@@ -284,7 +264,7 @@ namespace MarketingBox.Affiliate.Service.Services
                     .Select(MapToGrpcInner)
                     .ToArray();
 
-                return new BrandSearchResponse() 
+                return new BrandSearchResponse()
                 {
                     Campaigns = response
                 };
@@ -301,7 +281,7 @@ namespace MarketingBox.Affiliate.Service.Services
         {
             return new BrandResponse()
             {
-                Brand = MapToGrpcInner(brandEntity) 
+                Brand = MapToGrpcInner(brandEntity)
             };
         }
 
@@ -327,7 +307,7 @@ namespace MarketingBox.Affiliate.Service.Services
                     Amount = brandEntity.Payout.Amount
                 },
                 Privacy = brandEntity.Privacy.MapEnum<Domain.Models.Brands.BrandPrivacy>(),
-                Status = brandEntity.Status.MapEnum<  Domain.Models.Brands.BrandStatus>(),
+                Status = brandEntity.Status.MapEnum<Domain.Models.Brands.BrandStatus>(),
             };
         }
 
@@ -348,7 +328,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 Sequence = brandEntity.Sequence,
                 Payout = new Messages.Brands.Payout()
                 {
-                    Currency = brandEntity.Payout.Currency.MapEnum< Domain.Models.Common.Currency >(),
+                    Currency = brandEntity.Payout.Currency.MapEnum<Domain.Models.Common.Currency>(),
                     Plan = brandEntity.Payout.Plan.MapEnum<Domain.Models.Brands.Plan>(),
                     Amount = brandEntity.Payout.Amount
                 },
@@ -376,7 +356,7 @@ namespace MarketingBox.Affiliate.Service.Services
                     Currency = brandEntity.Revenue.Currency.MapEnum<Domain.Models.Common.Currency>(),
                     Plan = brandEntity.Revenue.Plan.MapEnum<Domain.Models.Brands.Plan>(),
                 },
-                brandEntity.Status.MapEnum< Domain.Models.Brands.BrandStatus> (),
+                brandEntity.Status.MapEnum<Domain.Models.Brands.BrandStatus>(),
                 brandEntity.Privacy.MapEnum<Domain.Models.Brands.BrandPrivacy>(),
                 brandEntity.Sequence);
         }

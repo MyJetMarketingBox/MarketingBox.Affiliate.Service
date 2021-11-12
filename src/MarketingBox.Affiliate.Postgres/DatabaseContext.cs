@@ -1,4 +1,5 @@
-﻿using MarketingBox.Affiliate.Postgres.Entities.Affiliates;
+﻿using MarketingBox.Affiliate.Postgres.Entities.AffiliateAccesses;
+using MarketingBox.Affiliate.Postgres.Entities.Affiliates;
 using MarketingBox.Affiliate.Postgres.Entities.Brands;
 using MarketingBox.Affiliate.Postgres.Entities.CampaignRows;
 using MarketingBox.Affiliate.Postgres.Entities.Campaigns;
@@ -17,12 +18,14 @@ namespace MarketingBox.Affiliate.Postgres
         public const string Schema = "affiliate-service";
 
         private const string AffiliateTableName = "affiliates";
+        private const string AffiliateAccessTableName = "affiliate_access";
         private const string BrandTableName = "brands";
         private const string CampaignTableName = "campaigns";
         private const string CampaignBoxTableName = "campaign-rows";
         private const string IntegrationTableName = "integrations";
 
         public DbSet<AffiliateEntity> Affiliates { get; set; }
+        public DbSet<AffiliateAccessEntity> AffiliateAccess { get; set; }
 
         public DbSet<CampaignEntity> Campaigns { get; set; }
 
@@ -52,7 +55,8 @@ namespace MarketingBox.Affiliate.Postgres
         {
             modelBuilder.HasDefaultSchema(Schema);
 
-            SetPartnerEntity(modelBuilder);
+            SetAffiliateEntity(modelBuilder);
+            SetAffiliateAccessEntity(modelBuilder);
             SetCampaignEntity(modelBuilder);
             SetIntegrationEntity(modelBuilder);
             SetBrandEntity(modelBuilder);
@@ -61,7 +65,7 @@ namespace MarketingBox.Affiliate.Postgres
             base.OnModelCreating(modelBuilder);
         }
 
-        private void SetPartnerEntity(ModelBuilder modelBuilder)
+        private void SetAffiliateEntity(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<AffiliateEntity>().ToTable(AffiliateTableName);
             modelBuilder.Entity<AffiliateEntity>().HasKey(e => e.AffiliateId);
@@ -70,6 +74,22 @@ namespace MarketingBox.Affiliate.Postgres
             modelBuilder.Entity<AffiliateEntity>().HasIndex(e => new { e.TenantId, e.GeneralInfoUsername }).IsUnique(true);
             modelBuilder.Entity<AffiliateEntity>().HasIndex(e => new { e.TenantId, e.CreatedAt });
             modelBuilder.Entity<AffiliateEntity>().HasIndex(e => new { e.TenantId, e.GeneralInfoRole });
+            modelBuilder.Entity<AffiliateEntity>()
+                .HasOne(x => x.AccessIsGivenTo)
+                .WithOne(x => x.Affiliate)
+                .IsRequired(false);
+        }
+
+        private void SetAffiliateAccessEntity(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<AffiliateAccessEntity>().ToTable(AffiliateAccessTableName);
+            modelBuilder.Entity<AffiliateAccessEntity>().HasKey(x => x.Id);
+            modelBuilder.Entity<AffiliateAccessEntity>().HasIndex(e => new { e.MasterAffiliateId, e.AffiliateId}).IsUnique();
+            modelBuilder.Entity<AffiliateAccessEntity>().HasIndex(e => e.AffiliateId);
+            modelBuilder.Entity<AffiliateAccessEntity>()
+                .HasOne(e => e.MasterAffiliate)
+                .WithOne(x => x.AccessIsGivenBy)
+                .IsRequired(false);
         }
 
         private void SetBrandEntity(ModelBuilder modelBuilder)

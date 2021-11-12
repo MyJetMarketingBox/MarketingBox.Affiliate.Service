@@ -116,34 +116,15 @@ namespace MarketingBox.Affiliate.Service.Services
                     EnableTraffic = request.EnableTraffic,
                     Information = request.Information,
                     Priority = request.Priority,
-                    Sequence = request.Sequence,
+                    Sequence = request.Sequence + 1,
                     Weight = request.Weight
                 };
 
                 var affectedRowsCount = await ctx.CampaignRows
-                    .Where(x => x.CampaignBoxId == request.CampaignRowId &&
-                                x.Sequence <= request.Sequence)
-                    .UpdateAsync(x => new CampaignRowEntity()
-                    {
-                        CampaignBoxId = request.CampaignRowId,
-                        ActivityHours = request.ActivityHours.Select(x => new ActivityHours()
-                        {
-                            Day = x.Day,
-                            From = x.From,
-                            IsActive = x.IsActive,
-                            To = x.To
-                        }).ToArray(),
-                        CampaignId = request.CampaignId,
-                        BrandId = request.BrandId,
-                        CapType = request.CapType.MapEnum<CapType>(),
-                        CountryCode = request.CountryCode,
-                        DailyCapValue = request.DailyCapValue,
-                        EnableTraffic = request.EnableTraffic,
-                        Information = request.Information,
-                        Priority = request.Priority,
-                        Sequence = request.Sequence,
-                        Weight = request.Weight
-                    });
+                    .Upsert(campaignRowEntity)
+                    .On(x => x.CampaignBoxId == request.CampaignRowId &&
+                                x.Sequence < campaignRowEntity.Sequence)
+                    .RunAsync();
 
                 if (affectedRowsCount != 1)
                 {

@@ -17,5 +17,8 @@ namespace MarketingBox.Affiliate.Service.Grpc.Models.Affiliates.Requests
         [DataMember(Order = 4)]
         public string TenantId { get; set; }
 
+        [DataMember(Order = 5)]
+        public long? MasterAffiliateId { get; set; }
+
     }
 }

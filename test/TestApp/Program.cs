@@ -5,6 +5,7 @@ using MarketingBox.Affiliate.Service.Client;
 using MarketingBox.Affiliate.Service.Domain.Models.Affiliates;
 using MarketingBox.Affiliate.Service.Domain.Models.CampaignRows;
 using MarketingBox.Affiliate.Service.Domain.Models.Common;
+using MarketingBox.Affiliate.Service.Grpc.Models.AffiliateAccesses.Requests;
 using MarketingBox.Affiliate.Service.Grpc.Models.Affiliates;
 using MarketingBox.Affiliate.Service.Grpc.Models.Affiliates.Requests;
 using MarketingBox.Affiliate.Service.Grpc.Models.CampaignRows;
@@ -24,9 +25,100 @@ namespace TestApp
             Console.ReadLine();
             var testTenant = "default-tenant-id";
             var factory = new AffiliateServiceClientFactory("http://localhost:12347");
-            var client = factory.GetAffiliateService();
+            var affiliateService = factory.GetAffiliateService();
+            var affiliateAccessService = factory.GetAffiliateAccessService();
             var boxClient = factory.GetCampaignService();
             var campaignBoxClient = factory.GetCampaignRowService();
+
+            //var affiliateCreateRequestMaster = new AffiliateCreateRequest()
+            //{
+            //    TenantId = testTenant,
+            //    Company = new AffiliateCompany()
+            //    {
+            //        Address = "a1",
+            //        Name = "a2",
+            //        RegNumber = "a3",
+            //        VatId = "a4"
+            //    },
+            //    Bank = new AffiliateBank()
+            //    {
+            //        AccountNumber = "a1",
+            //        BankAddress = "a1",
+            //        BankName = "a1",
+            //        BeneficiaryAddress = "a1",
+            //        BeneficiaryName = "a1",
+            //        Iban = "a1",
+            //        Swift = "a1"
+            //    }
+            //};
+
+            //affiliateCreateRequestMaster.GeneralInfo = new AffiliateGeneralInfo()
+            //{
+            //    Currency = Currency.CHF,
+            //    Email = "email1235678@email.com",
+            //    Password = "qwerty_123456",
+            //    Phone = "+79990999999",
+            //    Role = AffiliateRole.MasterAffiliate,
+            //    Skype = "skype",
+            //    State = AffiliateState.Active,
+            //    Username = "SomeTestUser123X",
+            //    ZipCode = "414141",
+            //    ApiKey = "123-456-789",
+            //    CreatedAt = DateTime.Now
+            //};
+
+            //var affiliateCreateRequest = new AffiliateCreateRequest()
+            //{
+            //    TenantId = testTenant,
+            //    Company = new AffiliateCompany()
+            //    {
+            //        Address = "a1",
+            //        Name = "a2",
+            //        RegNumber = "a3",
+            //        VatId = "a4"
+            //    },
+            //    Bank = new AffiliateBank()
+            //    {
+            //        AccountNumber = "a1",
+            //        BankAddress = "a1",
+            //        BankName = "a1",
+            //        BeneficiaryAddress = "a1",
+            //        BeneficiaryName = "a1",
+            //        Iban = "a1",
+            //        Swift = "a1"
+            //    }
+            //};
+
+            //affiliateCreateRequest.GeneralInfo = new AffiliateGeneralInfo()
+            //{
+            //    Currency = Currency.CHF,
+            //    Email = "email12356789@email.com",
+            //    Password = "qwerty_123456",
+            //    Phone = "+79990999999",
+            //    Role = AffiliateRole.Affiliate,
+            //    Skype = "skype",
+            //    State = AffiliateState.Active,
+            //    Username = "SomeTestUser12345X",
+            //    ZipCode = "414141",
+            //    ApiKey = "123-456-789",
+            //    CreatedAt = DateTime.Now
+            //};
+
+            //var masterAffiliate = (await affiliateService.CreateAsync(affiliateCreateRequestMaster)).Affiliate;
+            //var affiliate = (await affiliateService.CreateAsync(affiliateCreateRequest)).Affiliate;
+
+            //var access = await affiliateAccessService.CreateAsync(new AffiliateAccessCreateRequest()
+            //{
+            //    TenantId = testTenant,
+            //    AffiliateId = affiliate.AffiliateId,
+            //    MasterAffiliateId = masterAffiliate.AffiliateId
+            //});
+
+            var search = await affiliateService.SearchAsync(new AffiliateSearchRequest()
+            {
+                TenantId = testTenant,
+                MasterAffiliateId = 9
+            });
 
             //var boxes = await boxClient.SearchAsync(new CampaignSearchRequest()
             //{
@@ -125,7 +217,7 @@ namespace TestApp
                 Email = "email123@email.com",
                 Password = "qwerty_123456",
                 Phone = "+79990999999",
-                Role = AffiliateRole.IntegrationManager,
+                Role = AffiliateRole.MasterAffiliate,
                 Skype = "skype",
                 State = AffiliateState.Active,
                 Username = "SomeTestUser1",
@@ -134,11 +226,11 @@ namespace TestApp
                 CreatedAt = DateTime.Now
             };
 
-            var partnerCreated = (await  client.CreateAsync(request)).Affiliate;
+            var partnerCreated = (await  affiliateService.CreateAsync(request)).Affiliate;
 
             Console.WriteLine(partnerCreated.AffiliateId);
 
-            var partnerUpdated = (await client.UpdateAsync(new AffiliateUpdateRequest()
+            var partnerUpdated = (await affiliateService.UpdateAsync(new AffiliateUpdateRequest()
             {
                 AffiliateId = partnerCreated.AffiliateId,
                 TenantId = partnerCreated.TenantId,
@@ -148,12 +240,12 @@ namespace TestApp
                 Sequence = 1
             })).Affiliate;
 
-            await client.DeleteAsync(new AffiliateDeleteRequest()
+            await affiliateService.DeleteAsync(new AffiliateDeleteRequest()
             {
                 AffiliateId = partnerUpdated.AffiliateId,
             });
 
-            var shouldBeNull =await client.GetAsync(new AffiliateGetRequest()
+            var shouldBeNull =await affiliateService.GetAsync(new AffiliateGetRequest()
             {
                 AffiliateId = partnerUpdated.AffiliateId,
             });

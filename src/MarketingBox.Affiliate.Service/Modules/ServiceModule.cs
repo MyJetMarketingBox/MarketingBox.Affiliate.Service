@@ -39,7 +39,20 @@ namespace MarketingBox.Affiliate.Service.Modules
 
             // register writer (IMyNoSqlServerDataWriter<AffiliateNoSql>)
             builder.RegisterMyNoSqlWriter<AffiliateNoSql>(Program.ReloadedSettings(e => e.MyNoSqlWriterUrl), AffiliateNoSql.TableName);
-            
+
+            #endregion
+
+            #region AffiliateAccess
+
+            // publisher (IServiceBusPublisher<AffiliateUpdated>)
+            builder.RegisterMyServiceBusPublisher<AffiliateAccessUpdated>(serviceBusClient, Topics.AffiliateAccessUpdatedTopic, false);
+
+            // publisher (IServiceBusPublisher<AffiliateRemoved>)
+            builder.RegisterMyServiceBusPublisher<AffiliateAccessRemoved>(serviceBusClient, Topics.AffiliateAccessRemovedTopic, false);
+
+            //// register writer (IMyNoSqlServerDataWriter<AffiliateNoSql>)
+            //builder.RegisterMyNoSqlWriter<AffiliateNoSql>(Program.ReloadedSettings(e => e.MyNoSqlWriterUrl), AffiliateNoSql.TableName);
+
             #endregion
 
             #region Campaigns

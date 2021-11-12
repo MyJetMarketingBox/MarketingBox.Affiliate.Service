@@ -82,22 +82,17 @@ namespace MarketingBox.Affiliate.Service.Services
             {
                 TenantId = request.TenantId,
                 Name = request.Name,
-                Sequence = request.Sequence,
+                Sequence = request.Sequence + 1,
                 Id = request.IntegrationId
             };
 
             try
             {
                 var affectedRowsCount = await ctx.Integrations
-                .Where(x => x.Id == request.IntegrationId &&
-                            x.Sequence <= request.Sequence)
-                .UpdateAsync(x => new IntegrationEntity()
-                {
-                    TenantId = request.TenantId,
-                    Name = request.Name,
-                    Sequence = request.Sequence,
-                    Id = request.IntegrationId
-                });
+                    .Upsert(integrationEntity)
+                    .On(x => x.Id == integrationEntity.Id &&
+                            x.Sequence < integrationEntity.Sequence)
+                    .RunAsync();
 
                 if (affectedRowsCount != 1)
                 {

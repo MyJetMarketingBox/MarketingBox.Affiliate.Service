@@ -2,6 +2,10 @@
 {
     public class Topics
     {
+        public const string AffiliateAccessUpdatedTopic = "marketing-box-affiliate-service-affiliate-access-update";
+
+        public const string AffiliateAccessRemovedTopic = "marketing-box-affiliate-service-affiliate-access-removed";
+
         public const string AffiliateUpdatedTopic = "marketing-box-affiliate-service-affiliate-update";
 
         public const string AffiliateRemovedTopic = "marketing-box-affiliate-service-affiliate-removed";

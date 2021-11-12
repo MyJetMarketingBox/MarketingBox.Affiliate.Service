@@ -87,22 +87,17 @@ namespace MarketingBox.Affiliate.Service.Services
             {
                 TenantId = request.TenantId,
                 Name = request.Name,
-                Sequence = request.Sequence,
+                Sequence = request.Sequence + 1,
                 Id = request.CampaignId
             };
 
             try
             {
                 var affectedRowsCount = await ctx.Campaigns
-                .Where(x => x.Id == request.CampaignId &&
-                            x.Sequence <= request.Sequence)
-                .UpdateAsync(x => new CampaignEntity()
-                {
-                    TenantId = request.TenantId,
-                    Name = request.Name,
-                    Sequence = request.Sequence,
-                    Id = request.CampaignId
-                });
+                    .Upsert(campaignEntity)
+                    .On(x => x.Id == campaignEntity.Id &&
+                            x.Sequence < campaignEntity.Sequence)
+                    .RunAsync();
 
                 if (affectedRowsCount != 1)
                 {
@@ -254,12 +249,12 @@ namespace MarketingBox.Affiliate.Service.Services
         private static Campaign MapToGrpcInner(CampaignEntity campaignEntity)
         {
             return new Campaign()
-                {
-                    TenantId = campaignEntity.TenantId,
-                    Sequence = campaignEntity.Sequence,
-                    Name = campaignEntity.Name,
-                    Id = campaignEntity.Id
-                };
+            {
+                TenantId = campaignEntity.TenantId,
+                Sequence = campaignEntity.Sequence,
+                Name = campaignEntity.Name,
+                Id = campaignEntity.Id
+            };
         }
 
         private static CampaignUpdated MapToMessage(CampaignEntity campaignEntity)

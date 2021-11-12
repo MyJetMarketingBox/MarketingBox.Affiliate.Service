@@ -28,6 +28,9 @@ namespace MarketingBox.Affiliate.Service.Grpc.Models.Affiliates.Requests
         [DataMember(Order = 7)]
         public string Note { get; set; }
 
+        [DataMember(Order = 8)]
+        public long? MasterAffiliateId { get; set; }
+
         [DataMember(Order = 10)]
         public long? Cursor { get; set; }
 

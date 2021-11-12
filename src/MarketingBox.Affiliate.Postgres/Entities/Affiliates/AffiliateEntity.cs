@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using MarketingBox.Affiliate.Postgres.Entities.AffiliateAccesses;
 using MarketingBox.Affiliate.Service.Domain.Affiliates;
 using MarketingBox.Affiliate.Service.Domain.Common;
 
@@ -41,5 +43,9 @@ namespace MarketingBox.Affiliate.Postgres.Entities.Affiliates
 
         public string BankIban { get; set; }
         public long Sequence { get; set; }
+
+        public AffiliateAccessEntity AccessIsGivenTo { get; set; }
+
+        public AffiliateAccessEntity AccessIsGivenBy { get; set; }
     }
 }

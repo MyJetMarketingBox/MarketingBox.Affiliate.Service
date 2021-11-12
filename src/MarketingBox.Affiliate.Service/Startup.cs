@@ -33,7 +33,7 @@ namespace MarketingBox.Affiliate.Service
             services.AddDatabase(DatabaseContext.Schema, 
                 Program.Settings.PostgresConnectionString, 
                 o => new DatabaseContext(o));
-            DatabaseContext.LoggerFactory = null;
+            //DatabaseContext.LoggerFactory = null;
 
             services.AddMyTelemetry("MB-", Program.Settings.JaegerUrl);
         }
@@ -56,6 +56,7 @@ namespace MarketingBox.Affiliate.Service
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapGrpcSchema<AffiliateService, IAffiliateService>();
+                endpoints.MapGrpcSchema<AffiliateAccessService, IAffiliateAccessService>();
                 endpoints.MapGrpcSchema<CampaignService, ICampaignService>();
                 endpoints.MapGrpcSchema<IntegrationService, IIntegrationService>();
                 endpoints.MapGrpcSchema<BrandService, IBrandService>();
