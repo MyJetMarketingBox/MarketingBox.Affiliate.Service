@@ -1,5 +1,6 @@
 ﻿using Autofac;
 using MarketingBox.Affiliate.Service.Messages;
+using MarketingBox.Affiliate.Service.Messages.AffiliateAccesses;
 using MarketingBox.Affiliate.Service.Messages.Affiliates;
 using MarketingBox.Affiliate.Service.Messages.Brands;
 using MarketingBox.Affiliate.Service.Messages.CampaignRows;

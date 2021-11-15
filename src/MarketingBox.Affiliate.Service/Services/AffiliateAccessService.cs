@@ -12,6 +12,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using MarketingBox.Affiliate.Service.Extensions;
+using MarketingBox.Affiliate.Service.Messages.AffiliateAccesses;
 using Z.EntityFramework.Plus;
 
 namespace MarketingBox.Affiliate.Service.Services

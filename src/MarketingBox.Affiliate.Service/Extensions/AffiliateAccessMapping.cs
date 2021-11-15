@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using MarketingBox.Affiliate.Postgres.Entities.AffiliateAccesses;
 using MarketingBox.Affiliate.Service.Grpc.Models.AffiliateAccesses;
+using MarketingBox.Affiliate.Service.Messages.AffiliateAccesses;
 using MarketingBox.Affiliate.Service.Messages.Affiliates;
 
 namespace MarketingBox.Affiliate.Service.Extensions

@@ -1,6 +1,6 @@
 ﻿using System.Runtime.Serialization;
 
-namespace MarketingBox.Affiliate.Service.Messages.Affiliates
+namespace MarketingBox.Affiliate.Service.Messages.AffiliateAccesses
 {
     [DataContract]
     public class AffiliateAccessRemoved
