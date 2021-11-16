@@ -95,10 +95,7 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 if (existingEntity == null)
                 {
-                    if (affiliateEntity.GeneralInfoRole == AffiliateRole.MasterAffiliateReferral ||
-                        affiliateEntity.GeneralInfoRole == AffiliateRole.MasterAffiliate)
-
-                        ctx.Affiliates.Add(affiliateEntity);
+                    ctx.Affiliates.Add(affiliateEntity);
                     await ctx.SaveChangesAsync();
                 }
                 else

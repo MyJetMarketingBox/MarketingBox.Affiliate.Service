@@ -1,4 +1,5 @@
 ﻿using Autofac;
+using MarketingBox.Affiliate.Service.Grpc;
 using MarketingBox.Affiliate.Service.Messages;
 using MarketingBox.Affiliate.Service.Messages.AffiliateAccesses;
 using MarketingBox.Affiliate.Service.Messages.Affiliates;
@@ -11,6 +12,7 @@ using MarketingBox.Affiliate.Service.MyNoSql.Brands;
 using MarketingBox.Affiliate.Service.MyNoSql.CampaignRows;
 using MarketingBox.Affiliate.Service.MyNoSql.Campaigns;
 using MarketingBox.Affiliate.Service.MyNoSql.Integrations;
+using MarketingBox.Affiliate.Service.Services;
 using MarketingBox.Auth.Service.Client;
 using MyJetWallet.Sdk.NoSql;
 using MyJetWallet.Sdk.Service;
@@ -53,6 +55,8 @@ namespace MarketingBox.Affiliate.Service.Modules
 
             //// register writer (IMyNoSqlServerDataWriter<AffiliateNoSql>)
             //builder.RegisterMyNoSqlWriter<AffiliateNoSql>(Program.ReloadedSettings(e => e.MyNoSqlWriterUrl), AffiliateNoSql.TableName);
+
+            builder.RegisterType<AffiliateAccessService>().As<IAffiliateAccessService>();
 
             #endregion
 
