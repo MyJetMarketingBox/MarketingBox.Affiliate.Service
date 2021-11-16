@@ -14,5 +14,7 @@ namespace MarketingBox.Affiliate.Service.Messages.AffiliateAccesses
         [DataMember(Order = 3)]
         public string TenantId { get; set; }
 
+        [DataMember(Order = 4)]
+        public long Id { get; set; }
     }
 }

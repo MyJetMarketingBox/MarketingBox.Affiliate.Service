@@ -30,6 +30,13 @@ namespace TestApp
             var boxClient = factory.GetCampaignService();
             var campaignBoxClient = factory.GetCampaignRowService();
 
+            var access = await affiliateAccessService.CreateAsync(new AffiliateAccessCreateRequest()
+            {
+                TenantId = testTenant,
+                AffiliateId =10,
+                MasterAffiliateId =9
+            });
+
             var affiliateCreateRequestMaster = new AffiliateCreateRequest()
             {
                 TenantId = testTenant,

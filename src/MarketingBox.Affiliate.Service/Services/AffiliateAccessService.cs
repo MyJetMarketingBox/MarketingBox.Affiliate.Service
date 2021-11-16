@@ -110,6 +110,7 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 await _affiliateAccessRemoved.PublishAsync(new AffiliateAccessRemoved()
                 {
+                    Id = affiliateAccessEntity.Id,
                     AffiliateId = affiliateAccessEntity.AffiliateId,
                     MasterAffiliateId = affiliateAccessEntity.MasterAffiliateId
                 });

@@ -32,6 +32,7 @@ namespace MarketingBox.Affiliate.Service.Extensions
         {
             return new AffiliateAccessUpdated()
             {
+                Id = affiliateAccessEntity.Id,
                 AffiliateId = affiliateAccessEntity.AffiliateId,
                 MasterAffiliateId = affiliateAccessEntity.MasterAffiliateId
             };
