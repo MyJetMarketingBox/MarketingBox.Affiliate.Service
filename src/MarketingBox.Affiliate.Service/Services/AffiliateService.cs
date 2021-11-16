@@ -111,6 +111,17 @@ namespace MarketingBox.Affiliate.Service.Services
                     //});
                 }
 
+                if (affiliateEntity.GeneralInfoRole == AffiliateRole.MasterAffiliate ||
+                    affiliateEntity.GeneralInfoRole == AffiliateRole.MasterAffiliateReferral)
+                {
+                    await _affiliateAccessService.CreateAsync(new AffiliateAccessCreateRequest()
+                    {
+                        TenantId = request.TenantId,
+                        AffiliateId = affiliateEntity.AffiliateId,
+                        MasterAffiliateId = affiliateEntity.AffiliateId,
+                    });
+                }
+
                 var masterAffiliateId = request.MasterAffiliateId.HasValue ? (long?)request.MasterAffiliateId.Value : null;
 
                 if (masterAffiliateId == null)
