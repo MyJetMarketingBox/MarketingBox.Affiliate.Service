@@ -111,7 +111,8 @@ namespace MarketingBox.Affiliate.Service.Services
                     //});
                 }
 
-                if (affiliateEntity.GeneralInfoRole == AffiliateRole.MasterAffiliate ||
+                if (affiliateEntity.GeneralInfoRole == AffiliateRole.Affiliate ||
+                    affiliateEntity.GeneralInfoRole == AffiliateRole.MasterAffiliate ||
                     affiliateEntity.GeneralInfoRole == AffiliateRole.MasterAffiliateReferral)
                 {
                     await _affiliateAccessService.CreateAsync(new AffiliateAccessCreateRequest()
@@ -123,12 +124,6 @@ namespace MarketingBox.Affiliate.Service.Services
                 }
 
                 var masterAffiliateId = request.MasterAffiliateId.HasValue ? (long?)request.MasterAffiliateId.Value : null;
-
-                if (masterAffiliateId == null)
-                {
-                    if (affiliateEntity.GeneralInfoRole == AffiliateRole.Affiliate)
-                        masterAffiliateId = affiliateEntity.AffiliateId;
-                }
 
                 if (masterAffiliateId.HasValue)
                 {
