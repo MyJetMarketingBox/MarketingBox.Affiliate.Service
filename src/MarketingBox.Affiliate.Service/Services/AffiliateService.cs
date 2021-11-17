@@ -55,6 +55,31 @@ namespace MarketingBox.Affiliate.Service.Services
             _affiliateAccessService = affiliateAccessService;
         }
 
+        public async Task<AffiliateResponse> CreateSubAsync(CreateSubRequest request)
+        {
+            _logger.LogInformation("Creating new Sub Affiliate {@context}", request);
+            
+            // TODO: check master affiliate creds
+            
+            var createResponse = await CreateAsync(new AffiliateCreateRequest()
+            {
+                GeneralInfo = new AffiliateGeneralInfo()
+                {
+                    CreatedAt = DateTime.UtcNow,
+                    Email = request.Email,
+                    Password = request.Password,
+                    Username = request.Username,
+                    Role = Domain.Models.Affiliates.AffiliateRole.Affiliate,
+                    State = Domain.Models.Affiliates.AffiliateState.NotActive,
+                    ApiKey = Guid.NewGuid().ToString("N")
+                }
+            });
+            
+            // TODO: save external params to DB
+
+            return createResponse;
+        }
+
         public async Task<AffiliateResponse> CreateAsync(AffiliateCreateRequest request)
         {
             _logger.LogInformation("Creating new Affiliate {@context}", request);

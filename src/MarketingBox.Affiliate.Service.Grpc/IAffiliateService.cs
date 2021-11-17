@@ -9,6 +9,9 @@ namespace MarketingBox.Affiliate.Service.Grpc
     public interface IAffiliateService
     {
         [OperationContract]
+        Task<AffiliateResponse> CreateSubAsync(CreateSubRequest request);
+        
+        [OperationContract]
         Task<AffiliateResponse> CreateAsync(AffiliateCreateRequest request);
 
         [OperationContract]
