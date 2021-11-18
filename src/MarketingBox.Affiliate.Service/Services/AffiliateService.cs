@@ -59,25 +59,47 @@ namespace MarketingBox.Affiliate.Service.Services
         {
             _logger.LogInformation("Creating new Sub Affiliate {@context}", request);
             
-            // TODO: check master affiliate creds
-            
-            var createResponse = await CreateAsync(new AffiliateCreateRequest()
+            try
             {
-                GeneralInfo = new AffiliateGeneralInfo()
+                // TODO: check master affiliate creds
+                
+                var createResponse = await CreateAsync(new AffiliateCreateRequest()
                 {
-                    CreatedAt = DateTime.UtcNow,
-                    Email = request.Email,
-                    Password = request.Password,
-                    Username = request.Username,
-                    Role = Domain.Models.Affiliates.AffiliateRole.Affiliate,
-                    State = Domain.Models.Affiliates.AffiliateState.NotActive,
-                    ApiKey = Guid.NewGuid().ToString("N")
-                }
-            });
-            
-            // TODO: save external params to DB
+                    GeneralInfo = new AffiliateGeneralInfo()
+                    {
+                        CreatedAt = DateTime.UtcNow,
+                        Email = request.Email,
+                        Password = request.Password,
+                        Username = request.Username,
+                        Role = Domain.Models.Affiliates.AffiliateRole.Affiliate,
+                        State = Domain.Models.Affiliates.AffiliateState.NotActive,
+                        ApiKey = Guid.NewGuid().ToString("N")
+                    }
+                });
 
-            return createResponse;
+                if (createResponse?.Affiliate != null)
+                {
+                    await using var ctx = _databaseContextFactory.Create();
+                    await ctx.AddNewAffiliateSubParam(request.Sub.Select(e => new AffiliateSubParamEntity()
+                    {
+                        AffiliateId = createResponse.Affiliate.AffiliateId,
+                        ParamName = e.SubName,
+                        ParamValue = e.SubValue
+                    }));
+                }
+                return createResponse;
+            }
+            catch (Exception ex)
+            {
+                return new AffiliateResponse()
+                {
+                    Error = new Error()
+                    {
+                        Type = ErrorType.Unknown,
+                        Message = ex.Message
+                    }
+                };
+            }
         }
 
         public async Task<AffiliateResponse> CreateAsync(AffiliateCreateRequest request)

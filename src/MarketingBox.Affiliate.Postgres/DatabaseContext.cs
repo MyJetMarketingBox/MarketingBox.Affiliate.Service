@@ -1,4 +1,6 @@
-﻿using MarketingBox.Affiliate.Postgres.Entities.AffiliateAccesses;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using MarketingBox.Affiliate.Postgres.Entities.AffiliateAccesses;
 using MarketingBox.Affiliate.Postgres.Entities.Affiliates;
 using MarketingBox.Affiliate.Postgres.Entities.Brands;
 using MarketingBox.Affiliate.Postgres.Entities.CampaignRows;
@@ -164,6 +166,12 @@ namespace MarketingBox.Affiliate.Postgres
             modelBuilder.Entity<CampaignEntity>().HasKey(e => e.Id);
             modelBuilder.Entity<CampaignEntity>().HasIndex(e => new { e.TenantId, e.Id });
             modelBuilder.Entity<CampaignEntity>().HasIndex(e => new { e.TenantId, e.Name });
+        }
+
+        public async Task AddNewAffiliateSubParam(IEnumerable<AffiliateSubParamEntity> subParams)
+        {
+            await AffiliateSubParamCollection.AddRangeAsync(subParams);
+            await SaveChangesAsync();
         }
 
         public override void Dispose()
