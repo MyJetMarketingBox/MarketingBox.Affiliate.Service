@@ -52,6 +52,45 @@ namespace MarketingBox.Affiliate.Service.Services
             _affiliateAccessService = affiliateAccessService;
             _databaseContextFactory = databaseContextFactory;
         }
+        
+        public async Task<SetAffiliateStateResponse> SetAffiliateStateAsync(SetAffiliateStateRequest request)
+        {
+            _logger.LogInformation("SetAffiliateStateAsync {@context}", request);
+            try
+            {
+                await using var ctx = _databaseContextFactory.Create();
+                var affiliate = ctx.Affiliates.FirstOrDefault(e => e.AffiliateId == request.AffiliateId);
+
+                if (affiliate == null)
+                    return new SetAffiliateStateResponse()
+                    {
+                        Error = new Error()
+                        {
+                            Type = ErrorType.Unknown,
+                            Message = "Cannot find affiliate."
+                        }
+                    };
+                affiliate.GeneralInfoState = request.State.MapEnum<AffiliateState>();
+                await ctx.SaveChangesAsync();
+
+                return new SetAffiliateStateResponse()
+                {
+                    Error = null
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return new SetAffiliateStateResponse()
+                {
+                    Error = new Error()
+                    {
+                        Type = ErrorType.Unknown,
+                        Message = ex.Message
+                    }
+                };
+            }
+        }
 
         public async Task<AffiliateResponse> CreateSubAsync(CreateSubRequest request)
         {

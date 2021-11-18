@@ -25,5 +25,8 @@ namespace MarketingBox.Affiliate.Service.Grpc
 
         [OperationContract]
         Task<AffiliateSearchResponse> SearchAsync(AffiliateSearchRequest request);
+
+        [OperationContract]
+        Task<SetAffiliateStateResponse> SetAffiliateStateAsync(SetAffiliateStateRequest request);
     }
 }
