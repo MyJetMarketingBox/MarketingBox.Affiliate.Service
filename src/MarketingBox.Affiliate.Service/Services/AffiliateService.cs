@@ -1,5 +1,4 @@
-﻿using DotNetCoreDecorators;
-using MarketingBox.Affiliate.Postgres;
+﻿using MarketingBox.Affiliate.Postgres;
 using MarketingBox.Affiliate.Service.Domain.Extensions;
 using MarketingBox.Affiliate.Service.Grpc;
 using MarketingBox.Affiliate.Service.Grpc.Models.Common;
@@ -11,7 +10,6 @@ using MyNoSqlServer.Abstractions;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using MarketingBox.Affiliate.Postgres.Entities.AffiliateAccesses;
 using MarketingBox.Affiliate.Postgres.Entities.Affiliates;
 using MarketingBox.Affiliate.Service.Domain.Affiliates;
 using MarketingBox.Affiliate.Service.Grpc.Models.AffiliateAccesses.Requests;
@@ -189,7 +187,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 _logger.LogInformation("Sent partner update to MyNoSql {@context}", request);
 
-                await _publisherPartnerUpdated.PublishAsync(MapToMessage(affiliateEntity));
+                await _publisherPartnerUpdated.PublishAsync(MapToMessage(affiliateEntity, true));
                 _logger.LogInformation("Sent partner update to service bus {@context}", request);
 
                 return MapToGrpc(affiliateEntity);
@@ -270,7 +268,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 _logger.LogInformation("Sent partner update to MyNoSql {@context}", request);
 
-                await _publisherPartnerUpdated.PublishAsync(MapToMessage(affiliateEntity));
+                await _publisherPartnerUpdated.PublishAsync(MapToMessage(affiliateEntity, false));
                 _logger.LogInformation("Sent partner update to service bus {@context}", request);
 
                 return MapToGrpc(affiliateEntity);
@@ -625,7 +623,7 @@ namespace MarketingBox.Affiliate.Service.Services
             };
         }
 
-        private static AffiliateUpdated MapToMessage(AffiliateEntity affiliateEntity)
+        private static AffiliateUpdated MapToMessage(AffiliateEntity affiliateEntity, bool isNew)
         {
             return new AffiliateUpdated()
             {
@@ -661,7 +659,8 @@ namespace MarketingBox.Affiliate.Service.Services
                     Username = affiliateEntity.GeneralInfoUsername,
                     ZipCode = affiliateEntity.GeneralInfoZipCode,
                     ApiKey = affiliateEntity.GeneralInfoApiKey
-                }
+                },
+                IsNew = isNew
             };
         }
 

@@ -22,6 +22,8 @@ namespace MarketingBox.Affiliate.Service.Messages.Affiliates
 
         [DataMember(Order = 6)]
         public long SequenceId { get; set; }
-
+        
+        [DataMember(Order = 7)]
+        public bool IsNew { get; set; }
     }
 }
