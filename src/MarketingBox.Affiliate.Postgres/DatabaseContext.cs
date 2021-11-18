@@ -8,11 +8,12 @@ using MarketingBox.Affiliate.Postgres.Entities.Campaigns;
 using MarketingBox.Affiliate.Postgres.Entities.Integrations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using MyJetWallet.Sdk.Postgres;
 using Newtonsoft.Json;
 
 namespace MarketingBox.Affiliate.Postgres
 {
-    public class DatabaseContext : DbContext
+    public class DatabaseContext : MyDbContext
     {
         private static readonly JsonSerializerSettings JsonSerializingSettings =
             new() { NullValueHandling = NullValueHandling.Ignore };
@@ -44,8 +45,6 @@ namespace MarketingBox.Affiliate.Postgres
         public DatabaseContext(DbContextOptions options) : base(options)
         {
         }
-        public static ILoggerFactory LoggerFactory { get; set; }
-
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
