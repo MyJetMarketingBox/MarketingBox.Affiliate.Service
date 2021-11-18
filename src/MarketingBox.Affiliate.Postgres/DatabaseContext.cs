@@ -23,6 +23,7 @@ namespace MarketingBox.Affiliate.Postgres
         private const string CampaignTableName = "campaigns";
         private const string CampaignBoxTableName = "campaign-rows";
         private const string IntegrationTableName = "integrations";
+        private const string AffiliateSubParamsTableName = "affiliatesubparam";
 
         public DbSet<AffiliateEntity> Affiliates { get; set; }
         public DbSet<AffiliateAccessEntity> AffiliateAccess { get; set; }
@@ -34,6 +35,7 @@ namespace MarketingBox.Affiliate.Postgres
         public DbSet<BrandEntity> Brands { get; set; }
 
         public DbSet<CampaignRowEntity> CampaignRows { get; set; }
+        public DbSet<AffiliateSubParamEntity> AffiliateSubParamCollection { get; set; }
 
 
 
@@ -61,8 +63,20 @@ namespace MarketingBox.Affiliate.Postgres
             SetIntegrationEntity(modelBuilder);
             SetBrandEntity(modelBuilder);
             SetCampaignRowEntity(modelBuilder);
+            SetAffiliateSubParamEntity(modelBuilder);
 
             base.OnModelCreating(modelBuilder);
+        }
+
+        private void SetAffiliateSubParamEntity(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<AffiliateSubParamEntity>().ToTable(AffiliateSubParamsTableName);
+            
+            modelBuilder.Entity<AffiliateSubParamEntity>().Property(e => e.Id).UseIdentityColumn();
+            modelBuilder.Entity<AffiliateSubParamEntity>().HasKey(e => e.Id);
+            
+            modelBuilder.Entity<AffiliateSubParamEntity>().Property(e => e.ParamName).HasMaxLength(64);
+            modelBuilder.Entity<AffiliateSubParamEntity>().Property(e => e.ParamValue).HasMaxLength(512);
         }
 
         private void SetAffiliateEntity(ModelBuilder modelBuilder)

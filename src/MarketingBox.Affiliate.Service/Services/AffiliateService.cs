@@ -31,7 +31,7 @@ namespace MarketingBox.Affiliate.Service.Services
     public class AffiliateService : IAffiliateService
     {
         private readonly ILogger<AffiliateService> _logger;
-        private readonly DbContextOptionsBuilder<DatabaseContext> _dbContextOptionsBuilder;
+        private readonly DatabaseContextFactory _databaseContextFactory;
         private readonly IServiceBusPublisher<AffiliateUpdated> _publisherPartnerUpdated;
         private readonly IMyNoSqlServerDataWriter<AffiliateNoSql> _myNoSqlServerDataWriter;
         private readonly IServiceBusPublisher<AffiliateRemoved> _publisherPartnerRemoved;
@@ -39,20 +39,20 @@ namespace MarketingBox.Affiliate.Service.Services
         private readonly IAffiliateAccessService _affiliateAccessService;
 
         public AffiliateService(ILogger<AffiliateService> logger,
-            DbContextOptionsBuilder<DatabaseContext> dbContextOptionsBuilder,
             IServiceBusPublisher<AffiliateUpdated> publisherPartnerUpdated,
             IMyNoSqlServerDataWriter<AffiliateNoSql> myNoSqlServerDataWriter,
             IServiceBusPublisher<AffiliateRemoved> publisherPartnerRemoved,
             IUserService userService,
-            IAffiliateAccessService affiliateAccessService)
+            IAffiliateAccessService affiliateAccessService,
+            DatabaseContextFactory databaseContextFactory)
         {
             _logger = logger;
-            _dbContextOptionsBuilder = dbContextOptionsBuilder;
             _publisherPartnerUpdated = publisherPartnerUpdated;
             _myNoSqlServerDataWriter = myNoSqlServerDataWriter;
             _publisherPartnerRemoved = publisherPartnerRemoved;
             _userService = userService;
             _affiliateAccessService = affiliateAccessService;
+            _databaseContextFactory = databaseContextFactory;
         }
 
         public async Task<AffiliateResponse> CreateSubAsync(CreateSubRequest request)
@@ -83,7 +83,7 @@ namespace MarketingBox.Affiliate.Service.Services
         public async Task<AffiliateResponse> CreateAsync(AffiliateCreateRequest request)
         {
             _logger.LogInformation("Creating new Affiliate {@context}", request);
-            using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+            await using var ctx = _databaseContextFactory.Create();
 
             var affiliateEntity = new AffiliateEntity()
             {
@@ -182,7 +182,7 @@ namespace MarketingBox.Affiliate.Service.Services
         public async Task<AffiliateResponse> UpdateAsync(AffiliateUpdateRequest request)
         {
             _logger.LogInformation("Updating a Affiliate {@context}", request);
-            using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+            await using var ctx = _databaseContextFactory.Create();
 
             var affiliateEntity = new AffiliateEntity()
             {
@@ -262,7 +262,7 @@ namespace MarketingBox.Affiliate.Service.Services
 
         public async Task<AffiliateResponse> GetAsync(AffiliateGetRequest request)
         {
-            using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+            await using var ctx = _databaseContextFactory.Create();
 
             try
             {
@@ -292,7 +292,7 @@ namespace MarketingBox.Affiliate.Service.Services
 
         public async Task<AffiliateResponse> DeleteAsync(AffiliateDeleteRequest request)
         {
-            using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+            await using var ctx = _databaseContextFactory.Create();
 
             try
             {
@@ -328,7 +328,7 @@ namespace MarketingBox.Affiliate.Service.Services
 
         public async Task<AffiliateSearchResponse> SearchAsync(AffiliateSearchRequest request)
         {
-            using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+            await using var ctx = _databaseContextFactory.Create();
 
             try
             {

@@ -1,4 +1,5 @@
 ﻿using Autofac;
+using MarketingBox.Affiliate.Postgres;
 using MarketingBox.Affiliate.Service.Grpc;
 using MarketingBox.Affiliate.Service.Messages;
 using MarketingBox.Affiliate.Service.Messages.AffiliateAccesses;
@@ -24,6 +25,11 @@ namespace MarketingBox.Affiliate.Service.Modules
     {
         protected override void Load(ContainerBuilder builder)
         {
+            builder
+                .RegisterType<DatabaseContextFactory>()
+                .AsSelf()
+                .SingleInstance();
+            
             var serviceBusClient = builder
                 .RegisterMyServiceBusTcpClient(
                     Program.ReloadedSettings(e => e.MarketingBoxServiceBusHostPort),

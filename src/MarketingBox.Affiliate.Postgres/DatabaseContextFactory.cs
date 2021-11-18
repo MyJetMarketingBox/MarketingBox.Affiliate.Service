@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace Service.Liquidity.DwhDataJob.Postgres
+namespace MarketingBox.Affiliate.Postgres
 {
     public class DatabaseContextFactory
     {
