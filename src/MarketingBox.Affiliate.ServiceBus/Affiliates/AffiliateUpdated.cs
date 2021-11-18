@@ -24,6 +24,13 @@ namespace MarketingBox.Affiliate.Service.Messages.Affiliates
         public long SequenceId { get; set; }
         
         [DataMember(Order = 7)]
-        public bool IsNew { get; set; }
+        public AffiliateUpdatedEventType EventType { get; set; }
+    }
+
+    [DataContract]
+    public enum AffiliateUpdatedEventType
+    {
+        [DataMember(Order = 1)] Created,
+        [DataMember(Order = 2)] Updated
     }
 }

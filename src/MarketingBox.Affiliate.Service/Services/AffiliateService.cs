@@ -187,7 +187,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 _logger.LogInformation("Sent partner update to MyNoSql {@context}", request);
 
-                await _publisherPartnerUpdated.PublishAsync(MapToMessage(affiliateEntity, true));
+                await _publisherPartnerUpdated.PublishAsync(MapToMessage(affiliateEntity, AffiliateUpdatedEventType.Created));
                 _logger.LogInformation("Sent partner update to service bus {@context}", request);
 
                 return MapToGrpc(affiliateEntity);
@@ -268,7 +268,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 _logger.LogInformation("Sent partner update to MyNoSql {@context}", request);
 
-                await _publisherPartnerUpdated.PublishAsync(MapToMessage(affiliateEntity, false));
+                await _publisherPartnerUpdated.PublishAsync(MapToMessage(affiliateEntity, AffiliateUpdatedEventType.Updated));
                 _logger.LogInformation("Sent partner update to service bus {@context}", request);
 
                 return MapToGrpc(affiliateEntity);
@@ -623,7 +623,7 @@ namespace MarketingBox.Affiliate.Service.Services
             };
         }
 
-        private static AffiliateUpdated MapToMessage(AffiliateEntity affiliateEntity, bool isNew)
+        private static AffiliateUpdated MapToMessage(AffiliateEntity affiliateEntity, AffiliateUpdatedEventType type)
         {
             return new AffiliateUpdated()
             {
@@ -660,7 +660,7 @@ namespace MarketingBox.Affiliate.Service.Services
                     ZipCode = affiliateEntity.GeneralInfoZipCode,
                     ApiKey = affiliateEntity.GeneralInfoApiKey
                 },
-                IsNew = isNew
+                EventType = type
             };
         }
 
