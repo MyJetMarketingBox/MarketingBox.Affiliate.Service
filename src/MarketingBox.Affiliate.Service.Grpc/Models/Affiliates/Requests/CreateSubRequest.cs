@@ -5,7 +5,7 @@ namespace MarketingBox.Affiliate.Service.Grpc.Models.Affiliates.Requests
     [DataContract]
     public class CreateSubRequest
     {
-        [DataMember(Order = 1)] public string MasterAffiliateId { get; set; }
+        [DataMember(Order = 1)] public long MasterAffiliateId { get; set; }
         [DataMember(Order = 2)] public string MasterAffiliateApiKey { get; set; }
         [DataMember(Order = 3)] public string Username { get; set; }
         [DataMember(Order = 4)] public string Password { get; set; }

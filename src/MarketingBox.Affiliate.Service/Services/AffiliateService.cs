@@ -98,8 +98,24 @@ namespace MarketingBox.Affiliate.Service.Services
             
             try
             {
-                // TODO: check master affiliate creds
-                
+                await using var ctx = _databaseContextFactory.Create();
+                var masterAffiliate = ctx.Affiliates.FirstOrDefault(e => e.AffiliateId == request.MasterAffiliateId);
+
+                if (masterAffiliate == null ||
+                    !masterAffiliate.GeneralInfoApiKey.Equals(request.MasterAffiliateApiKey))
+                {
+                    var message = "Incorrect master affiliate credentials.";
+                    _logger.LogInformation(message);
+                    return new AffiliateResponse()
+                    {
+                        Error = new Error()
+                        {
+                            Type = ErrorType.Unknown,
+                            Message = message
+                        }
+                    };
+                }
+
                 var createResponse = await CreateAsync(new AffiliateCreateRequest()
                 {
                     GeneralInfo = new AffiliateGeneralInfo()
@@ -116,7 +132,6 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 if (createResponse?.Affiliate != null)
                 {
-                    await using var ctx = _databaseContextFactory.Create();
                     await ctx.AddNewAffiliateSubParam(request.Sub.Select(e => new AffiliateSubParamEntity()
                     {
                         AffiliateId = createResponse.Affiliate.AffiliateId,
