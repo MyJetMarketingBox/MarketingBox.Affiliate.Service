@@ -93,11 +93,10 @@ namespace MarketingBox.Affiliate.Service.Services
         public async Task<CampaignRowResponse> UpdateAsync(CampaignRowUpdateRequest request)
         {
             _logger.LogInformation("Updating a CampaignRow {@context}", request);
-            using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+            await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
             try
             {
-
                 var campaignRowEntity = new CampaignRowEntity()
                 {
                     CampaignBoxId = request.CampaignRowId,
@@ -119,17 +118,33 @@ namespace MarketingBox.Affiliate.Service.Services
                     Sequence = request.Sequence + 1,
                     Weight = request.Weight
                 };
+                
+                var campaignRows = ctx.CampaignRows.Where(x =>
+                    x.CampaignBoxId == request.CampaignRowId && x.Sequence < campaignRowEntity.Sequence);
 
-                var affectedRowsCount = await ctx.CampaignRows
-                    .Upsert(campaignRowEntity)
-                    .On(x => x.CampaignBoxId == request.CampaignRowId &&
-                                x.Sequence < campaignRowEntity.Sequence)
-                    .RunAsync();
-
-                if (affectedRowsCount != 1)
+                if (campaignRows.Any())
                 {
-                    throw new Exception("Update failed");
+                    foreach (var campaignRow in campaignRows)
+                    {
+                        campaignRow.CampaignBoxId = campaignRowEntity.CampaignBoxId;
+                        campaignRow.ActivityHours = campaignRowEntity.ActivityHours;
+                        campaignRow.CampaignId = campaignRowEntity.CampaignId;
+                        campaignRow.BrandId = campaignRowEntity.BrandId;
+                        campaignRow.CapType = campaignRowEntity.CapType;
+                        campaignRow.CountryCode = campaignRowEntity.CountryCode;
+                        campaignRow.DailyCapValue = campaignRowEntity.DailyCapValue;
+                        campaignRow.EnableTraffic = campaignRowEntity.EnableTraffic;
+                        campaignRow.Information = campaignRowEntity.Information;
+                        campaignRow.Priority = campaignRowEntity.Priority;
+                        campaignRow.Sequence = campaignRowEntity.Sequence;
+                        campaignRow.Weight = campaignRowEntity.Weight;
+                    }
                 }
+                else
+                {
+                    await ctx.CampaignRows.AddAsync(campaignRowEntity);
+                }
+                await ctx.SaveChangesAsync();
 
                 var nosql = MapToNoSql(campaignRowEntity);
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
