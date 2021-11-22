@@ -127,7 +127,8 @@ namespace MarketingBox.Affiliate.Service.Services
                         Role = Domain.Models.Affiliates.AffiliateRole.Affiliate,
                         State = Domain.Models.Affiliates.AffiliateState.NotActive,
                         ApiKey = Guid.NewGuid().ToString("N")
-                    }
+                    },
+                    TenantId = masterAffiliate.TenantId
                 });
 
                 if (createResponse?.Affiliate != null)
