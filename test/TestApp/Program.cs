@@ -247,12 +247,12 @@ namespace TestApp
                 Sequence = 1
             })).Affiliate;
 
-            await affiliateService.DeleteAsync(new AffiliateDeleteRequest()
-            {
-                AffiliateId = partnerUpdated.AffiliateId,
-            });
+            //await affiliateService.DeleteAsync(new AffiliateDeleteRequest()
+            //{
+            //    AffiliateId = partnerUpdated.AffiliateId,
+            //});
 
-            var shouldBeNull =await affiliateService.GetAsync(new AffiliateGetRequest()
+            var shouldBeNull = await affiliateService.GetAsync(new AffiliateGetRequest()
             {
                 AffiliateId = partnerUpdated.AffiliateId,
             });

@@ -1,5 +1,6 @@
 ﻿using Autofac;
 using MarketingBox.Affiliate.Postgres;
+using MarketingBox.Affiliate.Service.Engines;
 using MarketingBox.Affiliate.Service.Grpc;
 using MarketingBox.Affiliate.Service.Messages;
 using MarketingBox.Affiliate.Service.Messages.AffiliateAccesses;
@@ -14,10 +15,12 @@ using MarketingBox.Affiliate.Service.MyNoSql.CampaignRows;
 using MarketingBox.Affiliate.Service.MyNoSql.Campaigns;
 using MarketingBox.Affiliate.Service.MyNoSql.Integrations;
 using MarketingBox.Affiliate.Service.Services;
+using MarketingBox.Affiliate.Service.Subscribers;
 using MarketingBox.Auth.Service.Client;
 using MyJetWallet.Sdk.NoSql;
 using MyJetWallet.Sdk.Service;
 using MyJetWallet.Sdk.ServiceBus;
+using MyServiceBus.Abstractions;
 
 namespace MarketingBox.Affiliate.Service.Modules
 {
@@ -40,6 +43,19 @@ namespace MarketingBox.Affiliate.Service.Modules
 
             #region Affiliates
 
+            builder.RegisterMyServiceBusSubscriberSingle<AffiliateDeleteMessage>(serviceBusClient, Topics.AffiliateInitDeleteTopic, 
+                "Affiliate-Service", TopicQueueType.PermanentWithSingleConnection);
+            
+            builder
+                .RegisterType<DeleteAffiliateSubscriber>()
+                .As<IStartable>()
+                .AutoActivate()
+                .SingleInstance();
+            builder
+                .RegisterType<DeleteAffiliateEngine>()
+                .AsSelf()
+                .SingleInstance();
+            
             // publisher (IServiceBusPublisher<AffiliateUpdated>)
             builder.RegisterMyServiceBusPublisher<AffiliateUpdated>(serviceBusClient, Topics.AffiliateUpdatedTopic, false);
 

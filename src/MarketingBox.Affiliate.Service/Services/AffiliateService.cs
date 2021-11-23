@@ -19,7 +19,6 @@ using MarketingBox.Affiliate.Service.Messages.Affiliates;
 using MarketingBox.Affiliate.Service.MyNoSql.Affiliates;
 using MarketingBox.Auth.Service.Domain.Models.Users;
 using MyJetWallet.Sdk.ServiceBus;
-using Z.EntityFramework.Plus;
 using AffiliateBank = MarketingBox.Affiliate.Service.Grpc.Models.Affiliates.AffiliateBank;
 using AffiliateCompany = MarketingBox.Affiliate.Service.Grpc.Models.Affiliates.AffiliateCompany;
 using AffiliateGeneralInfo = MarketingBox.Affiliate.Service.Grpc.Models.Affiliates.AffiliateGeneralInfo;
@@ -32,14 +31,12 @@ namespace MarketingBox.Affiliate.Service.Services
         private readonly DatabaseContextFactory _databaseContextFactory;
         private readonly IServiceBusPublisher<AffiliateUpdated> _publisherPartnerUpdated;
         private readonly IMyNoSqlServerDataWriter<AffiliateNoSql> _myNoSqlServerDataWriter;
-        private readonly IServiceBusPublisher<AffiliateRemoved> _publisherPartnerRemoved;
         private readonly IUserService _userService;
         private readonly IAffiliateAccessService _affiliateAccessService;
 
         public AffiliateService(ILogger<AffiliateService> logger,
             IServiceBusPublisher<AffiliateUpdated> publisherPartnerUpdated,
             IMyNoSqlServerDataWriter<AffiliateNoSql> myNoSqlServerDataWriter,
-            IServiceBusPublisher<AffiliateRemoved> publisherPartnerRemoved,
             IUserService userService,
             IAffiliateAccessService affiliateAccessService,
             DatabaseContextFactory databaseContextFactory)
@@ -47,7 +44,6 @@ namespace MarketingBox.Affiliate.Service.Services
             _logger = logger;
             _publisherPartnerUpdated = publisherPartnerUpdated;
             _myNoSqlServerDataWriter = myNoSqlServerDataWriter;
-            _publisherPartnerRemoved = publisherPartnerRemoved;
             _userService = userService;
             _affiliateAccessService = affiliateAccessService;
             _databaseContextFactory = databaseContextFactory;
@@ -364,43 +360,6 @@ namespace MarketingBox.Affiliate.Service.Services
             catch (Exception e)
             {
                 _logger.LogError(e, "Error getting partner {@context}", request);
-
-                return new AffiliateResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
-            }
-        }
-
-        public async Task<AffiliateResponse> DeleteAsync(AffiliateDeleteRequest request)
-        {
-            await using var ctx = _databaseContextFactory.Create();
-
-            try
-            {
-                var partnerEntity = await ctx.Affiliates.FirstOrDefaultAsync(x => x.AffiliateId == request.AffiliateId);
-
-                if (partnerEntity == null)
-                    return new AffiliateResponse();
-
-                await _myNoSqlServerDataWriter.DeleteAsync(
-                    AffiliateNoSql.GeneratePartitionKey(partnerEntity.TenantId),
-                    AffiliateNoSql.GenerateRowKey(partnerEntity.AffiliateId));
-
-                await _publisherPartnerRemoved.PublishAsync(new AffiliateRemoved()
-                {
-                    AffiliateId = partnerEntity.AffiliateId,
-                    Sequence = partnerEntity.Sequence,
-                    TenantId = partnerEntity.TenantId
-                });
-
-                await _userService.DeleteAsync(new DeleteUserRequest() { TenantId = partnerEntity.TenantId, ExternalUserId = request.AffiliateId.ToString() });
-
-                await ctx.AffiliateAccess.Where(e => e.AffiliateId == request.AffiliateId).DeleteAsync();
-                await ctx.Affiliates.Where(x => x.AffiliateId == partnerEntity.AffiliateId).DeleteAsync();
-
-                return new AffiliateResponse();
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "Error deleting partner {@context}", request);
 
                 return new AffiliateResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
             }

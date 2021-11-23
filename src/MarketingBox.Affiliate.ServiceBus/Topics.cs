@@ -8,6 +8,8 @@
 
         public const string AffiliateUpdatedTopic = "marketing-box-affiliate-service-affiliate-update";
 
+        public const string AffiliateInitDeleteTopic = "marketing-box-affiliate-service-init-affiliate-delete";
+        
         public const string AffiliateRemovedTopic = "marketing-box-affiliate-service-affiliate-removed";
 
         public const string CampaignUpdatedTopic = "marketing-box-affiliate-service-campaign-update";

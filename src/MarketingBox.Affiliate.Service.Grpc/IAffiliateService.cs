@@ -21,9 +21,6 @@ namespace MarketingBox.Affiliate.Service.Grpc
         Task<AffiliateResponse> GetAsync(AffiliateGetRequest request);
 
         [OperationContract]
-        Task<AffiliateResponse> DeleteAsync(AffiliateDeleteRequest request);
-
-        [OperationContract]
         Task<AffiliateSearchResponse> SearchAsync(AffiliateSearchRequest request);
 
         [OperationContract]
