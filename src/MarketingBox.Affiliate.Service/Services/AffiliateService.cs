@@ -131,7 +131,8 @@ namespace MarketingBox.Affiliate.Service.Services
                     TenantId = masterAffiliate.TenantId
                 });
 
-                if (createResponse?.Affiliate != null)
+                if (createResponse?.Affiliate != null &&
+                    request.Sub.Any())
                 {
                     await ctx.AddNewAffiliateSubParam(request.Sub.Select(e => new AffiliateSubParamEntity()
                     {
