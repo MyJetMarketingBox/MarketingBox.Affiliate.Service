@@ -295,7 +295,9 @@ namespace MarketingBox.Affiliate.Service.Services
             {
                 if (request.MasterAffiliateId.HasValue)
                 {
-                    var access = await ctx.AffiliateAccess.FirstOrDefaultAsync(x => x.MasterAffiliateId == request.MasterAffiliateId && affiliateEntity.AffiliateId == x.AffiliateId);
+                    var access = await ctx.AffiliateAccess
+                        .FirstOrDefaultAsync(x => x.MasterAffiliateId == request.MasterAffiliateId 
+                        && affiliateEntity.AffiliateId == x.AffiliateId);
 
                     if (access == null)
                         return new AffiliateResponse()
@@ -391,6 +393,7 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 await _userService.DeleteAsync(new DeleteUserRequest() { TenantId = partnerEntity.TenantId, ExternalUserId = request.AffiliateId.ToString() });
 
+                await ctx.AffiliateAccess.Where(e => e.AffiliateId == request.AffiliateId).DeleteAsync();
                 await ctx.Affiliates.Where(x => x.AffiliateId == partnerEntity.AffiliateId).DeleteAsync();
 
                 return new AffiliateResponse();
