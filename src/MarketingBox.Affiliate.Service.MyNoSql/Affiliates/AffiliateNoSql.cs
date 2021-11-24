@@ -8,8 +8,7 @@ namespace MarketingBox.Affiliate.Service.MyNoSql.Affiliates
         public static string GeneratePartitionKey(string tenantId) => $"{tenantId}";
         public static string GenerateRowKey(long affiliateId) =>
             $"{affiliateId}";
-
-
+        
         public long AffiliateId { get; set; }
 
         public AffiliateGeneralInfo GeneralInfo { get; set; }

@@ -44,11 +44,18 @@ namespace MarketingBox.Affiliate.Service.Engines
                 var partnerEntity = await ctx.Affiliates.FirstOrDefaultAsync(x => x.AffiliateId == affiliateId);
                 if (partnerEntity == null)
                     return;
-        
-                await _myNoSqlServerDataWriter.DeleteAsync(
-                    AffiliateNoSql.GeneratePartitionKey(partnerEntity.TenantId),
-                    AffiliateNoSql.GenerateRowKey(partnerEntity.AffiliateId));
-        
+
+                try
+                {
+                    await _myNoSqlServerDataWriter.DeleteAsync(
+                        AffiliateNoSql.GeneratePartitionKey(partnerEntity.TenantId),
+                        AffiliateNoSql.GenerateRowKey(partnerEntity.AffiliateId));
+                }
+                catch (Newtonsoft.Json.JsonSerializationException serializationException)
+                {
+                    _logger.LogInformation(serializationException, $"NoSql table {AffiliateNoSql.TableName} is empty");
+                }
+
                 await _publisherPartnerRemoved.PublishAsync(new AffiliateRemoved()
                 {
                     AffiliateId = partnerEntity.AffiliateId,
