@@ -7,7 +7,6 @@ using MarketingBox.Affiliate.Postgres.Entities.CampaignRows;
 using MarketingBox.Affiliate.Postgres.Entities.Campaigns;
 using MarketingBox.Affiliate.Postgres.Entities.Integrations;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using MyJetWallet.Sdk.Postgres;
 using Newtonsoft.Json;
 
@@ -155,6 +154,10 @@ namespace MarketingBox.Affiliate.Postgres
         {
             modelBuilder.Entity<IntegrationEntity>().ToTable(IntegrationTableName);
             modelBuilder.Entity<IntegrationEntity>().HasKey(e => e.Id);
+            
+            modelBuilder.Entity<IntegrationEntity>().Property(e => e.Id);
+            modelBuilder.Entity<IntegrationEntity>().Property(e => e.Sequence);
+            
             modelBuilder.Entity<IntegrationEntity>().HasIndex(e => new { e.TenantId, e.Id });
             modelBuilder.Entity<IntegrationEntity>().HasIndex(e => new { e.TenantId, e.Name });
         }
