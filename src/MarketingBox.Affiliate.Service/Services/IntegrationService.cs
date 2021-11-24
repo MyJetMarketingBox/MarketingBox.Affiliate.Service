@@ -118,13 +118,19 @@ namespace MarketingBox.Affiliate.Service.Services
 
         public async Task<IntegrationResponse> GetAsync(IntegrationGetRequest request)
         {
-            using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
-
+            await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
             try
             {
                 var integrationEntity = await ctx.Integrations.FirstOrDefaultAsync(x => x.Id == request.IntegrationId);
 
-                return integrationEntity != null ? MapToGrpc(integrationEntity) : new IntegrationResponse();
+                return integrationEntity != null ? MapToGrpc(integrationEntity) : new IntegrationResponse()
+                {
+                    Error = new Error()
+                    {
+                        Type = ErrorType.Unknown,
+                        Message = "Cannot find integration"
+                    }
+                };
             }
             catch (Exception e)
             {
@@ -136,7 +142,7 @@ namespace MarketingBox.Affiliate.Service.Services
 
         public async Task<IntegrationResponse> DeleteAsync(IntegrationDeleteRequest request)
         {
-            using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+            await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
             try
             {
