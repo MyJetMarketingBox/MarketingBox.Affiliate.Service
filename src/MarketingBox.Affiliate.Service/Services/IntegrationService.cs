@@ -88,16 +88,25 @@ namespace MarketingBox.Affiliate.Service.Services
 
             try
             {
-                var affectedRowsCount = await ctx.Integrations
-                    .Upsert(integrationEntity)
-                    .On(x => x.Id == integrationEntity.Id &&
+                var affectedRows = ctx.Integrations
+                    .Where(x => x.Id == integrationEntity.Id &&
                             x.Sequence < integrationEntity.Sequence)
-                    .RunAsync();
+                    .ToList();
 
-                if (affectedRowsCount != 1)
+                if (affectedRows.Any())
                 {
-                    throw new Exception("Update failed");
+                    foreach (var affectedRow in affectedRows)
+                    {
+                        affectedRow.TenantId = integrationEntity.TenantId;
+                        affectedRow.Name = integrationEntity.Name;
+                        affectedRow.Sequence = integrationEntity.Sequence;
+                    }
                 }
+                else
+                {
+                    await ctx.Integrations.AddAsync(integrationEntity);
+                }
+                await ctx.SaveChangesAsync();
 
                 var nosql = MapToNoSql(integrationEntity);
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
