@@ -119,8 +119,10 @@ namespace MarketingBox.Affiliate.Service.Services
                     Weight = request.Weight
                 };
                 
-                var campaignRows = ctx.CampaignRows.Where(x =>
-                    x.CampaignBoxId == request.CampaignRowId && x.Sequence < campaignRowEntity.Sequence);
+                var campaignRows = ctx.CampaignRows
+                    .Where(x => x.CampaignBoxId == request.CampaignRowId 
+                                && x.Sequence < campaignRowEntity.Sequence)
+                    .ToList();
 
                 if (campaignRows.Any())
                 {

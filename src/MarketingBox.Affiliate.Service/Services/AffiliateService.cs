@@ -261,7 +261,6 @@ namespace MarketingBox.Affiliate.Service.Services
             {
                 AffiliateId = request.AffiliateId,
                 TenantId = request.TenantId,
-
                 BankAccountNumber = request.Bank.AccountNumber,
                 BankAddress = request.Bank.BankAddress,
                 BankName = request.Bank.BankName,
@@ -305,16 +304,46 @@ namespace MarketingBox.Affiliate.Service.Services
                         };
                 }
 
-                var affectedRowsCount = await ctx.Affiliates
-                                .Upsert(affiliateEntity)
-                                .On(x => x.AffiliateId == affiliateEntity.AffiliateId &&
-                                                     x.Sequence < affiliateEntity.Sequence)
-                                .RunAsync();
+                var affectedRows = ctx.Affiliates
+                    .Where(x => x.AffiliateId == affiliateEntity.AffiliateId &&
+                                x.Sequence < affiliateEntity.Sequence)
+                    .ToList();
 
-                if (affectedRowsCount != 1)
+                if (affectedRows.Any())
                 {
-                    throw new Exception("Update failed");
+                    foreach (var affectedRow in affectedRows)
+                    {
+                        affectedRow.TenantId = affiliateEntity.TenantId;
+                        affectedRow.BankAccountNumber = affiliateEntity.BankAccountNumber;
+                        affectedRow.BankAddress = affiliateEntity.BankAddress;
+                        affectedRow.BankName = affiliateEntity.BankName;
+                        affectedRow.BankBeneficiaryAddress = affiliateEntity.BankBeneficiaryAddress;
+                        affectedRow.BankBeneficiaryName = affiliateEntity.BankBeneficiaryName;
+                        affectedRow.BankIban = affiliateEntity.BankIban;
+                        affectedRow.BankSwift = affiliateEntity.BankSwift;
+                        affectedRow.CompanyAddress = affiliateEntity.CompanyAddress;
+                        affectedRow.CompanyName = affiliateEntity.CompanyName;
+                        affectedRow.CompanyRegNumber = affiliateEntity.CompanyRegNumber;
+                        affectedRow.CompanyVatId = affiliateEntity.CompanyVatId;
+                        affectedRow.CreatedAt = affiliateEntity.CreatedAt;
+                        affectedRow.GeneralInfoCurrency = affiliateEntity.GeneralInfoCurrency;
+                        affectedRow.GeneralInfoRole = affiliateEntity.GeneralInfoRole;
+                        affectedRow.GeneralInfoSkype = affiliateEntity.GeneralInfoSkype;
+                        affectedRow.GeneralInfoState = affiliateEntity.GeneralInfoState;
+                        affectedRow.GeneralInfoUsername = affiliateEntity.GeneralInfoUsername;
+                        affectedRow.GeneralInfoZipCode = affiliateEntity.GeneralInfoZipCode;
+                        affectedRow.GeneralInfoEmail = affiliateEntity.GeneralInfoEmail;
+                        affectedRow.GeneralInfoPassword = affiliateEntity.GeneralInfoPassword;
+                        affectedRow.GeneralInfoPhone = affiliateEntity.GeneralInfoPhone;
+                        affectedRow.GeneralInfoApiKey = affiliateEntity.GeneralInfoApiKey;
+                        affectedRow.Sequence = affiliateEntity.Sequence;
+                    }
                 }
+                else
+                {
+                    await ctx.Affiliates.AddAsync(affiliateEntity);
+                }
+                await ctx.SaveChangesAsync();
 
                 await CreateOrUpdateUser(request.TenantId, affiliateEntity);
 
