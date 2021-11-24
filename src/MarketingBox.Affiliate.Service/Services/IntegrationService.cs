@@ -132,14 +132,7 @@ namespace MarketingBox.Affiliate.Service.Services
             {
                 var integrationEntity = await ctx.Integrations.FirstOrDefaultAsync(x => x.Id == request.IntegrationId);
 
-                return integrationEntity != null ? MapToGrpc(integrationEntity) : new IntegrationResponse()
-                {
-                    Error = new Error()
-                    {
-                        Type = ErrorType.Unknown,
-                        Message = "Cannot find integration"
-                    }
-                };
+                return integrationEntity != null ? MapToGrpc(integrationEntity) : new IntegrationResponse();
             }
             catch (Exception e)
             {
