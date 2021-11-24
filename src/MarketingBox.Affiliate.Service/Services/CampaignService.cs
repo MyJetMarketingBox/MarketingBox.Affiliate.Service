@@ -81,7 +81,7 @@ namespace MarketingBox.Affiliate.Service.Services
         public async Task<CampaignResponse> UpdateAsync(CampaignUpdateRequest request)
         {
             _logger.LogInformation("Updating a Campaign {@context}", request);
-            using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+            await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
             var campaignEntity = new CampaignEntity()
             {
@@ -93,16 +93,25 @@ namespace MarketingBox.Affiliate.Service.Services
 
             try
             {
-                var affectedRowsCount = await ctx.Campaigns
-                    .Upsert(campaignEntity)
-                    .On(x => x.Id == campaignEntity.Id &&
+                var affectedRows = ctx.Campaigns
+                    .Where(x => x.Id == campaignEntity.Id &&
                             x.Sequence < campaignEntity.Sequence)
-                    .RunAsync();
+                    .ToList();
 
-                if (affectedRowsCount != 1)
+                if (affectedRows.Any())
                 {
-                    throw new Exception("Update failed");
+                    foreach (var affectedRow in affectedRows)
+                    {
+                        affectedRow.TenantId = campaignEntity.TenantId;
+                        affectedRow.Name = campaignEntity.Name;
+                        affectedRow.Sequence = campaignEntity.Sequence;
+                    }
                 }
+                else
+                {
+                    await ctx.Campaigns.AddAsync(campaignEntity);
+                }
+                await ctx.SaveChangesAsync();
 
                 var nosql = MapToNoSql(campaignEntity);
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
