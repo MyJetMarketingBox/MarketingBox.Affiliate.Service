@@ -51,7 +51,7 @@ namespace MarketingBox.Affiliate.Service.Engines
                         AffiliateNoSql.GeneratePartitionKey(partnerEntity.TenantId),
                         AffiliateNoSql.GenerateRowKey(partnerEntity.AffiliateId));
                 }
-                catch (Newtonsoft.Json.JsonSerializationException serializationException)
+                catch (Exception serializationException)
                 {
                     _logger.LogInformation(serializationException, $"NoSql table {AffiliateNoSql.TableName} is empty");
                 }
