@@ -145,9 +145,16 @@ namespace MarketingBox.Affiliate.Service.Services
                 if (integrationEntity == null)
                     return new IntegrationResponse();
 
-                await _myNoSqlServerDataWriter.DeleteAsync(
-                    IntegrationNoSql.GeneratePartitionKey(integrationEntity.TenantId),
-                    IntegrationNoSql.GenerateRowKey(integrationEntity.Id));
+                try
+                {
+                    await _myNoSqlServerDataWriter.DeleteAsync(
+                        IntegrationNoSql.GeneratePartitionKey(integrationEntity.TenantId),
+                        IntegrationNoSql.GenerateRowKey(integrationEntity.Id));
+                }
+                catch (Exception serializationException)
+                {
+                    _logger.LogInformation(serializationException, $"NoSql table {IntegrationNoSql.TableName} is empty");
+                }
 
                 await _publisherIntegrationRemoved.PublishAsync(new IntegrationRemoved()
                 {
