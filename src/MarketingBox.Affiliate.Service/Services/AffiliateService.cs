@@ -128,6 +128,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 });
 
                 if (createResponse?.Affiliate != null &&
+                    request.Sub != null &&
                     request.Sub.Any())
                 {
                     await ctx.AddNewAffiliateSubParam(request.Sub.Select(e => new AffiliateSubParamEntity()
