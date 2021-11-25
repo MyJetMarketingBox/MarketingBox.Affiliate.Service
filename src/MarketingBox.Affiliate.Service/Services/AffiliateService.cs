@@ -66,7 +66,10 @@ namespace MarketingBox.Affiliate.Service.Services
                             Message = "Cannot find affiliate."
                         }
                     };
-                affiliate.GeneralInfoState = request.State.MapEnum<AffiliateState>();
+                var newState = request.State.MapEnum<AffiliateState>();
+                affiliate.GeneralInfoState = newState;
+                
+                _logger.LogInformation($"SetAffiliateStateAsync change affiliate({request.AffiliateId}) state to {newState}");
                 await ctx.SaveChangesAsync();
 
                 return new SetAffiliateStateResponse()
