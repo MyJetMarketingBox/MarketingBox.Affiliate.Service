@@ -95,7 +95,7 @@ namespace MarketingBox.Affiliate.Service.Services
         public async Task<BrandResponse> UpdateAsync(BrandUpdateRequest request)
         {
             _logger.LogInformation("Updating a Brand {@context}", request);
-            using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+            await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
             try
             {
@@ -122,16 +122,29 @@ namespace MarketingBox.Affiliate.Service.Services
                     Id = request.Id
                 };
 
-                var affectedRowsCount = await ctx.Brands
-                    .Upsert(brandEntity)
-                    .On(x => x.Id == brandEntity.Id &&
+                var affectedRows = ctx.Brands
+                    .Where(x => x.Id == brandEntity.Id &&
                                 x.Sequence < brandEntity.Sequence)
-                    .RunAsync();
+                    .ToList();
 
-                if (affectedRowsCount != 1)
+                if (affectedRows.Any())
                 {
-                    throw new Exception("Update failed");
+                    foreach (var affectedRow in affectedRows)
+                    {
+                        affectedRow.TenantId = brandEntity.TenantId;
+                        affectedRow.IntegrationId = brandEntity.IntegrationId;
+                        affectedRow.Name = brandEntity.Name;
+                        affectedRow.Payout = brandEntity.Payout;
+                        affectedRow.Privacy = brandEntity.Privacy;
+                        affectedRow.Revenue = brandEntity.Revenue;
+                        affectedRow.Status = brandEntity.Status;
+                    }
                 }
+                else
+                {
+                    await ctx.Brands.AddAsync(brandEntity);
+                }
+                await ctx.SaveChangesAsync();
 
                 var nosql = MapToNoSql(brandEntity);
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
