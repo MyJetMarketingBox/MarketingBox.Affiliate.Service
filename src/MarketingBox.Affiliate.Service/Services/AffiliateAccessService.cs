@@ -22,26 +22,23 @@ namespace MarketingBox.Affiliate.Service.Services
         private readonly ILogger<AffiliateAccessService> _logger;
         private readonly DbContextOptionsBuilder<DatabaseContext> _dbContextOptionsBuilder;
         private readonly IServiceBusPublisher<AffiliateAccessUpdated> _affiliateAccessUpdated;
-        //private readonly IMyNoSqlServerDataWriter<AffiliateNoSql> _myNoSqlServerDataWriter;
         private readonly IServiceBusPublisher<AffiliateAccessRemoved> _affiliateAccessRemoved;
 
         public AffiliateAccessService(ILogger<AffiliateAccessService> logger,
             DbContextOptionsBuilder<DatabaseContext> dbContextOptionsBuilder,
             IServiceBusPublisher<AffiliateAccessUpdated> affiliateAccessUpdated,
-            //IMyNoSqlServerDataWriter<AffiliateNoSql> myNoSqlServerDataWriter,
             IServiceBusPublisher<AffiliateAccessRemoved> affiliateAccessRemoved)
         {
             _logger = logger;
             _dbContextOptionsBuilder = dbContextOptionsBuilder;
             _affiliateAccessUpdated = affiliateAccessUpdated;
-            //_myNoSqlServerDataWriter = myNoSqlServerDataWriter;
             _affiliateAccessRemoved = affiliateAccessRemoved;
         }
 
         public async Task<AffiliateAccessResponse> CreateAsync(AffiliateAccessCreateRequest request)
         {
             _logger.LogInformation("Creating new Affiliate {@context}", request);
-            using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+            await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
             var affiliateAccessEntity = new AffiliateAccessEntity()
             { 
@@ -79,7 +76,7 @@ namespace MarketingBox.Affiliate.Service.Services
 
         public async Task<AffiliateAccessResponse> GetAsync(AffiliateAccessGetRequest request)
         {
-            using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+            await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
             try
             {
@@ -98,7 +95,7 @@ namespace MarketingBox.Affiliate.Service.Services
 
         public async Task<AffiliateAccessResponse> DeleteAsync(AffiliateAccessDeleteRequest request)
         {
-            using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+            await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
             try
             {
@@ -130,7 +127,7 @@ namespace MarketingBox.Affiliate.Service.Services
 
         public async Task<AffiliateAccessSearchResponse> SearchAsync(AffiliateAccessSearchRequest request)
         {
-            using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+            await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
             try
             {
