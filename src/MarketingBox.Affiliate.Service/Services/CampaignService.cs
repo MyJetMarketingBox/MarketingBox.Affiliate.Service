@@ -13,6 +13,7 @@ using MarketingBox.Affiliate.Service.Grpc.Models.Common;
 using MarketingBox.Affiliate.Service.Messages.Campaigns;
 using MarketingBox.Affiliate.Service.MyNoSql.Campaigns;
 using MyJetWallet.Sdk.ServiceBus;
+using Newtonsoft.Json;
 using Z.EntityFramework.Plus;
 
 namespace MarketingBox.Affiliate.Service.Services
@@ -183,8 +184,8 @@ namespace MarketingBox.Affiliate.Service.Services
 
         public async Task<CampaignSearchResponse> SearchAsync(CampaignSearchRequest request)
         {
+            _logger.LogInformation($"CampaignService.SearchAsync start with request : {JsonConvert.SerializeObject(request)}");
             await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
-
             try
             {
                 var query = ctx.Campaigns.AsQueryable();
@@ -228,6 +229,9 @@ namespace MarketingBox.Affiliate.Service.Services
                     .AsEnumerable()
                     .Select(MapToGrpcInner)
                     .ToArray();
+                
+                _logger.LogInformation($"CampaignService.SearchAsync return Boxes : {JsonConvert.SerializeObject(response)}");
+                
                 return new CampaignSearchResponse()
                 {
                     Boxes = response
