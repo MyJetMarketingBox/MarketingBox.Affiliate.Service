@@ -200,7 +200,8 @@ namespace MarketingBox.Affiliate.Service.Services
                     query = query.Where(x => x.Name.Contains(request.Name));
                 }
 
-                if (request.CampaignId != 0)
+                if (request.CampaignId != null &&
+                    request.CampaignId != 0)
                 {
                     query = query.Where(x => x.Id == request.CampaignId);
                 }
