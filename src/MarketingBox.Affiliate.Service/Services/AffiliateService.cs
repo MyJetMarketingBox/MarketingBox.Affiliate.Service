@@ -195,23 +195,12 @@ namespace MarketingBox.Affiliate.Service.Services
                                                                                  (x.GeneralInfoEmail == request.GeneralInfo.Email ||
                                                                                   x.GeneralInfoUsername == request.GeneralInfo.Username));
 
-                if (existingEntity == null)
+                if (existingEntity != null)
                 {
-                    ctx.Affiliates.Add(affiliateEntity);
-                    await ctx.SaveChangesAsync();
+                    return new AffiliateResponse() { Error = new Error() { Message = "Affiliate already exists.", Type = ErrorType.Unknown } };
                 }
-                else
-                {
-                    affiliateEntity = existingEntity;
-
-                    //var existingUsers = await _userService.GetAsync(new GetUserRequest()
-                    //{
-                    //    ExternalUserId = affiliateEntity.AffiliateId.ToString(),
-                    //    Email = affiliateEntity.GeneralInfo.Email,
-                    //    Username = affiliateEntity.GeneralInfo.Username,
-                    //    TenantId = request.TenantId
-                    //});
-                }
+                ctx.Affiliates.Add(affiliateEntity);
+                await ctx.SaveChangesAsync();
 
                 if (affiliateEntity.GeneralInfoRole == AffiliateRole.Affiliate ||
                     affiliateEntity.GeneralInfoRole == AffiliateRole.MasterAffiliate ||
