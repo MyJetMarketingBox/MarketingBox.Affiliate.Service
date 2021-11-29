@@ -218,7 +218,7 @@ namespace MarketingBox.Affiliate.Service.Services
 
         public async Task<CampaignRowSearchResponse> SearchAsync(CampaignRowSearchRequest request)
         {
-            using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+            await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
             try
             {
@@ -232,6 +232,11 @@ namespace MarketingBox.Affiliate.Service.Services
                 if (request.CampaignId.HasValue)
                 {
                     query = query.Where(x => x.CampaignId == request.CampaignId);
+                }
+                
+                if (request.CampaignRowId.HasValue)
+                {
+                    query = query.Where(x => x.CampaignBoxId == request.CampaignRowId);
                 }
 
                 var limit = request.Take <= 0 ? 1000 : request.Take;
