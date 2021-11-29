@@ -1,5 +1,4 @@
-﻿using DotNetCoreDecorators;
-using MarketingBox.Affiliate.Postgres;
+﻿using MarketingBox.Affiliate.Postgres;
 using MarketingBox.Affiliate.Service.Grpc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -45,7 +44,7 @@ namespace MarketingBox.Affiliate.Service.Services
         public async Task<CampaignResponse> CreateAsync(CampaignCreateRequest request)
         {
             _logger.LogInformation("Creating new Campaign {@context}", request);
-            using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+            await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
             var campaignEntity = new CampaignEntity()
             {
@@ -132,7 +131,7 @@ namespace MarketingBox.Affiliate.Service.Services
 
         public async Task<CampaignResponse> GetAsync(CampaignGetRequest request)
         {
-            using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+            await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
             try
             {
@@ -150,7 +149,7 @@ namespace MarketingBox.Affiliate.Service.Services
 
         public async Task<CampaignResponse> DeleteAsync(CampaignDeleteRequest request)
         {
-            using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+            await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
             try
             {
@@ -184,23 +183,23 @@ namespace MarketingBox.Affiliate.Service.Services
 
         public async Task<CampaignSearchResponse> SearchAsync(CampaignSearchRequest request)
         {
-            using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+            await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
             try
             {
                 var query = ctx.Campaigns.AsQueryable();
 
-                if (!string.IsNullOrEmpty(request.TenantId))
+                if (!string.IsNullOrWhiteSpace(request.TenantId))
                 {
                     query = query.Where(x => x.TenantId == request.TenantId);
                 }
 
-                if (!string.IsNullOrEmpty(request.Name))
+                if (!string.IsNullOrWhiteSpace(request.Name))
                 {
                     query = query.Where(x => x.Name.Contains(request.Name));
                 }
 
-                if (request.CampaignId.HasValue)
+                if (request.CampaignId != 0)
                 {
                     query = query.Where(x => x.Id == request.CampaignId);
                 }
@@ -212,7 +211,6 @@ namespace MarketingBox.Affiliate.Service.Services
                     {
                         query = query.Where(x => x.Id > request.Cursor);
                     }
-
                     query = query.OrderBy(x => x.Id);
                 }
                 else
@@ -221,19 +219,15 @@ namespace MarketingBox.Affiliate.Service.Services
                     {
                         query = query.Where(x => x.Id < request.Cursor);
                     }
-
                     query = query.OrderByDescending(x => x.Id);
                 }
-
                 query = query.Take(limit);
-
                 await query.LoadAsync();
-
+                
                 var response = query
                     .AsEnumerable()
                     .Select(MapToGrpcInner)
                     .ToArray();
-
                 return new CampaignSearchResponse()
                 {
                     Boxes = response
@@ -242,7 +236,6 @@ namespace MarketingBox.Affiliate.Service.Services
             catch (Exception e)
             {
                 _logger.LogError(e, "Error searching campaignes {@context}", request);
-
                 return new CampaignSearchResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
             }
         }
