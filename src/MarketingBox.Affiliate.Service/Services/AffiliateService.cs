@@ -98,7 +98,8 @@ namespace MarketingBox.Affiliate.Service.Services
             try
             {
                 await using var ctx = _databaseContextFactory.Create();
-                var masterAffiliate = ctx.Affiliates.FirstOrDefault(e => e.AffiliateId == request.MasterAffiliateId);
+                var masterAffiliate = await ctx.Affiliates
+                    .FirstOrDefaultAsync(e => e.AffiliateId == request.MasterAffiliateId);
 
                 if (masterAffiliate == null ||
                     !masterAffiliate.GeneralInfoApiKey.Equals(request.MasterAffiliateApiKey))
@@ -144,6 +145,9 @@ namespace MarketingBox.Affiliate.Service.Services
                     },
                     TenantId = masterAffiliate.TenantId
                 });
+
+                if (createResponse.Error != null)
+                    return createResponse;
 
                 if (createResponse?.Affiliate != null &&
                     request.Sub != null &&
@@ -209,10 +213,11 @@ namespace MarketingBox.Affiliate.Service.Services
                 var existingEntity = await ctx.Affiliates.FirstOrDefaultAsync(x => x.TenantId == request.TenantId &&
                                                                                  (x.GeneralInfoEmail == request.GeneralInfo.Email ||
                                                                                   x.GeneralInfoUsername == request.GeneralInfo.Username));
-
                 if (existingEntity != null)
                 {
-                    return new AffiliateResponse() { Error = new Error() { Message = "Affiliate already exists.", Type = ErrorType.Unknown } };
+                    var message = "Affiliate already exists.";
+                    _logger.LogInformation(message);
+                    return new AffiliateResponse() { Error = new Error() { Message = message, Type = ErrorType.Unknown } };
                 }
                 ctx.Affiliates.Add(affiliateEntity);
                 await ctx.SaveChangesAsync();
