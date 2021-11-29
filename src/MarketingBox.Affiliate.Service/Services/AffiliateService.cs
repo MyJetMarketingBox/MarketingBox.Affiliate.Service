@@ -115,6 +115,21 @@ namespace MarketingBox.Affiliate.Service.Services
                     };
                 }
 
+                if (masterAffiliate.GeneralInfoRole != AffiliateRole.MasterAffiliate &&
+                    masterAffiliate.GeneralInfoRole != AffiliateRole.MasterAffiliateReferral)
+                {
+                    var message = "Not enough rights to complete the transaction.";
+                    _logger.LogInformation(message);
+                    return new AffiliateResponse()
+                    {
+                        Error = new Error()
+                        {
+                            Type = ErrorType.Unknown,
+                            Message = message
+                        }
+                    };
+                }
+
                 var createResponse = await CreateAsync(new AffiliateCreateRequest()
                 {
                     GeneralInfo = new AffiliateGeneralInfo()
