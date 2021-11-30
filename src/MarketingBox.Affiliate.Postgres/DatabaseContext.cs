@@ -98,12 +98,9 @@ namespace MarketingBox.Affiliate.Postgres
         {
             modelBuilder.Entity<AffiliateAccessEntity>().ToTable(AffiliateAccessTableName);
             modelBuilder.Entity<AffiliateAccessEntity>().HasKey(x => x.Id);
+            
             modelBuilder.Entity<AffiliateAccessEntity>().HasIndex(e => new { e.MasterAffiliateId, e.AffiliateId}).IsUnique();
             modelBuilder.Entity<AffiliateAccessEntity>().HasIndex(e => e.AffiliateId);
-            modelBuilder.Entity<AffiliateAccessEntity>()
-                .HasOne(e => e.MasterAffiliate)
-                .WithOne(x => x.AccessIsGivenBy)
-                .IsRequired(false);
         }
 
         private void SetBrandEntity(ModelBuilder modelBuilder)
