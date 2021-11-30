@@ -10,7 +10,6 @@ namespace MarketingBox.Affiliate.Postgres.Entities.AffiliateAccesses
 
         public AffiliateEntity MasterAffiliate { get; set; }
         public long AffiliateId { get; set; }
-
         public AffiliateEntity Affiliate { get; set; }
     }
 }

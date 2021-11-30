@@ -6,8 +6,6 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
-#nullable disable
-
 namespace MarketingBox.Affiliate.Postgres.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
@@ -18,18 +16,16 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("affiliate-service")
-                .HasAnnotation("ProductVersion", "6.0.0")
-                .HasAnnotation("Relational:MaxIdentifierLength", 63);
-
-            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+                .HasAnnotation("Relational:MaxIdentifierLength", 63)
+                .HasAnnotation("ProductVersion", "5.0.11")
+                .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
             modelBuilder.Entity("MarketingBox.Affiliate.Postgres.Entities.AffiliateAccesses.AffiliateAccessEntity", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+                        .HasColumnType("bigint")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<long>("AffiliateId")
                         .HasColumnType("bigint");
@@ -48,16 +44,15 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
                     b.HasIndex("MasterAffiliateId", "AffiliateId")
                         .IsUnique();
 
-                    b.ToTable("affiliate_access", "affiliate-service");
+                    b.ToTable("affiliate_access");
                 });
 
             modelBuilder.Entity("MarketingBox.Affiliate.Postgres.Entities.Affiliates.AffiliateEntity", b =>
                 {
                     b.Property<long>("AffiliateId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("AffiliateId"));
+                        .HasColumnType("bigint")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<string>("BankAccountNumber")
                         .HasColumnType("text");
@@ -145,16 +140,15 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
                     b.HasIndex("TenantId", "GeneralInfoUsername")
                         .IsUnique();
 
-                    b.ToTable("affiliates", "affiliate-service");
+                    b.ToTable("affiliates");
                 });
 
             modelBuilder.Entity("MarketingBox.Affiliate.Postgres.Entities.Affiliates.AffiliateSubParamEntity", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+                        .HasColumnType("bigint")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<long>("AffiliateId")
                         .HasColumnType("bigint");
@@ -169,16 +163,15 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("affiliatesubparam", "affiliate-service");
+                    b.ToTable("affiliatesubparam");
                 });
 
             modelBuilder.Entity("MarketingBox.Affiliate.Postgres.Entities.Brands.BrandEntity", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+                        .HasColumnType("bigint")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<long>("IntegrationId")
                         .HasColumnType("bigint");
@@ -208,16 +201,15 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
 
                     b.HasIndex("TenantId", "Status");
 
-                    b.ToTable("brands", "affiliate-service");
+                    b.ToTable("brands");
                 });
 
             modelBuilder.Entity("MarketingBox.Affiliate.Postgres.Entities.CampaignRows.CampaignRowEntity", b =>
                 {
                     b.Property<long>("CampaignBoxId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("CampaignBoxId"));
+                        .HasColumnType("bigint")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<string>("ActivityHours")
                         .HasColumnType("text");
@@ -260,16 +252,15 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
 
                     b.HasIndex("CountryCode");
 
-                    b.ToTable("campaign-rows", "affiliate-service");
+                    b.ToTable("campaign-rows");
                 });
 
             modelBuilder.Entity("MarketingBox.Affiliate.Postgres.Entities.Campaigns.CampaignEntity", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+                        .HasColumnType("bigint")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<string>("Name")
                         .HasColumnType("text");
@@ -286,16 +277,15 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
 
                     b.HasIndex("TenantId", "Name");
 
-                    b.ToTable("campaigns", "affiliate-service");
+                    b.ToTable("campaigns");
                 });
 
             modelBuilder.Entity("MarketingBox.Affiliate.Postgres.Entities.Integrations.IntegrationEntity", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+                        .HasColumnType("bigint")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<string>("Name")
                         .HasColumnType("text");
@@ -312,7 +302,7 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
 
                     b.HasIndex("TenantId", "Name");
 
-                    b.ToTable("integrations", "affiliate-service");
+                    b.ToTable("integrations");
                 });
 
             modelBuilder.Entity("MarketingBox.Affiliate.Postgres.Entities.AffiliateAccesses.AffiliateAccessEntity", b =>
@@ -323,9 +313,7 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
 
                     b.HasOne("MarketingBox.Affiliate.Postgres.Entities.Affiliates.AffiliateEntity", "MasterAffiliate")
                         .WithOne("AccessIsGivenBy")
-                        .HasForeignKey("MarketingBox.Affiliate.Postgres.Entities.AffiliateAccesses.AffiliateAccessEntity", "MasterAffiliateId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("MarketingBox.Affiliate.Postgres.Entities.AffiliateAccesses.AffiliateAccessEntity", "MasterAffiliateId");
 
                     b.Navigation("Affiliate");
 
@@ -343,7 +331,9 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
                     b.OwnsOne("MarketingBox.Affiliate.Postgres.Entities.Brands.Payout", "Payout", b1 =>
                         {
                             b1.Property<long>("BrandEntityId")
-                                .HasColumnType("bigint");
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("bigint")
+                                .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                             b1.Property<decimal>("Amount")
                                 .HasColumnType("numeric");
@@ -356,7 +346,7 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
 
                             b1.HasKey("BrandEntityId");
 
-                            b1.ToTable("brands", "affiliate-service");
+                            b1.ToTable("brands");
 
                             b1.WithOwner()
                                 .HasForeignKey("BrandEntityId");
@@ -365,7 +355,9 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
                     b.OwnsOne("MarketingBox.Affiliate.Postgres.Entities.Brands.Revenue", "Revenue", b1 =>
                         {
                             b1.Property<long>("BrandEntityId")
-                                .HasColumnType("bigint");
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("bigint")
+                                .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                             b1.Property<decimal>("Amount")
                                 .HasColumnType("numeric");
@@ -378,7 +370,7 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
 
                             b1.HasKey("BrandEntityId");
 
-                            b1.ToTable("brands", "affiliate-service");
+                            b1.ToTable("brands");
 
                             b1.WithOwner()
                                 .HasForeignKey("BrandEntityId");
