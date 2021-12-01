@@ -38,13 +38,11 @@ namespace MarketingBox.Affiliate.Service.Engines
         public async Task DeleteAsync(long affiliateId)
         {
             await using var ctx = _databaseContextFactory.Create();
-        
             try
             {
                 var partnerEntity = await ctx.Affiliates.FirstOrDefaultAsync(x => x.AffiliateId == affiliateId);
                 if (partnerEntity == null)
                     return;
-
                 try
                 {
                     await _myNoSqlServerDataWriter.DeleteAsync(
@@ -55,18 +53,15 @@ namespace MarketingBox.Affiliate.Service.Engines
                 {
                     _logger.LogInformation(serializationException, $"NoSql table {AffiliateNoSql.TableName} is empty");
                 }
-
                 await _publisherPartnerRemoved.PublishAsync(new AffiliateRemoved()
                 {
                     AffiliateId = partnerEntity.AffiliateId,
                     Sequence = partnerEntity.Sequence,
                     TenantId = partnerEntity.TenantId
                 });
-        
                 await _userService.DeleteAsync(new DeleteUserRequest() { TenantId = partnerEntity.TenantId, ExternalUserId = affiliateId.ToString() });
                 await ctx.AffiliateAccess.Where(e => e.AffiliateId == affiliateId).DeleteAsync();
                 await ctx.Affiliates.Where(x => x.AffiliateId == partnerEntity.AffiliateId).DeleteAsync();
-        
             }
             catch (Exception e)
             {

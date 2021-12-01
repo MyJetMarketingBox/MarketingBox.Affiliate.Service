@@ -4,7 +4,6 @@ using MarketingBox.Affiliate.Service.Grpc;
 using MarketingBox.Affiliate.Service.Grpc.Models.AffiliateAccesses;
 using MarketingBox.Affiliate.Service.Grpc.Models.AffiliateAccesses.Requests;
 using MarketingBox.Affiliate.Service.Grpc.Models.Common;
-using MarketingBox.Affiliate.Service.Messages.Affiliates;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MyJetWallet.Sdk.ServiceBus;
