@@ -38,9 +38,7 @@ namespace MarketingBox.Affiliate.Postgres
 
         public DbSet<CampaignRowEntity> CampaignRows { get; set; }
         public DbSet<AffiliateSubParamEntity> AffiliateSubParamCollection { get; set; }
-
-
-
+        
         public DatabaseContext(DbContextOptions options) : base(options)
         {
         }
@@ -88,10 +86,6 @@ namespace MarketingBox.Affiliate.Postgres
             modelBuilder.Entity<AffiliateEntity>().HasIndex(e => new { e.TenantId, e.GeneralInfoUsername }).IsUnique(true);
             modelBuilder.Entity<AffiliateEntity>().HasIndex(e => new { e.TenantId, e.CreatedAt });
             modelBuilder.Entity<AffiliateEntity>().HasIndex(e => new { e.TenantId, e.GeneralInfoRole });
-            modelBuilder.Entity<AffiliateEntity>()
-                .HasOne(x => x.AccessIsGivenTo)
-                .WithOne(x => x.Affiliate)
-                .IsRequired(false);
         }
 
         private void SetAffiliateAccessEntity(ModelBuilder modelBuilder)
@@ -101,11 +95,6 @@ namespace MarketingBox.Affiliate.Postgres
             
             modelBuilder.Entity<AffiliateAccessEntity>().HasIndex(e => new { e.MasterAffiliateId, e.AffiliateId}).IsUnique();
             modelBuilder.Entity<AffiliateAccessEntity>().HasIndex(e => e.AffiliateId);
-            
-            modelBuilder.Entity<AffiliateAccessEntity>()
-                .HasOne(e => e.MasterAffiliate)
-                .WithOne(x => x.AccessIsGivenBy)
-                .IsRequired(false);
         }
 
         private void SetBrandEntity(ModelBuilder modelBuilder)
@@ -176,11 +165,6 @@ namespace MarketingBox.Affiliate.Postgres
         {
             await AffiliateSubParamCollection.AddRangeAsync(subParams);
             await SaveChangesAsync();
-        }
-
-        public override void Dispose()
-        {
-            base.Dispose();
         }
     }
 }

@@ -44,8 +44,6 @@ namespace MarketingBox.Affiliate.Postgres.Entities.Affiliates
         public string BankIban { get; set; }
         public long Sequence { get; set; }
 
-        public AffiliateAccessEntity AccessIsGivenTo { get; set; }
-
-        public AffiliateAccessEntity AccessIsGivenBy { get; set; }
+        public long AccessIsGivenById { get; set; }
     }
 }

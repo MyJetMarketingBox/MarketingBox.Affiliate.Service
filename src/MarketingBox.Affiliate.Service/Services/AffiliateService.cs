@@ -143,6 +143,7 @@ namespace MarketingBox.Affiliate.Service.Services
                         State = Domain.Models.Affiliates.AffiliateState.NotActive,
                         ApiKey = Guid.NewGuid().ToString("N")
                     },
+                    MasterAffiliateId = masterAffiliate.AffiliateId,
                     TenantId = masterAffiliate.TenantId
                 });
 
@@ -205,14 +206,15 @@ namespace MarketingBox.Affiliate.Service.Services
                 GeneralInfoEmail = request.GeneralInfo.Email,
                 GeneralInfoPassword = request.GeneralInfo.Password,
                 GeneralInfoPhone = request.GeneralInfo.Phone,
-                GeneralInfoApiKey = request.GeneralInfo.ApiKey
+                GeneralInfoApiKey = request.GeneralInfo.ApiKey,
+                AccessIsGivenById = request.MasterAffiliateId ?? 0
             };
-
             try
             {
-                var existingEntity = await ctx.Affiliates.FirstOrDefaultAsync(x => x.TenantId == request.TenantId &&
-                                                                                 (x.GeneralInfoEmail == request.GeneralInfo.Email ||
-                                                                                  x.GeneralInfoUsername == request.GeneralInfo.Username));
+                var existingEntity = await ctx.Affiliates
+                    .FirstOrDefaultAsync(x => x.TenantId == request.TenantId &&
+                                              (x.GeneralInfoEmail == request.GeneralInfo.Email ||
+                                               x.GeneralInfoUsername == request.GeneralInfo.Username));
                 if (existingEntity != null)
                 {
                     var message = "Affiliate already exists.";
@@ -234,7 +236,7 @@ namespace MarketingBox.Affiliate.Service.Services
                     });
                 }
 
-                var masterAffiliateId = request.MasterAffiliateId.HasValue ? (long?)request.MasterAffiliateId.Value : null;
+                var masterAffiliateId = request.MasterAffiliateId;
 
                 if (masterAffiliateId.HasValue)
                 {
@@ -245,9 +247,8 @@ namespace MarketingBox.Affiliate.Service.Services
                         MasterAffiliateId = masterAffiliateId.Value,
                     });
                 }
-
                 await CreateOrUpdateUser(request.TenantId, affiliateEntity);
-
+                
                 var nosql = MapToNoSql(affiliateEntity);
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 _logger.LogInformation("Sent partner update to MyNoSql {@context}", request);
@@ -296,9 +297,9 @@ namespace MarketingBox.Affiliate.Service.Services
                 GeneralInfoPassword = request.GeneralInfo.Password,
                 GeneralInfoPhone = request.GeneralInfo.Phone,
                 GeneralInfoApiKey = request.GeneralInfo.ApiKey,
-                Sequence = request.Sequence + 1
+                Sequence = request.Sequence + 1,
+                AccessIsGivenById = request.MasterAffiliateId ?? 0
             };
-
             try
             {
                 if (request.MasterAffiliateId.HasValue)
@@ -316,7 +317,6 @@ namespace MarketingBox.Affiliate.Service.Services
                             }
                         };
                 }
-
                 var affectedRows = ctx.Affiliates
                     .Where(x => x.AffiliateId == affiliateEntity.AffiliateId &&
                                 x.Sequence < affiliateEntity.Sequence)
@@ -350,6 +350,7 @@ namespace MarketingBox.Affiliate.Service.Services
                         affectedRow.GeneralInfoPhone = affiliateEntity.GeneralInfoPhone;
                         affectedRow.GeneralInfoApiKey = affiliateEntity.GeneralInfoApiKey;
                         affectedRow.Sequence = affiliateEntity.Sequence;
+                        affectedRow.AccessIsGivenById = affiliateEntity.AccessIsGivenById;
                     }
                 }
                 else
@@ -380,24 +381,12 @@ namespace MarketingBox.Affiliate.Service.Services
         public async Task<AffiliateResponse> GetAsync(AffiliateGetRequest request)
         {
             await using var ctx = _databaseContextFactory.Create();
-
             try
             {
-                if (request.MasterAffiliateId.HasValue)
-                {
-                    var affiliateEntity = await ctx.AffiliateAccess.Include(x => x.MasterAffiliate)
-                        .FirstOrDefaultAsync(x =>
-                            x.AffiliateId == request.AffiliateId &&
-                      x.MasterAffiliateId == request.MasterAffiliateId);
+                var affiliateEntity = await ctx.Affiliates
+                    .FirstOrDefaultAsync(x => x.AffiliateId == request.AffiliateId);
 
-                    return affiliateEntity != null ? MapToGrpc(affiliateEntity.Affiliate) : new AffiliateResponse();
-                }
-
-                {
-                    var affiliateEntity = await ctx.Affiliates.FirstOrDefaultAsync(x => x.AffiliateId == request.AffiliateId);
-
-                    return affiliateEntity != null ? MapToGrpc(affiliateEntity) : new AffiliateResponse();
-                }
+                return affiliateEntity != null ? MapToGrpc(affiliateEntity) : new AffiliateResponse();
             }
             catch (Exception e)
             {
@@ -413,158 +402,77 @@ namespace MarketingBox.Affiliate.Service.Services
 
             try
             {
+                IQueryable<AffiliateEntity> query = ctx.Affiliates;
+
                 if (request.MasterAffiliateId.HasValue)
                 {
-                    var query = ctx.AffiliateAccess
-                        .Include(x => x.MasterAffiliate)
-                        .Include(x => x.Affiliate)
-                        .Where(x => x.MasterAffiliateId == request.MasterAffiliateId)
-                        .AsQueryable();
-
-                    if (!string.IsNullOrEmpty(request.TenantId))
-                    {
-                        query = query.Where(x => x.Affiliate.TenantId == request.TenantId);
-                    }
-
-                    if (!string.IsNullOrEmpty(request.Username))
-                    {
-                        query = query.Where(x => x.Affiliate.GeneralInfoUsername.Contains(request.Username));
-                    }
-
-                    if (request.AffiliateId.HasValue)
-                    {
-                        query = query.Where(x => x.Affiliate.AffiliateId == request.AffiliateId.Value);
-                    }
-
-                    if (!string.IsNullOrEmpty(request.Email))
-                    {
-                        query = query.Where(x => x.Affiliate.GeneralInfoEmail.Contains(request.Email));
-                    }
-
-                    if (request.CreatedAt != default)
-                    {
-                        DateTimeOffset date = request.CreatedAt;
-                        query = query.Where(x => x.Affiliate.CreatedAt == date);
-                    }
-
-                    if (request.Role.HasValue)
-                    {
-                        query = query.Where(x => x.Affiliate.GeneralInfoRole == request.Role.MapEnum<AffiliateRole>());
-                    }
-
-                    var limit = request.Take <= 0 ? 1000 : request.Take;
-                    if (request.Asc)
-                    {
-                        if (request.Cursor != null)
-                        {
-                            query = query.Where(x => x.AffiliateId > request.Cursor);
-                        }
-
-                        query = query.OrderBy(x => x.AffiliateId);
-                    }
-                    else
-                    {
-                        if (request.Cursor != null)
-                        {
-                            query = query.Where(x => x.AffiliateId < request.Cursor);
-                        }
-
-                        query = query.OrderByDescending(x => x.AffiliateId);
-                    }
-
-                    query = query.Take(limit);
-
-                    await query.LoadAsync();
-
-                    var response = query
-                        .AsEnumerable()
-                        .Select(x => MapToGrpcInner(x.Affiliate))
-                        .ToArray();
-
-                    return new AffiliateSearchResponse()
-                    {
-                        Affiliates = response
-                    };
+                    query = query.Where(e => e.AccessIsGivenById == request.MasterAffiliateId);
                 }
 
+                if (!string.IsNullOrEmpty(request.TenantId))
                 {
-                    var query = ctx.Affiliates
-                        .Include(x => x.AccessIsGivenBy)
-                        .Include(x => x.AccessIsGivenTo)
-                        .AsQueryable();
-
-                    if (request.MasterAffiliateId.HasValue)
-                    {
-                        query = query.Where(x => x.AccessIsGivenBy != null &&
-                                                 (x.AccessIsGivenBy.MasterAffiliateId == request.MasterAffiliateId || x.AffiliateId == x.AccessIsGivenBy.AffiliateId));
-                        //x.AccessIsGivenTo.MasterAffiliateId == request.MasterAffiliateId);
-                    }
-
-                    if (!string.IsNullOrEmpty(request.TenantId))
-                    {
-                        query = query.Where(x => x.TenantId == request.TenantId);
-                    }
-
-                    if (!string.IsNullOrEmpty(request.Username))
-                    {
-                        query = query.Where(x => x.GeneralInfoUsername.Contains(request.Username));
-                    }
-
-                    if (request.AffiliateId.HasValue)
-                    {
-                        query = query.Where(x => x.AffiliateId == request.AffiliateId.Value);
-                    }
-
-                    if (!string.IsNullOrEmpty(request.Email))
-                    {
-                        query = query.Where(x => x.GeneralInfoEmail.Contains(request.Email));
-                    }
-
-                    if (request.CreatedAt != default)
-                    {
-                        DateTimeOffset date = request.CreatedAt;
-                        query = query.Where(x => x.CreatedAt == date);
-                    }
-
-                    if (request.Role.HasValue)
-                    {
-                        query = query.Where(x => x.GeneralInfoRole == request.Role.MapEnum<AffiliateRole>());
-                    }
-
-                    var limit = request.Take <= 0 ? 1000 : request.Take;
-                    if (request.Asc)
-                    {
-                        if (request.Cursor != null)
-                        {
-                            query = query.Where(x => x.AffiliateId > request.Cursor);
-                        }
-
-                        query = query.OrderBy(x => x.AffiliateId);
-                    }
-                    else
-                    {
-                        if (request.Cursor != null)
-                        {
-                            query = query.Where(x => x.AffiliateId < request.Cursor);
-                        }
-
-                        query = query.OrderByDescending(x => x.AffiliateId);
-                    }
-
-                    query = query.Take(limit);
-
-                    await query.LoadAsync();
-
-                    var response = query
-                        .AsEnumerable()
-                        .Select(MapToGrpcInner)
-                        .ToArray();
-
-                    return new AffiliateSearchResponse()
-                    {
-                        Affiliates = response
-                    };
+                    query = query.Where(x => x.TenantId == request.TenantId);
                 }
+
+                if (!string.IsNullOrEmpty(request.Username))
+                {
+                    query = query.Where(x => x.GeneralInfoUsername.Contains(request.Username));
+                }
+
+                if (request.AffiliateId.HasValue)
+                {
+                    query = query.Where(x => x.AffiliateId == request.AffiliateId.Value);
+                }
+
+                if (!string.IsNullOrEmpty(request.Email))
+                {
+                    query = query.Where(x => x.GeneralInfoEmail.Contains(request.Email));
+                }
+
+                if (request.CreatedAt != default)
+                {
+                    DateTimeOffset date = request.CreatedAt;
+                    query = query.Where(x => x.CreatedAt == date);
+                }
+
+                if (request.Role.HasValue)
+                {
+                    query = query.Where(x => x.GeneralInfoRole == request.Role.MapEnum<AffiliateRole>());
+                }
+
+                var limit = request.Take <= 0 ? 1000 : request.Take;
+                if (request.Asc)
+                {
+                    if (request.Cursor != null)
+                    {
+                        query = query.Where(x => x.AffiliateId > request.Cursor);
+                    }
+
+                    query = query.OrderBy(x => x.AffiliateId);
+                }
+                else
+                {
+                    if (request.Cursor != null)
+                    {
+                        query = query.Where(x => x.AffiliateId < request.Cursor);
+                    }
+
+                    query = query.OrderByDescending(x => x.AffiliateId);
+                }
+
+                query = query.Take(limit);
+
+                await query.LoadAsync();
+
+                var response = query
+                    .AsEnumerable()
+                    .Select(MapToGrpcInner)
+                    .ToArray();
+
+                return new AffiliateSearchResponse()
+                {
+                    Affiliates = response
+                };
             }
             catch (Exception e)
             {
