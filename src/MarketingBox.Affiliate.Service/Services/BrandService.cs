@@ -138,6 +138,7 @@ namespace MarketingBox.Affiliate.Service.Services
                         affectedRow.Privacy = brandEntity.Privacy;
                         affectedRow.Revenue = brandEntity.Revenue;
                         affectedRow.Status = brandEntity.Status;
+                        affectedRow.Sequence = brandEntity.Sequence;
                     }
                 }
                 else
