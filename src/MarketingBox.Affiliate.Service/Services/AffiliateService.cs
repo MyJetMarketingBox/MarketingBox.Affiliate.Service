@@ -145,7 +145,7 @@ namespace MarketingBox.Affiliate.Service.Services
                     },
                     MasterAffiliateId = masterAffiliate.AffiliateId,
                     TenantId = masterAffiliate.TenantId
-                });
+                }, true);
 
                 if (createResponse.Error != null)
                     return createResponse;
@@ -177,7 +177,7 @@ namespace MarketingBox.Affiliate.Service.Services
             }
         }
 
-        public async Task<AffiliateResponse> CreateAsync(AffiliateCreateRequest request)
+        public async Task<AffiliateResponse> CreateAsync(AffiliateCreateRequest request, bool isSub = false)
         {
             _logger.LogInformation("Creating new Affiliate {@context}", request);
             await using var ctx = _databaseContextFactory.Create();
@@ -253,7 +253,8 @@ namespace MarketingBox.Affiliate.Service.Services
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 _logger.LogInformation("Sent partner update to MyNoSql {@context}", request);
 
-                await _publisherPartnerUpdated.PublishAsync(MapToMessage(affiliateEntity, AffiliateUpdatedEventType.Created));
+                var updatedEvent = isSub ? AffiliateUpdatedEventType.CreatedSub : AffiliateUpdatedEventType.CreatedManual;
+                await _publisherPartnerUpdated.PublishAsync(MapToMessage(affiliateEntity, updatedEvent));
                 _logger.LogInformation("Sent partner update to service bus {@context}", request);
 
                 return MapToGrpc(affiliateEntity);

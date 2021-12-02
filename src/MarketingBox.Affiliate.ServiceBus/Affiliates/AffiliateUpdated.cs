@@ -30,7 +30,8 @@ namespace MarketingBox.Affiliate.Service.Messages.Affiliates
     [DataContract]
     public enum AffiliateUpdatedEventType
     {
-        [DataMember(Order = 1)] Created,
-        [DataMember(Order = 2)] Updated
+        [DataMember(Order = 1)] CreatedManual,
+        [DataMember(Order = 2)] CreatedSub,
+        [DataMember(Order = 3)] Updated
     }
 }
