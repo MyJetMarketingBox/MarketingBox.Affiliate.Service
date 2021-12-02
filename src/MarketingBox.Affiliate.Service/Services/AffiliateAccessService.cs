@@ -10,6 +10,7 @@ using MyJetWallet.Sdk.ServiceBus;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using MarketingBox.Affiliate.Service.Domain.Affiliates;
 using MarketingBox.Affiliate.Service.Extensions;
 using MarketingBox.Affiliate.Service.Messages.AffiliateAccesses;
 using Z.EntityFramework.Plus;
@@ -44,9 +45,18 @@ namespace MarketingBox.Affiliate.Service.Services
                 MasterAffiliateId = request.MasterAffiliateId,
                 AffiliateId = request.AffiliateId
             };
-
             try
             {
+                var affiliate = await ctx.Affiliates.FirstOrDefaultAsync(e => e.AffiliateId == request.AffiliateId);
+                
+                if (affiliate == null)
+                    return new AffiliateAccessResponse() 
+                        { Error = new Error() { Message = $"Cannot find affiliate with id {request.AffiliateId}", Type = ErrorType.Unknown }};
+                
+                if (affiliate.GeneralInfoRole != AffiliateRole.Affiliate)
+                    return new AffiliateAccessResponse() 
+                        { Error = new Error() { Message = $"Incorrect role in affiliate with id {request.AffiliateId}", Type = ErrorType.Unknown }};
+                
                 var existingEntity = await ctx.AffiliateAccess.FirstOrDefaultAsync(x => x.AffiliateId == request.AffiliateId &&
                                                                                         x.MasterAffiliateId == request.MasterAffiliateId);
 
@@ -59,7 +69,6 @@ namespace MarketingBox.Affiliate.Service.Services
                 {
                     affiliateAccessEntity = existingEntity;
                 }
-
                 await _affiliateAccessUpdated.PublishAsync(AffiliateAccessMapping.MapToMessage(affiliateAccessEntity));
                 _logger.LogInformation("Sent partner update to service bus {@context}", request);
 
