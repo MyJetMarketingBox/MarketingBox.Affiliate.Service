@@ -12,7 +12,7 @@ namespace MarketingBox.Affiliate.Service.Grpc
         Task<AffiliateResponse> CreateSubAsync(CreateSubRequest request);
         
         [OperationContract]
-        Task<AffiliateResponse> CreateAsync(AffiliateCreateRequest request, bool isSub = false);
+        Task<AffiliateResponse> CreateAsync(AffiliateCreateRequest request);
 
         [OperationContract]
         Task<AffiliateResponse> UpdateAsync(AffiliateUpdateRequest request);
