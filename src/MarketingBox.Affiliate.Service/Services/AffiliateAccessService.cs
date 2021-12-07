@@ -47,24 +47,36 @@ namespace MarketingBox.Affiliate.Service.Services
             };
             try
             {
-                var affiliate = await ctx.Affiliates.FirstOrDefaultAsync(e => e.AffiliateId == request.AffiliateId);
-                
-                if (affiliate == null)
-                    return new AffiliateAccessResponse() 
-                        { Error = new Error() { Message = $"Cannot find affiliate with id {request.AffiliateId}", Type = ErrorType.Unknown }};
-                
-                if (affiliate.GeneralInfoRole != AffiliateRole.Affiliate)
-                    return new AffiliateAccessResponse() 
-                        { Error = new Error() { Message = $"Incorrect role in affiliate with id {request.AffiliateId}", Type = ErrorType.Unknown }};
-                
+                // access existing
                 var existingEntity = await ctx.AffiliateAccess
                     .FirstOrDefaultAsync(x => x.AffiliateId == request.AffiliateId);
-
                 if (existingEntity != null)
                     return new AffiliateAccessResponse() 
                         { Error = new Error() { Message = $"Access with affiliate id {request.AffiliateId} already exists.", Type = ErrorType.Unknown }};
                 
+                // affiliate existing
+                var affiliate = await ctx.Affiliates.FirstOrDefaultAsync(e => e.AffiliateId == request.AffiliateId);
+                if (affiliate == null)
+                    return new AffiliateAccessResponse() 
+                        { Error = new Error() { Message = $"Cannot find affiliate with id {request.AffiliateId}", Type = ErrorType.Unknown }};
+
+                // affiliate role
+                if (affiliate.GeneralInfoRole != AffiliateRole.Affiliate)
+                    return new AffiliateAccessResponse() 
+                        { Error = new Error() { Message = $"Incorrect role in affiliate with id {request.AffiliateId}", Type = ErrorType.Unknown }};
                 
+                // master affiliate existing
+                var masterAffiliate = await ctx.Affiliates.FirstOrDefaultAsync(e => e.AffiliateId == request.MasterAffiliateId);
+                if (masterAffiliate == null)
+                    return new AffiliateAccessResponse() 
+                        { Error = new Error() { Message = $"Cannot find master affiliate with id {request.MasterAffiliateId}", Type = ErrorType.Unknown }};
+
+                // master affiliate role
+                if (masterAffiliate.GeneralInfoRole != AffiliateRole.MasterAffiliate && 
+                    masterAffiliate.GeneralInfoRole != AffiliateRole.MasterAffiliateReferral)
+                    return new AffiliateAccessResponse() 
+                        { Error = new Error() { Message = $"Incorrect role in master affiliate with id {request.MasterAffiliateId}", Type = ErrorType.Unknown }};
+
                 ctx.AffiliateAccess.Add(affiliateAccessEntity);
                 await ctx.SaveChangesAsync();
                 
