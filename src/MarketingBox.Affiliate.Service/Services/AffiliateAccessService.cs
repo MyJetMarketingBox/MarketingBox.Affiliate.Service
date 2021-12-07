@@ -57,18 +57,17 @@ namespace MarketingBox.Affiliate.Service.Services
                     return new AffiliateAccessResponse() 
                         { Error = new Error() { Message = $"Incorrect role in affiliate with id {request.AffiliateId}", Type = ErrorType.Unknown }};
                 
-                var existingEntity = await ctx.AffiliateAccess.FirstOrDefaultAsync(x => x.AffiliateId == request.AffiliateId &&
-                                                                                        x.MasterAffiliateId == request.MasterAffiliateId);
+                var existingEntity = await ctx.AffiliateAccess
+                    .FirstOrDefaultAsync(x => x.AffiliateId == request.AffiliateId);
 
-                if (existingEntity == null)
-                {
-                    ctx.AffiliateAccess.Add(affiliateAccessEntity);
-                    await ctx.SaveChangesAsync();
-                }
-                else
-                {
-                    affiliateAccessEntity = existingEntity;
-                }
+                if (existingEntity != null)
+                    return new AffiliateAccessResponse() 
+                        { Error = new Error() { Message = $"Access with affiliate id {request.AffiliateId} already exists.", Type = ErrorType.Unknown }};
+                
+                
+                ctx.AffiliateAccess.Add(affiliateAccessEntity);
+                await ctx.SaveChangesAsync();
+                
                 await _affiliateAccessUpdated.PublishAsync(AffiliateAccessMapping.MapToMessage(affiliateAccessEntity));
                 _logger.LogInformation("Sent partner update to service bus {@context}", request);
 
