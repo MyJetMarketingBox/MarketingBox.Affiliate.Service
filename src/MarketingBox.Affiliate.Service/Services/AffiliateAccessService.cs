@@ -145,6 +145,10 @@ namespace MarketingBox.Affiliate.Service.Services
                 {
                     query = query.Where(x => x.MasterAffiliateId == request.MasterAffiliateId.Value);
                 }
+                if (request.AffiliateId.HasValue)
+                {
+                    query = query.Where(x => x.AffiliateId == request.AffiliateId.Value);
+                }
 
                 var limit = request.Take <= 0 ? 1000 : request.Take;
                 if (request.Asc)
