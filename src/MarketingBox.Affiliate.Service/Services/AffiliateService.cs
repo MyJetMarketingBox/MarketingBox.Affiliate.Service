@@ -141,14 +141,13 @@ namespace MarketingBox.Affiliate.Service.Services
                         ApiKey = Guid.NewGuid().ToString("N")
                     },
                     MasterAffiliateId = masterAffiliate.AffiliateId,
-                    TenantId = masterAffiliate.TenantId
+                    TenantId = masterAffiliate.TenantId,
+                    IsSubAffiliate = true
                 };
                 var createResponse = await CreateAsync(createRequest);
                 
                 if (createResponse.Error != null)
                     return createResponse;
-
-                await PushEvent(GetAffiliateEntity(createRequest), AffiliateUpdatedEventType.CreatedSub);
                 
                 if (createResponse?.Affiliate != null &&
                     request.Sub != null &&
@@ -226,8 +225,9 @@ namespace MarketingBox.Affiliate.Service.Services
                 var nosql = MapToNoSql(affiliateEntity);
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 _logger.LogInformation("Sent partner update to MyNoSql {@context}", request);
-
-                await PushEvent(affiliateEntity, AffiliateUpdatedEventType.CreatedManual);
+                
+                await PushEvent(affiliateEntity, request.IsSubAffiliate ? AffiliateUpdatedEventType.CreatedSub : AffiliateUpdatedEventType.CreatedManual);
+                
                 _logger.LogInformation("Sent partner update to service bus {@context}", request);
 
                 return MapToGrpc(affiliateEntity);
