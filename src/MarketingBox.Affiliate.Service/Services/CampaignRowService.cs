@@ -303,7 +303,7 @@ namespace MarketingBox.Affiliate.Service.Services
                             Day = x.Day,
                             From = x.From,
                             IsActive = x.IsActive
-                        }).ToArray(),
+                        }).ToList(),
                     CampaignRowId = campaignRowEntity.CampaignBoxId,
                     CapType = campaignRowEntity.CapType.MapEnum<Domain.Models.CampaignRows.CapType>(),
                     CountryCode = campaignRowEntity.CountryCode,

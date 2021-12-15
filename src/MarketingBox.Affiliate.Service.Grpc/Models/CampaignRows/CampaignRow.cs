@@ -1,4 +1,5 @@
-﻿using System.Runtime.Serialization;
+﻿using System.Collections.Generic;
+using System.Runtime.Serialization;
 using MarketingBox.Affiliate.Service.Domain.Models.CampaignRows;
 
 namespace MarketingBox.Affiliate.Service.Grpc.Models.CampaignRows
@@ -22,7 +23,7 @@ namespace MarketingBox.Affiliate.Service.Grpc.Models.CampaignRows
 
         [DataMember(Order = 8)] public long DailyCapValue { get; set; }
 
-        [DataMember(Order = 9)] public ActivityHours[] ActivityHours { get; set; }
+        [DataMember(Order = 9)] public List<ActivityHours> ActivityHours { get; set; }
 
         [DataMember(Order = 10)] public string Information { get; set; }
 
