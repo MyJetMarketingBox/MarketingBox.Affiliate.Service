@@ -24,7 +24,8 @@ namespace MarketingBox.Affiliate.Service.Extensions
             return new Grpc.Models.AffiliateAccesses.AffiliateAccess()
             {
                 AffiliateId = affiliateAccessEntity.AffiliateId,
-                MasterAffiliateId = affiliateAccessEntity.MasterAffiliateId
+                MasterAffiliateId = affiliateAccessEntity.MasterAffiliateId,
+                Id = affiliateAccessEntity.Id
             };
         }
 
