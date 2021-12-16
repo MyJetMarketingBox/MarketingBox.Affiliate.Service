@@ -166,19 +166,19 @@ namespace MarketingBox.Affiliate.Service.Services
                 {
                     if (request.Cursor != null)
                     {
-                        query = query.Where(x => x.AffiliateId > request.Cursor);
+                        query = query.Where(x => x.Id > request.Cursor);
                     }
 
-                    query = query.OrderBy(x => x.AffiliateId);
+                    query = query.OrderBy(x => x.Id);
                 }
                 else
                 {
                     if (request.Cursor != null)
                     {
-                        query = query.Where(x => x.AffiliateId < request.Cursor);
+                        query = query.Where(x => x.Id < request.Cursor);
                     }
 
-                    query = query.OrderByDescending(x => x.AffiliateId);
+                    query = query.OrderByDescending(x => x.Id);
                 }
 
                 query = query.Take(limit);
