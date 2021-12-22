@@ -44,7 +44,7 @@ jobs:
         password: ${{ secrets.MBOX_REGISTRY_PASS }}
         path: ./publish-api
         registry: ${{ secrets.MBOX_REGISTRY_URL }}
-        repository: marketingbox/marketingbox.affiliate-service-test
+        repository: marketingbox/marketingbox.affiliate-service
         tags: latest
         add_git_labels: true
         build_args: app_version=marketingbox.affiliate-service:latest,app_compilation_date=${{ steps.current-time.outputs.formattedTime }}
