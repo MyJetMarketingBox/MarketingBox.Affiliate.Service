@@ -1,9 +1,7 @@
-name: CI test build
+name: CI build
 
 on:
   push:
-      branches:
-        - $GITHUB_REF_NAME
 
 jobs:
   build:
@@ -58,9 +56,8 @@ jobs:
     needs: build
     steps:
     - name: Restart service
-      uses: MyJetWallet/kube-restart-pods@master
+      uses: MyJetMarketingBox/devops@master
       env:
         KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA__ST_TEST }}
         NAMESPACE: marketing-box
         IMAGE: ${{ steps.string.outputs.lowercase }}-$GITHUB_REF_NAME
-
