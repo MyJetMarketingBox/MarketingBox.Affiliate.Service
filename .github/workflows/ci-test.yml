@@ -40,14 +40,14 @@ jobs:
     - name: Publish image ST
       uses: docker/build-push-action@v1
       with:
-        username: ${{ secrets.MBOX_REGISTRY_USER }}
-        password: ${{ secrets.MBOX_REGISTRY_PASS }}
+        username: ${{ secrets.ST_DOCKER_USER }}
+        password: ${{ secrets.ST_DOCKER_PASSWORD }}
         path: ./publish-api
-        registry: ${{ secrets.MBOX_REGISTRY_URL }}
-        repository: marketingbox/marketingbox.affiliate-service
+        registry: simpletrading.azurecr.io
+        repository: marketingbox/marketingbox.affiliate-service-test
         tags: latest
         add_git_labels: true
-        build_args: app_version=marketingbox.affiliate-service:latest,app_compilation_date=${{ steps.current-time.outputs.formattedTime }}
+        build_args: app_version=marketingbox.affiliate-service-test:latest,app_compilation_date=${{ steps.current-time.outputs.formattedTime }}
 
   restart:
     runs-on: ubuntu-latest    
@@ -56,7 +56,7 @@ jobs:
     - name: Restart service
       uses: MyJetWallet/kube-restart-pods@master
       env:
-        KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA_PROD }}
+        KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA__ST_TEST }}
         NAMESPACE: marketing-box
         POD: marketing-box-affiliate-service
 
