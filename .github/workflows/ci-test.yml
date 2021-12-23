@@ -60,6 +60,16 @@ jobs:
     runs-on: ubuntu-latest    
     needs: build
     steps:
+    - uses: actions/checkout@v2
+    - name: Extract branch name
+      uses: vazco/github-actions-branch-name@v1
+      id: branch
+
+    - id: string
+      uses: ASzc/change-string-case-action@v1
+      with:
+        string: ${{ github.event.repository.name }}
+
     - name: Restart service
       uses: MyJetMarketingBox/kube-restart-pods@main
       env:
