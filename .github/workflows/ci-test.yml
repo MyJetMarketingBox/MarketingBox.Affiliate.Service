@@ -30,11 +30,10 @@ jobs:
       run: dotnet test --no-build --configuration Release
     - name: ls
       run: ls
-    - name: test
-      run: cd src && ls
 
     - name: Publish Service
-      run: dotnet publish --no-build ./src/MarketingBox.Affiliate.Service/MarketingBox.Affiliate.Service.csproj --configuration Release --output ./publish-api
+#      run: dotnet publish --no-build ./src/MarketingBox.Affiliate.Service/MarketingBox.Affiliate.Service.csproj --configuration Release --output ./publish-api
+      run: dotnet publish --no-build ./src/${{ github.event.repository.name }}/${{ github.event.repository.name }}.csproj --configuration Release --output ./publish-api
 
     - name: Check Service dir
       run: ls ./publish-api
