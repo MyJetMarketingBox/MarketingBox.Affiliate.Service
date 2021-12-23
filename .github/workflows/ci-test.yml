@@ -2,6 +2,8 @@ name: CI test build
 
 on:
   push:
+    paths-ignore:
+      - '*'
       branches:
         - test
 
