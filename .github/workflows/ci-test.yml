@@ -12,8 +12,6 @@ jobs:
     - name: Extract branch name
       uses: vazco/github-actions-branch-name@v1
       id: branch
-    - name: Echo branch name
-      run: echo "${{ steps.branch.outputs.branch_name }}"
 
     - id: string
       uses: ASzc/change-string-case-action@v1
@@ -53,10 +51,10 @@ jobs:
         password: ${{ secrets.MBOX_REGISTRY_PASS }}
         path: ./publish-api
         registry: ${{ secrets.MBOX_REGISTRY_URL }}
-        repository: marketingbox/${{ steps.string.outputs.lowercase }}-${{ steps.extract_branch.outputs.lowercase }}
+        repository: marketingbox/${{ steps.string.outputs.lowercase }}-${{ steps.branch.outputs.branch_name }}
         tags: latest
         add_git_labels: true
-        build_args: app_version=${{ steps.string.outputs.lowercase }}-test:latest,app_compilation_date=${{ steps.current-time.outputs.formattedTime }}
+        build_args: app_version=${{ steps.string.outputs.lowercase }}-${{ steps.branch.outputs.branch_name }}:latest,app_compilation_date=${{ steps.current-time.outputs.formattedTime }}
 
   restart:
     runs-on: ubuntu-latest    
@@ -67,4 +65,4 @@ jobs:
       env:
         KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA__ST_TEST }}
         NAMESPACE: marketing-box
-        IMAGE: ${{ steps.string.outputs.lowercase }}-${{ steps.extract_branch.outputs.lowercase }}
+        IMAGE: ${{ steps.string.outputs.lowercase }}-${{ steps.branch.outputs.branch_name }}
