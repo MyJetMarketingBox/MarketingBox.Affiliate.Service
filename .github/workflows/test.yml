@@ -10,3 +10,4 @@ jobs:
     steps:
       - run: echo $GITHUB_REF_NAME
       - run: pwd
+      - run: ls -la
