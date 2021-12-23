@@ -65,4 +65,4 @@ jobs:
       env:
         KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA__ST_TEST }}
         NAMESPACE: marketing-box
-        IMAGE: ${{ steps.string.outputs.lowercase }}-${{ steps.branch.outputs.branch_name }}
+        IMAGE: marketingbox/${{ steps.string.outputs.lowercase }}-${{ steps.branch.outputs.branch_name }}
