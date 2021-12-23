@@ -1,9 +1,9 @@
 name: CI test build
 
-#on:
-#  push:
-#      branches:
-#        - test
+on:
+  push:
+      branches:
+        - test
 
 jobs:
   build:
@@ -30,6 +30,8 @@ jobs:
       run: dotnet test --no-build --configuration Release
     - name: ls
       run: ls
+    - name: test
+      run: cd src && ls
 
     - name: Publish Service
       run: dotnet publish --no-build ./src/MarketingBox.Affiliate.Service/MarketingBox.Affiliate.Service.csproj --configuration Release --output ./publish-api
