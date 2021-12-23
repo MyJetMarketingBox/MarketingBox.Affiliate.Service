@@ -1,0 +1,12 @@
+name: CI test
+
+on:
+  push:
+
+jobs:
+  build:
+#    if: github.event.pull_request.merged == 'true' && github.ref == 'ref/heads/uat'
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo $GITHUB_REF_NAME
+      - run: pwd

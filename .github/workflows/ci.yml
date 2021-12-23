@@ -1,9 +1,9 @@
 name: CI test build
 
-#on:
-#  push:
-#      branches:
-#        - test
+on:
+  push:
+      branches:
+        - test
 
 jobs:
   build:
