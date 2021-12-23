@@ -3,7 +3,7 @@ name: CI test build
 on:
   push:
       branches:
-        - test
+        - $GITHUB_REF_NAME
 
 jobs:
   build:
@@ -48,7 +48,7 @@ jobs:
         password: ${{ secrets.MBOX_REGISTRY_PASS }}
         path: ./publish-api
         registry: ${{ secrets.MBOX_REGISTRY_URL }}
-        repository: marketingbox/${{ steps.string.outputs.lowercase }}-test
+        repository: marketingbox/${{ steps.string.outputs.lowercase }}-$GITHUB_REF_NAME
         tags: latest
         add_git_labels: true
         build_args: app_version=${{ steps.string.outputs.lowercase }}-test:latest,app_compilation_date=${{ steps.current-time.outputs.formattedTime }}
@@ -62,6 +62,5 @@ jobs:
       env:
         KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA__ST_TEST }}
         NAMESPACE: marketing-box
-        POD: marketing-box-affiliate-service
-
+        IMAGE: ${{ steps.string.outputs.lowercase }}-$GITHUB_REF_NAME
 
