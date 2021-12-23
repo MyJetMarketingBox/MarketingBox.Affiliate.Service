@@ -1,5 +1,4 @@
-﻿using DotNetCoreDecorators;
-using MarketingBox.Affiliate.Postgres;
+﻿using MarketingBox.Affiliate.Postgres;
 using MarketingBox.Affiliate.Service.Domain.Extensions;
 using MarketingBox.Affiliate.Service.Grpc;
 using MarketingBox.Affiliate.Service.Grpc.Models.Common;
@@ -44,8 +43,8 @@ namespace MarketingBox.Affiliate.Service.Services
 
         public async Task<CampaignRowResponse> CreateAsync(CampaignRowCreateRequest request)
         {
-            _logger.LogInformation("Creating new CampaignRow {@context}", request);
-            using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+            _logger.LogInformation("Creating new CampaignRow {@Context}", request);
+            await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
             try
             {
@@ -75,16 +74,16 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 var nosql = MapToNoSql(campaignRowEntity);
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
-                _logger.LogInformation("Sent campaignRow update to MyNoSql {@context}", request);
+                _logger.LogInformation("Sent campaignRow update to MyNoSql {@Context}", request);
 
                 await _publisherCampaignBoxUpdated.PublishAsync(MapToMessage(campaignRowEntity));
-                _logger.LogInformation("Sent campaignRow update to service bus {@context}", request);
+                _logger.LogInformation("Sent campaignRow update to service bus {@Context}", request);
 
                 return MapToGrpc(campaignRowEntity);
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Error creating campaign box {@context}", request);
+                _logger.LogError(e, "Error creating campaign box {@Context}", request);
 
                 return new CampaignRowResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
             }
@@ -92,7 +91,7 @@ namespace MarketingBox.Affiliate.Service.Services
 
         public async Task<CampaignRowResponse> UpdateAsync(CampaignRowUpdateRequest request)
         {
-            _logger.LogInformation("Updating a CampaignRow {@context}", request);
+            _logger.LogInformation("Updating a CampaignRow {@Context}", request);
             await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
             try
@@ -150,16 +149,16 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 var nosql = MapToNoSql(campaignRowEntity);
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
-                _logger.LogInformation("Sent campaignRow update to MyNoSql {@context}", request);
+                _logger.LogInformation("Sent campaignRow update to MyNoSql {@Context}", request);
 
                 await _publisherCampaignBoxUpdated.PublishAsync(MapToMessage(campaignRowEntity));
-                _logger.LogInformation("Sent campaignRow update to service bus {@context}", request);
+                _logger.LogInformation("Sent campaignRow update to service bus {@Context}", request);
 
                 return MapToGrpc(campaignRowEntity);
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Error updating campaign box {@context}", request);
+                _logger.LogError(e, "Error updating campaign box {@Context}", request);
 
                 return new CampaignRowResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
             }
@@ -167,7 +166,7 @@ namespace MarketingBox.Affiliate.Service.Services
 
         public async Task<CampaignRowResponse> GetAsync(CampaignRowGetRequest request)
         {
-            using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+            await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
             try
             {
@@ -177,7 +176,7 @@ namespace MarketingBox.Affiliate.Service.Services
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Error getting campaign box {@context}", request);
+                _logger.LogError(e, "Error getting campaign box {@Context}", request);
 
                 return new CampaignRowResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
             }
@@ -210,7 +209,7 @@ namespace MarketingBox.Affiliate.Service.Services
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Error deleting campaign box {@context}", request);
+                _logger.LogError(e, "Error deleting campaign box {@Context}", request);
 
                 return new CampaignRowResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
             }
@@ -275,7 +274,7 @@ namespace MarketingBox.Affiliate.Service.Services
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Error searching for boxes {@context}", request);
+                _logger.LogError(e, "Error searching for boxes {@Context}", request);
 
                 return new CampaignRowSearchResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
             }
@@ -303,7 +302,7 @@ namespace MarketingBox.Affiliate.Service.Services
                             Day = x.Day,
                             From = x.From,
                             IsActive = x.IsActive
-                        }).ToArray(),
+                        }).ToList(),
                     CampaignRowId = campaignRowEntity.CampaignBoxId,
                     CapType = campaignRowEntity.CapType.MapEnum<Domain.Models.CampaignRows.CapType>(),
                     CountryCode = campaignRowEntity.CountryCode,

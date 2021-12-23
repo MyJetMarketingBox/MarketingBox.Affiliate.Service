@@ -47,28 +47,39 @@ namespace MarketingBox.Affiliate.Service.Services
             };
             try
             {
-                var affiliate = await ctx.Affiliates.FirstOrDefaultAsync(e => e.AffiliateId == request.AffiliateId);
+                // access existing
+                var existingEntity = await ctx.AffiliateAccess
+                    .FirstOrDefaultAsync(x => x.AffiliateId == request.AffiliateId);
+                if (existingEntity != null)
+                    return new AffiliateAccessResponse() 
+                        { Error = new Error() { Message = $"Access with affiliate id {request.AffiliateId} already exists.", Type = ErrorType.Unknown }};
                 
+                // affiliate existing
+                var affiliate = await ctx.Affiliates.FirstOrDefaultAsync(e => e.AffiliateId == request.AffiliateId);
                 if (affiliate == null)
                     return new AffiliateAccessResponse() 
                         { Error = new Error() { Message = $"Cannot find affiliate with id {request.AffiliateId}", Type = ErrorType.Unknown }};
-                
+
+                // affiliate role
                 if (affiliate.GeneralInfoRole != AffiliateRole.Affiliate)
                     return new AffiliateAccessResponse() 
                         { Error = new Error() { Message = $"Incorrect role in affiliate with id {request.AffiliateId}", Type = ErrorType.Unknown }};
                 
-                var existingEntity = await ctx.AffiliateAccess.FirstOrDefaultAsync(x => x.AffiliateId == request.AffiliateId &&
-                                                                                        x.MasterAffiliateId == request.MasterAffiliateId);
+                // master affiliate existing
+                var masterAffiliate = await ctx.Affiliates.FirstOrDefaultAsync(e => e.AffiliateId == request.MasterAffiliateId);
+                if (masterAffiliate == null)
+                    return new AffiliateAccessResponse() 
+                        { Error = new Error() { Message = $"Cannot find master affiliate with id {request.MasterAffiliateId}", Type = ErrorType.Unknown }};
 
-                if (existingEntity == null)
-                {
-                    ctx.AffiliateAccess.Add(affiliateAccessEntity);
-                    await ctx.SaveChangesAsync();
-                }
-                else
-                {
-                    affiliateAccessEntity = existingEntity;
-                }
+                // master affiliate role
+                if (masterAffiliate.GeneralInfoRole != AffiliateRole.MasterAffiliate && 
+                    masterAffiliate.GeneralInfoRole != AffiliateRole.MasterAffiliateReferral)
+                    return new AffiliateAccessResponse() 
+                        { Error = new Error() { Message = $"Incorrect role in master affiliate with id {request.MasterAffiliateId}", Type = ErrorType.Unknown }};
+
+                ctx.AffiliateAccess.Add(affiliateAccessEntity);
+                await ctx.SaveChangesAsync();
+                
                 await _affiliateAccessUpdated.PublishAsync(AffiliateAccessMapping.MapToMessage(affiliateAccessEntity));
                 _logger.LogInformation("Sent partner update to service bus {@context}", request);
 
@@ -145,25 +156,29 @@ namespace MarketingBox.Affiliate.Service.Services
                 {
                     query = query.Where(x => x.MasterAffiliateId == request.MasterAffiliateId.Value);
                 }
+                if (request.AffiliateId.HasValue)
+                {
+                    query = query.Where(x => x.AffiliateId == request.AffiliateId.Value);
+                }
 
                 var limit = request.Take <= 0 ? 1000 : request.Take;
                 if (request.Asc)
                 {
                     if (request.Cursor != null)
                     {
-                        query = query.Where(x => x.AffiliateId > request.Cursor);
+                        query = query.Where(x => x.Id > request.Cursor);
                     }
 
-                    query = query.OrderBy(x => x.AffiliateId);
+                    query = query.OrderBy(x => x.Id);
                 }
                 else
                 {
                     if (request.Cursor != null)
                     {
-                        query = query.Where(x => x.AffiliateId < request.Cursor);
+                        query = query.Where(x => x.Id < request.Cursor);
                     }
 
-                    query = query.OrderByDescending(x => x.AffiliateId);
+                    query = query.OrderByDescending(x => x.Id);
                 }
 
                 query = query.Take(limit);
