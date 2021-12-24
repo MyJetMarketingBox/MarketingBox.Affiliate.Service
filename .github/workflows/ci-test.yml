@@ -2,11 +2,10 @@ name: CI build
 
 on:
   push:
-#    branches:
-#      - master
-#      - uat
-#      - test
+    branches:
+      - test
   pull_request:
+    types: [closed]
     branches:
       - master
       - uat
@@ -15,7 +14,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-
+    if: github.event.pull_request.merged == 'true'
     - uses: actions/checkout@v2
     - name: Extract branch name
       uses: vazco/github-actions-branch-name@v1
