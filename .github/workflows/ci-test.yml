@@ -2,6 +2,18 @@ name: CI build
 
 on:
   push:
+    branches:
+      - master
+      - uat
+      - test
+    tags:
+      - "v*.*.*"
+      - "v[0-9]+.[0-9]+"
+      - "[0-9]+.[0-9]+"
+  pull_request:
+    branches:
+      - test
+      - uat
 
 jobs:
   build:
@@ -70,9 +82,26 @@ jobs:
       with:
         string: ${{ github.event.repository.name }}
 
-    - name: Restart service
+    - name: Restart service test
+      if: ${{ steps.branch.outputs.branch_name == 'test' }}
       uses: MyJetMarketingBox/kube-restart-pods@main
       env:
         KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA__ST_TEST }}
+        NAMESPACE: marketing-box
+        IMAGE: ${{ steps.string.outputs.lowercase }}-${{ steps.branch.outputs.branch_name }}
+
+    - name: Restart service uat
+      if: ${{ steps.branch.outputs.branch_name == 'uat' }}
+      uses: MyJetMarketingBox/kube-restart-pods@main
+      env:
+        KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA_UAT }}
+        NAMESPACE: marketing-box
+        IMAGE: ${{ steps.string.outputs.lowercase }}-${{ steps.branch.outputs.branch_name }}
+
+    - name: Restart service prod
+      if: ${{ steps.branch.outputs.branch_name == 'master' }}
+      uses: MyJetMarketingBox/kube-restart-pods@main
+      env:
+        KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA_PROD }}
         NAMESPACE: marketing-box
         IMAGE: ${{ steps.string.outputs.lowercase }}-${{ steps.branch.outputs.branch_name }}
