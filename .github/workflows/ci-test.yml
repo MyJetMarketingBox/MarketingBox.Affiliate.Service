@@ -38,7 +38,7 @@ jobs:
       with:
         format: YYYY-MM-DD HH:mm:ss
         utcOffset: "+00:00"
-        
+
     - name: Build
       run: dotnet build --configuration Release /p:AssemblyVersion=0.0.${{ github.run_number }}
     - name: Test
@@ -65,7 +65,7 @@ jobs:
         build_args: app_version=${{ steps.string.outputs.lowercase }}-${{ steps.branch.outputs.branch_name }}:latest,app_compilation_date=${{ steps.current-time.outputs.formattedTime }}
 
   restart:
-    runs-on: ubuntu-latest    
+    runs-on: ubuntu-latest
     needs: build
     steps:
     - uses: actions/checkout@v2
