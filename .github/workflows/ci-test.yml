@@ -1,16 +1,34 @@
-name: CI test build
+name: CI build
 
 on:
   push:
-      branches:
-        - master
+    branches:
+      - test
+#    tags:
+#      - "v*.*.*"
+#      - "v[0-9]+.[0-9]+"
+#      - "[0-9]+.[0-9]+"
+  pull_request:
+    branches:
+      - master
+      - uat
+      - test
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
+
+    - uses: actions/checkout@v2
+    - name: Extract branch name
+      uses: vazco/github-actions-branch-name@v1
+      id: branch
+
+    - id: string
+      uses: ASzc/change-string-case-action@v1
+      with:
+        string: ${{ github.event.repository.name }}
+
     - uses: actions/checkout@v2
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
@@ -32,11 +50,11 @@ jobs:
       run: ls
 
     - name: Publish Service
-      run: dotnet publish --no-build ./src/MarketingBox.Affiliate.Service/MarketingBox.Affiliate.Service.csproj --configuration Release --output ./publish-api
+      run: dotnet publish --no-build ./src/${{ github.event.repository.name }}/${{ github.event.repository.name }}.csproj --configuration Release --output ./publish-api
 
     - name: Check Service dir
       run: ls ./publish-api
-      
+
     - name: Publish image ST
       uses: docker/build-push-action@v1
       with:
@@ -44,20 +62,45 @@ jobs:
         password: ${{ secrets.MBOX_REGISTRY_PASS }}
         path: ./publish-api
         registry: ${{ secrets.MBOX_REGISTRY_URL }}
-        repository: marketingbox/marketingbox.affiliate-service
+        repository: marketingbox/${{ steps.string.outputs.lowercase }}-${{ steps.branch.outputs.branch_name }}
         tags: latest
         add_git_labels: true
-        build_args: app_version=marketingbox.affiliate-service:latest,app_compilation_date=${{ steps.current-time.outputs.formattedTime }}
+        build_args: app_version=${{ steps.string.outputs.lowercase }}-${{ steps.branch.outputs.branch_name }}:latest,app_compilation_date=${{ steps.current-time.outputs.formattedTime }}
 
   restart:
     runs-on: ubuntu-latest    
     needs: build
     steps:
-    - name: Restart service
-      uses: MyJetWallet/kube-restart-pods@master
+    - uses: actions/checkout@v2
+    - name: Extract branch name
+      uses: vazco/github-actions-branch-name@v1
+      id: branch
+
+    - id: string
+      uses: ASzc/change-string-case-action@v1
+      with:
+        string: ${{ github.event.repository.name }}
+
+    - name: Restart service test
+      if: ${{ steps.branch.outputs.branch_name == 'test' }}
+      uses: MyJetMarketingBox/kube-restart-pods@main
+      env:
+        KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA__ST_TEST }}
+        NAMESPACE: marketing-box
+        IMAGE: ${{ steps.string.outputs.lowercase }}-${{ steps.branch.outputs.branch_name }}
+
+    - name: Restart service uat
+      if: ${{ steps.branch.outputs.branch_name == 'uat' }}
+      uses: MyJetMarketingBox/kube-restart-pods@main
+      env:
+        KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA_UAT }}
+        NAMESPACE: marketing-box
+        IMAGE: ${{ steps.string.outputs.lowercase }}-${{ steps.branch.outputs.branch_name }}
+
+    - name: Restart service prod
+      if: ${{ steps.branch.outputs.branch_name == 'master' }}
+      uses: MyJetMarketingBox/kube-restart-pods@main
       env:
         KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA_PROD }}
         NAMESPACE: marketing-box
-        POD: marketing-box-affiliate-service
-
-
+        IMAGE: ${{ steps.string.outputs.lowercase }}-${{ steps.branch.outputs.branch_name }}
