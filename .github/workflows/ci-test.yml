@@ -4,16 +4,18 @@ on:
   push:
     branches:
       - test
-  pull_request:
-    branches:
-      - master
       - uat
+      - master
+#  pull_request:
+#    types: [closed]
+#    branches:
+#      - master
+#      - uat
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-
     - uses: actions/checkout@v2
     - name: Extract branch name
       uses: vazco/github-actions-branch-name@v1
