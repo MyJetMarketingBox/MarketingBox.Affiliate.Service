@@ -62,7 +62,7 @@ jobs:
         build_args: app_version=${{ steps.string.outputs.lowercase }}:${{ steps.extract_branch.outputs.branch }},app_compilation_date=${{ steps.current-time.outputs.formattedTime }}
 
 
-  update_version:
+  update_version_test:
     needs: build
     runs-on: ubuntu-latest
     steps:
@@ -93,11 +93,10 @@ jobs:
         git commit -a -m "Update version of service ${{ steps.string.outputs.lowercase }}"
         git push
 
-  update_version:
+  update_version_uat:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      if: ${{ steps.branch.outputs.branch_name == 'uat' }}
     - uses: actions/checkout@v2
     - name: Extract branch name
       uses: vazco/github-actions-branch-name@v1
@@ -107,6 +106,7 @@ jobs:
       uses: ASzc/change-string-case-action@v1
       with:
         string: ${{ github.event.repository.name }}
+      if: ${{ steps.branch.outputs.branch_name == 'uat' }}
     - name: get uat kube yamls
       uses: actions/checkout@v2
       with:
@@ -124,11 +124,10 @@ jobs:
         git commit -a -m "Update version of service ${{ steps.string.outputs.lowercase }}"
         git push
 
-  update_version:
+  update_version_master:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      if: ${{ steps.branch.outputs.branch_name == 'master' }}
     - uses: actions/checkout@v2
     - name: Extract branch name
       uses: vazco/github-actions-branch-name@v1
@@ -138,6 +137,7 @@ jobs:
       uses: ASzc/change-string-case-action@v1
       with:
         string: ${{ github.event.repository.name }}
+      if: ${{ steps.branch.outputs.branch_name == 'master' }}
     - name: get master kube yamls
       uses: actions/checkout@v2
       with:
