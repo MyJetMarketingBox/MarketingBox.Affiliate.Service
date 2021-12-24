@@ -4,11 +4,13 @@ on:
   push:
     branches:
       - test
-  pull_request:
-    types: [closed]
-    branches:
-      - master
       - uat
+      - master
+#  pull_request:
+#    types: [closed]
+#    branches:
+#      - master
+#      - uat
 
 jobs:
   build:
