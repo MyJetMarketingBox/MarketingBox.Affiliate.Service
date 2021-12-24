@@ -1,6 +1,7 @@
 name: Update nuget
 
 on:
+  push:
   schedule:
     - cron:  '0 8 * * *'   
   workflow_dispatch:
@@ -40,7 +41,7 @@ jobs:
     - name: Commit & Push changes
       uses: MyJetWallet/push@master
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+        github_token: ${{ secrets.UAT_GIT_TOKEN }}
         message: auto-update nugets
 
     - name: Build

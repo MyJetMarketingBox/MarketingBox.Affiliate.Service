@@ -3,8 +3,6 @@ name: CI build
 on:
   push:
     branches:
-      - master
-      - uat
       - test
     tags:
       - "v*.*.*"
@@ -12,8 +10,9 @@ on:
       - "[0-9]+.[0-9]+"
   pull_request:
     branches:
-      - test
+      - master
       - uat
+      - test
 
 jobs:
   build:
