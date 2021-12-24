@@ -66,7 +66,6 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      if: ${{ steps.branch.outputs.branch_name == 'test' }}
     - uses: actions/checkout@v2
     - name: Extract branch name
       uses: vazco/github-actions-branch-name@v1
@@ -76,6 +75,7 @@ jobs:
       uses: ASzc/change-string-case-action@v1
       with:
         string: ${{ github.event.repository.name }}
+      if: ${{ steps.branch.outputs.branch_name == 'test' }}
     - name: get test kube yamls
       uses: actions/checkout@v2
       with:
