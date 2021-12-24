@@ -3,6 +3,8 @@ name: CI build
 on:
   push:
     branches:
+      - master
+      - uat
       - test
   pull_request:
     branches:
