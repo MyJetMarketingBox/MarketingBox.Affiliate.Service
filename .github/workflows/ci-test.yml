@@ -8,6 +8,7 @@ on:
     branches:
       - master
       - uat
+      - test
 
 jobs:
   build:
