@@ -19,12 +19,13 @@ namespace MarketingBox.Affiliate.Service.Extensions
             };
         }
 
-        public static Grpc.Models.AffiliateAccesses.AffiliateAccess MapToGrpcInner(AffiliateAccessEntity affiliateAccessEntity)
+        public static AffiliateAccess MapToGrpcInner(AffiliateAccessEntity affiliateAccessEntity)
         {
-            return new Grpc.Models.AffiliateAccesses.AffiliateAccess()
+            return new AffiliateAccess()
             {
                 AffiliateId = affiliateAccessEntity.AffiliateId,
-                MasterAffiliateId = affiliateAccessEntity.MasterAffiliateId
+                MasterAffiliateId = affiliateAccessEntity.MasterAffiliateId,
+                Id = affiliateAccessEntity.Id
             };
         }
 

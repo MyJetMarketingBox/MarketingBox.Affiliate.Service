@@ -142,14 +142,14 @@ namespace TestApp
             //    AffiliateId = 0,
             //});
 
-            var boxId = 1;
+            const int boxId = 1;
             var activityHours = Enum.GetValues<DayOfWeek>().Select(x => new ActivityHours()
             {
                 To = new TimeSpan(23, 59, 59),
                 Day = x,
                 From = new TimeSpan(0, 0, 0),
                 IsActive = true
-            }).ToArray();
+            }).ToList();
 
             var campaignBox1= await campaignBoxClient.CreateAsync(new CampaignRowCreateRequest()
             {

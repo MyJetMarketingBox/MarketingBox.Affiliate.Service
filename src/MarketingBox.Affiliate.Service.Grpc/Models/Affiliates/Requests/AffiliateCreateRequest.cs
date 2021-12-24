@@ -19,6 +19,8 @@ namespace MarketingBox.Affiliate.Service.Grpc.Models.Affiliates.Requests
 
         [DataMember(Order = 5)]
         public long? MasterAffiliateId { get; set; }
-
+        
+        [DataMember(Order = 6)]
+        public bool IsSubAffiliate { get; set; }
     }
 }

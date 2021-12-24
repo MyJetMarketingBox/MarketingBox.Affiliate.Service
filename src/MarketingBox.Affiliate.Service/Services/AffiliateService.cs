@@ -94,7 +94,6 @@ namespace MarketingBox.Affiliate.Service.Services
         public async Task<AffiliateResponse> CreateSubAsync(CreateSubRequest request)
         {
             _logger.LogInformation("Creating new Sub Affiliate {@context}", request);
-            
             try
             {
                 await using var ctx = _databaseContextFactory.Create();
@@ -115,7 +114,6 @@ namespace MarketingBox.Affiliate.Service.Services
                         }
                     };
                 }
-
                 if (masterAffiliate.GeneralInfoRole != AffiliateRole.MasterAffiliate &&
                     masterAffiliate.GeneralInfoRole != AffiliateRole.MasterAffiliateReferral)
                 {
@@ -130,8 +128,7 @@ namespace MarketingBox.Affiliate.Service.Services
                         }
                     };
                 }
-
-                var createResponse = await CreateAsync(new AffiliateCreateRequest()
+                var createRequest = new AffiliateCreateRequest()
                 {
                     GeneralInfo = new AffiliateGeneralInfo()
                     {
@@ -144,12 +141,14 @@ namespace MarketingBox.Affiliate.Service.Services
                         ApiKey = Guid.NewGuid().ToString("N")
                     },
                     MasterAffiliateId = masterAffiliate.AffiliateId,
-                    TenantId = masterAffiliate.TenantId
-                }, true);
-
+                    TenantId = masterAffiliate.TenantId,
+                    IsSubAffiliate = true
+                };
+                var createResponse = await CreateAsync(createRequest);
+                
                 if (createResponse.Error != null)
                     return createResponse;
-
+                
                 if (createResponse?.Affiliate != null &&
                     request.Sub != null &&
                     request.Sub.Any())
@@ -177,38 +176,12 @@ namespace MarketingBox.Affiliate.Service.Services
             }
         }
 
-        public async Task<AffiliateResponse> CreateAsync(AffiliateCreateRequest request, bool isSub = false)
+        public async Task<AffiliateResponse> CreateAsync(AffiliateCreateRequest request)
         {
             _logger.LogInformation("Creating new Affiliate {@context}", request);
             await using var ctx = _databaseContextFactory.Create();
 
-            var affiliateEntity = new AffiliateEntity()
-            {
-                TenantId = request.TenantId,
-                BankAccountNumber = request.Bank?.AccountNumber,
-                BankAddress = request.Bank?.BankAddress,
-                BankName = request.Bank?.BankName,
-                BankBeneficiaryAddress = request.Bank?.BeneficiaryAddress,
-                BankBeneficiaryName = request.Bank?.BeneficiaryName,
-                BankIban = request.Bank?.Iban,
-                BankSwift = request.Bank?.Swift,
-                CompanyAddress = request.Company?.Address,
-                CompanyName = request.Company?.Name,
-                CompanyRegNumber = request.Company?.RegNumber,
-                CompanyVatId = request.Company?.VatId,
-                CreatedAt = DateTime.UtcNow,
-                GeneralInfoCurrency = request.GeneralInfo.Currency.MapEnum<Domain.Common.Currency>(),
-                GeneralInfoRole = request.GeneralInfo.Role.MapEnum<AffiliateRole>(),
-                GeneralInfoSkype = request.GeneralInfo.Skype,
-                GeneralInfoState = request.GeneralInfo.State.MapEnum<AffiliateState>(),
-                GeneralInfoUsername = request.GeneralInfo.Username,
-                GeneralInfoZipCode = request.GeneralInfo.ZipCode,
-                GeneralInfoEmail = request.GeneralInfo.Email,
-                GeneralInfoPassword = request.GeneralInfo.Password,
-                GeneralInfoPhone = request.GeneralInfo.Phone,
-                GeneralInfoApiKey = request.GeneralInfo.ApiKey,
-                AccessIsGivenById = request.MasterAffiliateId ?? 0
-            };
+            var affiliateEntity = GetAffiliateEntity(request);
             try
             {
                 var existingEntity = await ctx.Affiliates
@@ -252,9 +225,9 @@ namespace MarketingBox.Affiliate.Service.Services
                 var nosql = MapToNoSql(affiliateEntity);
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 _logger.LogInformation("Sent partner update to MyNoSql {@context}", request);
-
-                var updatedEvent = isSub ? AffiliateUpdatedEventType.CreatedSub : AffiliateUpdatedEventType.CreatedManual;
-                await _publisherPartnerUpdated.PublishAsync(MapToMessage(affiliateEntity, updatedEvent));
+                
+                await PushEvent(affiliateEntity, request.IsSubAffiliate ? AffiliateUpdatedEventType.CreatedSub : AffiliateUpdatedEventType.CreatedManual);
+                
                 _logger.LogInformation("Sent partner update to service bus {@context}", request);
 
                 return MapToGrpc(affiliateEntity);
@@ -262,9 +235,45 @@ namespace MarketingBox.Affiliate.Service.Services
             catch (Exception e)
             {
                 _logger.LogError(e, "Error creating partner {@context}", request);
-
                 return new AffiliateResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
             }
+        }
+
+        private static AffiliateEntity GetAffiliateEntity(AffiliateCreateRequest request)
+        {
+            var affiliateEntity = new AffiliateEntity()
+            {
+                TenantId = request.TenantId,
+                BankAccountNumber = request.Bank?.AccountNumber,
+                BankAddress = request.Bank?.BankAddress,
+                BankName = request.Bank?.BankName,
+                BankBeneficiaryAddress = request.Bank?.BeneficiaryAddress,
+                BankBeneficiaryName = request.Bank?.BeneficiaryName,
+                BankIban = request.Bank?.Iban,
+                BankSwift = request.Bank?.Swift,
+                CompanyAddress = request.Company?.Address,
+                CompanyName = request.Company?.Name,
+                CompanyRegNumber = request.Company?.RegNumber,
+                CompanyVatId = request.Company?.VatId,
+                CreatedAt = DateTime.UtcNow,
+                GeneralInfoCurrency = request.GeneralInfo.Currency.MapEnum<Domain.Common.Currency>(),
+                GeneralInfoRole = request.GeneralInfo.Role.MapEnum<AffiliateRole>(),
+                GeneralInfoSkype = request.GeneralInfo.Skype,
+                GeneralInfoState = request.GeneralInfo.State.MapEnum<AffiliateState>(),
+                GeneralInfoUsername = request.GeneralInfo.Username,
+                GeneralInfoZipCode = request.GeneralInfo.ZipCode,
+                GeneralInfoEmail = request.GeneralInfo.Email,
+                GeneralInfoPassword = request.GeneralInfo.Password,
+                GeneralInfoPhone = request.GeneralInfo.Phone,
+                GeneralInfoApiKey = request.GeneralInfo.ApiKey,
+                AccessIsGivenById = request.MasterAffiliateId ?? 0
+            };
+            return affiliateEntity;
+        }
+
+        private async Task PushEvent(AffiliateEntity affiliateEntity, AffiliateUpdatedEventType eventType)
+        {
+            await _publisherPartnerUpdated.PublishAsync(MapToMessage(affiliateEntity, eventType));
         }
 
         public async Task<AffiliateResponse> UpdateAsync(AffiliateUpdateRequest request)
