@@ -22,5 +22,8 @@ namespace MarketingBox.Affiliate.Service.Grpc.Models.Affiliates
 
         [DataMember(Order = 6)]
         public long Sequence { get; set; }
+
+        [DataMember(Order = 7)]
+        public long AccessIsGivenById { get; set; }
     }
 }

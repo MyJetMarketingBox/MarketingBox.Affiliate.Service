@@ -597,7 +597,8 @@ namespace MarketingBox.Affiliate.Service.Services
                     ZipCode = affiliateEntity.GeneralInfoZipCode,
                     ApiKey = affiliateEntity.GeneralInfoApiKey
                 },
-                Sequence = affiliateEntity.Sequence
+                Sequence = affiliateEntity.Sequence,
+                AccessIsGivenById = affiliateEntity.AccessIsGivenById
             };
         }
 
