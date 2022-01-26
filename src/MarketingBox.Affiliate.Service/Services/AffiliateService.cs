@@ -646,7 +646,8 @@ namespace MarketingBox.Affiliate.Service.Services
                     ApiKey = affiliateEntity.GeneralInfoApiKey
                 },
                 Sequence = affiliateEntity.Sequence,
-                AccessIsGivenById = affiliateEntity.AccessIsGivenById
+                AccessIsGivenById = affiliateEntity.AccessIsGivenById,
+                LandingUrl = affiliateEntity.LandingUrl
             };
         }
 
