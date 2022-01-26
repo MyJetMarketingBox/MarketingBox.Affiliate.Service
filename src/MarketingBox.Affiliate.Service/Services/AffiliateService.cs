@@ -148,6 +148,7 @@ namespace MarketingBox.Affiliate.Service.Services
                     },
                     MasterAffiliateId = masterAffiliate.AffiliateId,
                     TenantId = masterAffiliate.TenantId,
+                    LandingUrl = request.LandingUrl,
                     IsSubAffiliate = true
                 };
                 var createResponse = await CreateAsync(createRequest);
@@ -312,7 +313,8 @@ namespace MarketingBox.Affiliate.Service.Services
                 GeneralInfoPassword = request.GeneralInfo.Password,
                 GeneralInfoPhone = request.GeneralInfo.Phone,
                 GeneralInfoApiKey = request.GeneralInfo.ApiKey,
-                AccessIsGivenById = request.MasterAffiliateId ?? 0
+                AccessIsGivenById = request.MasterAffiliateId ?? 0,
+                LandingUrl = request.LandingUrl
             };
             return affiliateEntity;
         }

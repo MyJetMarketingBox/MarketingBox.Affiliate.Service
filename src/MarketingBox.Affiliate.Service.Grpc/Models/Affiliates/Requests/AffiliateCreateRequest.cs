@@ -22,5 +22,8 @@ namespace MarketingBox.Affiliate.Service.Grpc.Models.Affiliates.Requests
         
         [DataMember(Order = 6)]
         public bool IsSubAffiliate { get; set; }
+
+        [DataMember(Order = 7)]
+        public string LandingUrl { get; set; }
     }
 }
