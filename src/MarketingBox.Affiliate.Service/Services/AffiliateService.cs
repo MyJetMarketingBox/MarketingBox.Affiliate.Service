@@ -10,6 +10,7 @@ using MyNoSqlServer.Abstractions;
 using System;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using MarketingBox.Affiliate.Postgres.Entities.Affiliates;
 using MarketingBox.Affiliate.Service.Domain.Affiliates;
@@ -131,7 +132,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 }
 
                 if (string.IsNullOrWhiteSpace(request.Password))
-                    request.Password = GeneratePassword(12);
+                    request.Password = GeneratePassword();
                 
                 var createRequest = new AffiliateCreateRequest()
                 {
@@ -182,7 +183,7 @@ namespace MarketingBox.Affiliate.Service.Services
         }
 
 
-        public static string GeneratePassword(int length)
+        public static string GeneratePassword(int length = 16)
         {
             var nonAlphanumeric = true;
             var digit = true;
@@ -217,7 +218,7 @@ namespace MarketingBox.Affiliate.Service.Services
             if (uppercase)
                 password.Append((char)random.Next(65, 91));
 
-            return password.ToString();
+            return Regex.Replace(password.ToString(), @"\s+", "");
         }
 
         public async Task<AffiliateResponse> CreateAsync(AffiliateCreateRequest request)

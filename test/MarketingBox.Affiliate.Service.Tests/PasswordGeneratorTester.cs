@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using MarketingBox.Affiliate.Service.Services;
 using NUnit.Framework;
 
@@ -14,7 +16,17 @@ public class PasswordGeneratorTester
     [Test]
     public void Test1()
     {
-        for(var i = 0; i < 100; i ++)
-            Console.WriteLine(AffiliateService.GeneratePassword(12));
+        var passwords = new List<string>();
+        for(var i = 0; i < 1000; i ++)
+            passwords.Add(AffiliateService.GeneratePassword());
+
+        Console.WriteLine(passwords.Aggregate("", (current, s) => current + s + "\n"));
+        
+        Assert.AreEqual(1000, passwords.Count);
+        foreach (var password in passwords)
+        {
+            Assert.AreEqual(-1, password.IndexOf(' '));
+            Assert.AreEqual(1, passwords.Count(e => e == password));
+        }
     }
 }
