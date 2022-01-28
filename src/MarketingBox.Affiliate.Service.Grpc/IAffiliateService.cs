@@ -19,6 +19,9 @@ namespace MarketingBox.Affiliate.Service.Grpc
 
         [OperationContract]
         Task<AffiliateResponse> GetAsync(AffiliateGetRequest request);
+        
+        [OperationContract]
+        Task<GetSubParamsResponse> GetSubParamsAsync(GetSubParamsRequest request);
 
         [OperationContract]
         Task<AffiliateSearchResponse> SearchAsync(AffiliateSearchRequest request);

@@ -454,6 +454,31 @@ namespace MarketingBox.Affiliate.Service.Services
             }
         }
 
+        public async Task<GetSubParamsResponse> GetSubParamsAsync(GetSubParamsRequest request)
+        {
+            await using var ctx = _databaseContextFactory.Create();
+            try
+            {
+                var paramList = ctx.AffiliateSubParamCollection
+                    .Where(x => x.AffiliateId == request.AffiliateId)
+                    .ToList();
+
+                return new GetSubParamsResponse()
+                {
+                    AffiliateSubParams = paramList.Select(e => new AffiliateSubParam()
+                    {
+                        ParamName = e.ParamName,
+                        ParamValue = e.ParamValue
+                    }).ToList()
+                };
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error getting params for affiliateId =  {affiliateId}", request.AffiliateId);
+                return new GetSubParamsResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+            }
+        }
+
         public async Task<AffiliateSearchResponse> SearchAsync(AffiliateSearchRequest request)
         {
             await using var ctx = _databaseContextFactory.Create();
