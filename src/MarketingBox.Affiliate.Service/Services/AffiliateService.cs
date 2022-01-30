@@ -9,6 +9,8 @@ using Microsoft.Extensions.Logging;
 using MyNoSqlServer.Abstractions;
 using System;
 using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using MarketingBox.Affiliate.Postgres.Entities.Affiliates;
 using MarketingBox.Affiliate.Service.Domain.Affiliates;
@@ -128,6 +130,10 @@ namespace MarketingBox.Affiliate.Service.Services
                         }
                     };
                 }
+
+                if (string.IsNullOrWhiteSpace(request.Password))
+                    request.Password = GeneratePassword();
+                
                 var createRequest = new AffiliateCreateRequest()
                 {
                     GeneralInfo = new AffiliateGeneralInfo()
@@ -142,6 +148,7 @@ namespace MarketingBox.Affiliate.Service.Services
                     },
                     MasterAffiliateId = masterAffiliate.AffiliateId,
                     TenantId = masterAffiliate.TenantId,
+                    LandingUrl = request.LandingUrl,
                     IsSubAffiliate = true
                 };
                 var createResponse = await CreateAsync(createRequest);
@@ -174,6 +181,45 @@ namespace MarketingBox.Affiliate.Service.Services
                     }
                 };
             }
+        }
+
+
+        public static string GeneratePassword(int length = 16)
+        {
+            var nonAlphanumeric = true;
+            var digit = true;
+            var lowercase = true;
+            var uppercase = true;
+
+            var password = new StringBuilder();
+            var random = new Random();
+
+            while (password.Length < length)
+            {
+                var c = (char)random.Next(32, 126);
+
+                password.Append(c);
+
+                if (char.IsDigit(c))
+                    digit = false;
+                else if (char.IsLower(c))
+                    lowercase = false;
+                else if (char.IsUpper(c))
+                    uppercase = false;
+                else if (!char.IsLetterOrDigit(c))
+                    nonAlphanumeric = false;
+            }
+
+            if (nonAlphanumeric)
+                password.Append((char)random.Next(33, 48));
+            if (digit)
+                password.Append((char)random.Next(48, 58));
+            if (lowercase)
+                password.Append((char)random.Next(97, 123));
+            if (uppercase)
+                password.Append((char)random.Next(65, 91));
+
+            return Regex.Replace(password.ToString(), @"\s+", "");
         }
 
         public async Task<AffiliateResponse> CreateAsync(AffiliateCreateRequest request)
@@ -226,6 +272,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 _logger.LogInformation("Sent partner update to MyNoSql {@context}", request);
                 
+                // TODO: change logic
                 await PushEvent(affiliateEntity, request.IsSubAffiliate ? AffiliateUpdatedEventType.CreatedSub : AffiliateUpdatedEventType.CreatedManual);
                 
                 _logger.LogInformation("Sent partner update to service bus {@context}", request);
@@ -266,7 +313,8 @@ namespace MarketingBox.Affiliate.Service.Services
                 GeneralInfoPassword = request.GeneralInfo.Password,
                 GeneralInfoPhone = request.GeneralInfo.Phone,
                 GeneralInfoApiKey = request.GeneralInfo.ApiKey,
-                AccessIsGivenById = request.MasterAffiliateId ?? 0
+                AccessIsGivenById = request.MasterAffiliateId ?? 0,
+                LandingUrl = request.LandingUrl
             };
             return affiliateEntity;
         }
@@ -403,6 +451,31 @@ namespace MarketingBox.Affiliate.Service.Services
                 _logger.LogError(e, "Error getting partner {@context}", request);
 
                 return new AffiliateResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+            }
+        }
+
+        public async Task<GetSubParamsResponse> GetSubParamsAsync(GetSubParamsRequest request)
+        {
+            await using var ctx = _databaseContextFactory.Create();
+            try
+            {
+                var paramList = ctx.AffiliateSubParamCollection
+                    .Where(x => x.AffiliateId == request.AffiliateId)
+                    .ToList();
+
+                return new GetSubParamsResponse()
+                {
+                    AffiliateSubParams = paramList.Select(e => new AffiliateSubParam()
+                    {
+                        ParamName = e.ParamName,
+                        ParamValue = e.ParamValue
+                    }).ToList()
+                };
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error getting params for affiliateId =  {affiliateId}", request.AffiliateId);
+                return new GetSubParamsResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
             }
         }
 
@@ -597,7 +670,9 @@ namespace MarketingBox.Affiliate.Service.Services
                     ZipCode = affiliateEntity.GeneralInfoZipCode,
                     ApiKey = affiliateEntity.GeneralInfoApiKey
                 },
-                Sequence = affiliateEntity.Sequence
+                Sequence = affiliateEntity.Sequence,
+                AccessIsGivenById = affiliateEntity.AccessIsGivenById,
+                LandingUrl = affiliateEntity.LandingUrl
             };
         }
 

@@ -45,5 +45,6 @@ namespace MarketingBox.Affiliate.Postgres.Entities.Affiliates
         public long Sequence { get; set; }
 
         public long AccessIsGivenById { get; set; }
+        public string LandingUrl { get; set; }
     }
 }
