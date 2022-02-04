@@ -170,7 +170,7 @@ namespace MarketingBox.Affiliate.Service.Services
                     TenantId = campaignEntity.TenantId
                 });
 
-                await ctx.Campaigns.Where(x => x.Id == campaignEntity.Id).DeleteAsync();
+                await ctx.Campaigns.Where(x => x.Id == campaignEntity.Id).DeleteFromQueryAsync();
 
                 return new CampaignResponse();
             }

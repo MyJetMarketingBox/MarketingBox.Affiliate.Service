@@ -171,7 +171,7 @@ namespace MarketingBox.Affiliate.Service.Services
                     TenantId = integrationEntity.TenantId
                 });
 
-                await ctx.Integrations.Where(x => x.Id == integrationEntity.Id).DeleteAsync();
+                await ctx.Integrations.Where(x => x.Id == integrationEntity.Id).DeleteFromQueryAsync();
 
                 return new IntegrationResponse();
             }

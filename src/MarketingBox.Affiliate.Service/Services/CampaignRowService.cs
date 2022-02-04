@@ -203,7 +203,7 @@ namespace MarketingBox.Affiliate.Service.Services
                     Sequence = campaignRowEntity.Sequence,
                 });
 
-                await ctx.CampaignRows.Where(x => x.CampaignBoxId == campaignRowEntity.CampaignBoxId).DeleteAsync();
+                await ctx.CampaignRows.Where(x => x.CampaignBoxId == campaignRowEntity.CampaignBoxId).DeleteFromQueryAsync();
 
                 return new CampaignRowResponse();
             }

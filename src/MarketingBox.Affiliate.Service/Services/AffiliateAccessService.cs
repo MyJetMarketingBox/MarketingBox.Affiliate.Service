@@ -132,7 +132,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 });
 
                 await ctx.AffiliateAccess.Where(x => x.AffiliateId == request.AffiliateId
-                                                          && x.MasterAffiliateId == request.MasterAffiliateId).DeleteAsync();
+                                                          && x.MasterAffiliateId == request.MasterAffiliateId).DeleteFromQueryAsync();
 
                 return new AffiliateAccessResponse();
             }

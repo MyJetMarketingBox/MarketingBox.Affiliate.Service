@@ -204,7 +204,7 @@ namespace MarketingBox.Affiliate.Service.Services
                     TenantId = brandEntity.TenantId
                 });
 
-                await ctx.Brands.Where(x => x.Id == brandEntity.Id).DeleteAsync();
+                await ctx.Brands.Where(x => x.Id == brandEntity.Id).DeleteFromQueryAsync();
 
                 return new BrandResponse();
             }
