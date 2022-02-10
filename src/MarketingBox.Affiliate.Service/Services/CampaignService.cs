@@ -47,6 +47,26 @@ namespace MarketingBox.Affiliate.Service.Services
             _logger.LogInformation("Creating new Campaign {@context}", request);
             await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
+            if (string.IsNullOrWhiteSpace(request.Name))
+                return new CampaignResponse()
+                {
+                    Error = new Error()
+                    {
+                        Type = ErrorType.InvalidParameter,
+                        Message = "Cannot create entity with empty Name."
+                    }
+                };
+            
+            if (string.IsNullOrWhiteSpace(request.TenantId))
+                return new CampaignResponse()
+                {
+                    Error = new Error()
+                    {
+                        Type = ErrorType.InvalidParameter,
+                        Message = "Cannot create entity with empty TenantId."
+                    }
+                };
+
             var campaignEntity = new CampaignEntity()
             {
                 TenantId = request.TenantId,
@@ -74,7 +94,7 @@ namespace MarketingBox.Affiliate.Service.Services
             {
                 _logger.LogError(e, "Error creating campaign {@context}", request);
 
-                return new CampaignResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+                return new CampaignResponse() { Error = new Error() { Message = e.Message, Type = ErrorType.Unknown } };
             }
         }
 
@@ -126,7 +146,7 @@ namespace MarketingBox.Affiliate.Service.Services
             {
                 _logger.LogError(e, "Error updating campaign {@context}", request);
 
-                return new CampaignResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+                return new CampaignResponse() { Error = new Error() { Message = e.Message, Type = ErrorType.Unknown } };
             }
         }
 
@@ -144,7 +164,7 @@ namespace MarketingBox.Affiliate.Service.Services
             {
                 _logger.LogError(e, "Error getting campaign {@context}", request);
 
-                return new CampaignResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+                return new CampaignResponse() { Error = new Error() { Message = e.Message, Type = ErrorType.Unknown } };
             }
         }
 
@@ -178,7 +198,7 @@ namespace MarketingBox.Affiliate.Service.Services
             {
                 _logger.LogError(e, "Error deleting campaign {@context}", request);
 
-                return new CampaignResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+                return new CampaignResponse() { Error = new Error() { Message = e.Message, Type = ErrorType.Unknown } };
             }
         }
 
@@ -241,7 +261,7 @@ namespace MarketingBox.Affiliate.Service.Services
             catch (Exception e)
             {
                 _logger.LogError(e, "Error searching campaignes {@context}", request);
-                return new CampaignSearchResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+                return new CampaignSearchResponse() { Error = new Error() { Message = e.Message, Type = ErrorType.Unknown } };
             }
         }
 
