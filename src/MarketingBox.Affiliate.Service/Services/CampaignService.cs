@@ -45,7 +45,6 @@ namespace MarketingBox.Affiliate.Service.Services
         public async Task<CampaignResponse> CreateAsync(CampaignCreateRequest request)
         {
             _logger.LogInformation("Creating new Campaign {@context}", request);
-            await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
             if (string.IsNullOrWhiteSpace(request.Name))
                 return new CampaignResponse()
@@ -67,6 +66,8 @@ namespace MarketingBox.Affiliate.Service.Services
                     }
                 };
 
+            await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+            
             var campaignEntity = new CampaignEntity()
             {
                 TenantId = request.TenantId,

@@ -42,7 +42,28 @@ namespace MarketingBox.Affiliate.Service.Services
         public async Task<IntegrationResponse> CreateAsync(IntegrationCreateRequest request)
         {
             _logger.LogInformation("Creating new Integration {@context}", request);
-            using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+            
+            if (string.IsNullOrWhiteSpace(request.Name))
+                return new IntegrationResponse()
+                {
+                    Error = new Error()
+                    {
+                        Type = ErrorType.InvalidParameter,
+                        Message = "Cannot create entity with empty Name."
+                    }
+                };
+            
+            if (string.IsNullOrWhiteSpace(request.TenantId))
+                return new IntegrationResponse()
+                {
+                    Error = new Error()
+                    {
+                        Type = ErrorType.InvalidParameter,
+                        Message = "Cannot create entity with empty TenantId."
+                    }
+                };
+            
+            await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
             var integrationEntity = new IntegrationEntity()
             {
@@ -69,7 +90,7 @@ namespace MarketingBox.Affiliate.Service.Services
             {
                 _logger.LogError(e, "Error creating integration {@context}", request);
 
-                return new IntegrationResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+                return new IntegrationResponse() { Error = new Error() { Message = e.Message, Type = ErrorType.Unknown } };
             }
         }
 
@@ -121,7 +142,7 @@ namespace MarketingBox.Affiliate.Service.Services
             {
                 _logger.LogError(e, "Error updating integration {@context}", request);
 
-                return new IntegrationResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+                return new IntegrationResponse() { Error = new Error() { Message = e.Message, Type = ErrorType.Unknown } };
             }
         }
 
@@ -138,7 +159,7 @@ namespace MarketingBox.Affiliate.Service.Services
             {
                 _logger.LogError(e, "Error getting integration {@context}", request);
 
-                return new IntegrationResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+                return new IntegrationResponse() { Error = new Error() { Message = e.Message, Type = ErrorType.Unknown } };
             }
         }
 
@@ -179,7 +200,7 @@ namespace MarketingBox.Affiliate.Service.Services
             {
                 _logger.LogError(e, "Error delete integration {@context}", request);
 
-                return new IntegrationResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+                return new IntegrationResponse() { Error = new Error() { Message = e.Message, Type = ErrorType.Unknown } };
             }
         }
 
@@ -244,7 +265,7 @@ namespace MarketingBox.Affiliate.Service.Services
             {
                 _logger.LogError(e, "Error searching Integrations {@context}", request);
 
-                return new IntegrationSearchResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+                return new IntegrationSearchResponse() { Error = new Error() { Message = e.Message, Type = ErrorType.Unknown } };
             }
         }
 
