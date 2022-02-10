@@ -11,10 +11,7 @@ using System.Threading.Tasks;
 using MarketingBox.Affiliate.Postgres.Entities.CampaignRows;
 using MarketingBox.Affiliate.Service.Grpc.Models.CampaignRows;
 using MarketingBox.Affiliate.Service.Grpc.Models.CampaignRows.Requests;
-using MarketingBox.Affiliate.Service.Messages.CampaignRows;
 using MarketingBox.Affiliate.Service.MyNoSql.CampaignRows;
-using MyJetWallet.Sdk.ServiceBus;
-using Z.EntityFramework.Plus;
 using ActivityHours = MarketingBox.Affiliate.Postgres.Entities.CampaignRows.ActivityHours;
 using CapType = MarketingBox.Affiliate.Service.Domain.CampaignRows.CapType;
 
@@ -24,21 +21,15 @@ namespace MarketingBox.Affiliate.Service.Services
     {
         private readonly ILogger<CampaignRowService> _logger;
         private readonly DbContextOptionsBuilder<DatabaseContext> _dbContextOptionsBuilder;
-        private readonly IServiceBusPublisher<CampaignRowUpdated> _publisherCampaignBoxUpdated;
         private readonly IMyNoSqlServerDataWriter<CampaignRowNoSql> _myNoSqlServerDataWriter;
-        private readonly IServiceBusPublisher<CampaignRowRemoved> _publisherCampaignBoxRemoved;
 
         public CampaignRowService(ILogger<CampaignRowService> logger,
             DbContextOptionsBuilder<DatabaseContext> dbContextOptionsBuilder,
-            IServiceBusPublisher<CampaignRowUpdated> publisherCampaignBoxUpdated,
-            IMyNoSqlServerDataWriter<CampaignRowNoSql> myNoSqlServerDataWriter,
-            IServiceBusPublisher<CampaignRowRemoved> publisherCampaignBoxRemoved)
+            IMyNoSqlServerDataWriter<CampaignRowNoSql> myNoSqlServerDataWriter)
         {
             _logger = logger;
             _dbContextOptionsBuilder = dbContextOptionsBuilder;
-            _publisherCampaignBoxUpdated = publisherCampaignBoxUpdated;
             _myNoSqlServerDataWriter = myNoSqlServerDataWriter;
-            _publisherCampaignBoxRemoved = publisherCampaignBoxRemoved;
         }
 
         public async Task<CampaignRowResponse> CreateAsync(CampaignRowCreateRequest request)
@@ -76,7 +67,6 @@ namespace MarketingBox.Affiliate.Service.Services
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 _logger.LogInformation("Sent campaignRow update to MyNoSql {@Context}", request);
 
-                await _publisherCampaignBoxUpdated.PublishAsync(MapToMessage(campaignRowEntity));
                 _logger.LogInformation("Sent campaignRow update to service bus {@Context}", request);
 
                 return MapToGrpc(campaignRowEntity);
@@ -151,7 +141,6 @@ namespace MarketingBox.Affiliate.Service.Services
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 _logger.LogInformation("Sent campaignRow update to MyNoSql {@Context}", request);
 
-                await _publisherCampaignBoxUpdated.PublishAsync(MapToMessage(campaignRowEntity));
                 _logger.LogInformation("Sent campaignRow update to service bus {@Context}", request);
 
                 return MapToGrpc(campaignRowEntity);
@@ -196,12 +185,6 @@ namespace MarketingBox.Affiliate.Service.Services
                 await _myNoSqlServerDataWriter.DeleteAsync(
                     CampaignRowNoSql.GeneratePartitionKey(campaignRowEntity.CampaignId),
                     CampaignRowNoSql.GenerateRowKey(campaignRowEntity.CampaignBoxId));
-
-                await _publisherCampaignBoxRemoved.PublishAsync(new CampaignRowRemoved()
-                {
-                    CampaignRowId = campaignRowEntity.CampaignBoxId,
-                    Sequence = campaignRowEntity.Sequence,
-                });
 
                 await ctx.CampaignRows.Where(x => x.CampaignBoxId == campaignRowEntity.CampaignBoxId).DeleteFromQueryAsync();
 
@@ -312,32 +295,6 @@ namespace MarketingBox.Affiliate.Service.Services
                     Priority = campaignRowEntity.Priority,
                     Weight = campaignRowEntity.Weight
                 };
-        }
-
-        private static CampaignRowUpdated MapToMessage(CampaignRowEntity campaignRowEntity)
-        {
-            return new CampaignRowUpdated()
-            {
-                Sequence = campaignRowEntity.Sequence,
-                CampaignId = campaignRowEntity.CampaignId,
-                BrandId = campaignRowEntity.BrandId,
-                ActivityHours = campaignRowEntity.ActivityHours.Select(x =>
-                    new Messages.CampaignRows.ActivityHours()
-                    {
-                        To = x.To,
-                        Day = x.Day,
-                        From = x.From,
-                        IsActive = x.IsActive
-                    }).ToArray(),
-                CampaignRowId = campaignRowEntity.CampaignBoxId,
-                CapType = campaignRowEntity.CapType.MapEnum< Domain.Models.CampaignRows.CapType>(),
-                CountryCode = campaignRowEntity.CountryCode,
-                DailyCapValue = campaignRowEntity.DailyCapValue,
-                EnableTraffic = campaignRowEntity.EnableTraffic,
-                Information = campaignRowEntity.Information,
-                Priority = campaignRowEntity.Priority,
-                Weight = campaignRowEntity.Weight
-            };
         }
 
         private static CampaignRowNoSql MapToNoSql(CampaignRowEntity campaignRowEntity)

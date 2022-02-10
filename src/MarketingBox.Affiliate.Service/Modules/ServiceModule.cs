@@ -126,12 +126,6 @@ namespace MarketingBox.Affiliate.Service.Modules
 
             #region CampaignRow
 
-            // publisher (IServiceBusPublisher<CampaignRowUpdated>)
-            builder.RegisterMyServiceBusPublisher<CampaignRowUpdated>(serviceBusClient, Topics.CampaignRowUpdatedTopic, false);
-
-            // publisher (IServiceBusPublisher<CampaignRowRemoved>)
-            builder.RegisterMyServiceBusPublisher<CampaignRowRemoved>(serviceBusClient, Topics.CampaignRowRemovedTopic, false);
-
             // register writer (IMyNoSqlServerDataWriter<CampaignRowNoSql>)
             builder.RegisterMyNoSqlWriter<CampaignRowNoSql>(Program.ReloadedSettings(e => e.MyNoSqlWriterUrl), CampaignRowNoSql.TableName);
 
