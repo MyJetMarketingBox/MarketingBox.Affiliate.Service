@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using MyNoSqlServer.Abstractions;
 using System;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -182,44 +183,24 @@ namespace MarketingBox.Affiliate.Service.Services
                 };
             }
         }
-
-
-        public static string GeneratePassword(int length = 16)
-        {
-            var nonAlphanumeric = true;
-            var digit = true;
-            var lowercase = true;
-            var uppercase = true;
-
-            var password = new StringBuilder();
-            var random = new Random();
-
-            while (password.Length < length)
+        
+        public static string GeneratePassword(int size = 16)
+        {       
+            var chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890".ToCharArray(); 
+            var data = new byte[4*size];
+            using (var crypto = RandomNumberGenerator.Create())
             {
-                var c = (char)random.Next(32, 126);
-
-                password.Append(c);
-
-                if (char.IsDigit(c))
-                    digit = false;
-                else if (char.IsLower(c))
-                    lowercase = false;
-                else if (char.IsUpper(c))
-                    uppercase = false;
-                else if (!char.IsLetterOrDigit(c))
-                    nonAlphanumeric = false;
+                crypto.GetBytes(data);
             }
+            var result = new StringBuilder(size);
+            for (var i = 0; i < size; i++)
+            {
+                var rnd = BitConverter.ToUInt32(data, i * 4);
+                var idx = rnd % chars.Length;
 
-            if (nonAlphanumeric)
-                password.Append((char)random.Next(33, 48));
-            if (digit)
-                password.Append((char)random.Next(48, 58));
-            if (lowercase)
-                password.Append((char)random.Next(97, 123));
-            if (uppercase)
-                password.Append((char)random.Next(65, 91));
-
-            return Regex.Replace(password.ToString(), @"\s+", "");
+                result.Append(chars[idx]);
+            }
+            return result.ToString();
         }
 
         public async Task<AffiliateResponse> CreateAsync(AffiliateCreateRequest request)
