@@ -5,5 +5,6 @@
         Unknown = 0,
         InvalidParameter = 1,
         Unauthorized = 2,
+        NotFound = 3,
     }
 }

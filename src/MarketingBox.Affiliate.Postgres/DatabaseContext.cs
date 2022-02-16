@@ -27,6 +27,8 @@ namespace MarketingBox.Affiliate.Postgres
         private const string CampaignBoxTableName = "campaign-rows";
         private const string IntegrationTableName = "integrations";
         private const string AffiliateSubParamsTableName = "affiliatesubparam";
+        private const string OfferTableName = "offers";
+        private const string OfferSubParamsTableName = "offersubparams";
 
         public DbSet<AffiliateEntity> Affiliates { get; set; }
         public DbSet<AffiliateAccessEntity> AffiliateAccess { get; set; }
@@ -39,6 +41,9 @@ namespace MarketingBox.Affiliate.Postgres
 
         public DbSet<CampaignRowEntity> CampaignRows { get; set; }
         public DbSet<AffiliateSubParamEntity> AffiliateSubParamCollection { get; set; }
+
+        public DbSet<Offer> Offers { get; set; }
+        public DbSet<OfferSubParameter> SubParameters { get; set; }
         
         public DatabaseContext(DbContextOptions options) : base(options)
         {
@@ -63,8 +68,31 @@ namespace MarketingBox.Affiliate.Postgres
             SetBrandEntity(modelBuilder);
             SetCampaignRowEntity(modelBuilder);
             SetAffiliateSubParamEntity(modelBuilder);
+            SetOffer(modelBuilder);
+            SetSubParam(modelBuilder);
 
             base.OnModelCreating(modelBuilder);
+        }
+
+        private void SetOffer(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Offer>().ToTable(OfferTableName);
+            modelBuilder.Entity<Offer>().HasKey(x => x.Id);
+            modelBuilder.Entity<Offer>()
+                .HasMany(x => x.Parameters)
+                .WithOne()
+                .HasForeignKey(x => x.OfferId);
+        }
+
+        private void SetSubParam(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<OfferSubParameter>().ToTable(OfferSubParamsTableName);
+            
+            modelBuilder.Entity<OfferSubParameter>().Property(e => e.Id).UseIdentityColumn();
+            modelBuilder.Entity<OfferSubParameter>().HasKey(e => e.Id);
+            
+            modelBuilder.Entity<OfferSubParameter>().Property(e => e.ParamName).HasMaxLength(64);
+            modelBuilder.Entity<OfferSubParameter>().Property(e => e.ParamValue).HasMaxLength(512);
         }
 
         private void SetAffiliateSubParamEntity(ModelBuilder modelBuilder)

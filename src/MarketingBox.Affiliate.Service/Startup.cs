@@ -36,6 +36,8 @@ namespace MarketingBox.Affiliate.Service
             //DatabaseContext.LoggerFactory = null;
 
             services.AddMyTelemetry("MB-", Program.Settings.JaegerUrl);
+
+            services.AddAutoMapper(typeof(Startup));
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -61,6 +63,7 @@ namespace MarketingBox.Affiliate.Service
                 endpoints.MapGrpcSchema<IntegrationService, IIntegrationService>();
                 endpoints.MapGrpcSchema<BrandService, IBrandService>();
                 endpoints.MapGrpcSchema<CampaignRowService, ICampaignRowService>();
+                endpoints.MapGrpcSchema<OfferService, IOfferService>();
 
                 endpoints.MapGrpcSchemaRegistry();
 
