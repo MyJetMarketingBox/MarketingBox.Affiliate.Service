@@ -1,7 +1,6 @@
-﻿using MarketingBox.Affiliate.Service.Domain.Brands;
-using MarketingBox.Affiliate.Service.Domain.Common;
+﻿using MarketingBox.Affiliate.Service.Domain.Models.Common;
 
-namespace MarketingBox.Affiliate.Postgres.Entities.Brands
+namespace MarketingBox.Affiliate.Service.Domain.Models.Brands
 {
     public class Revenue
     {

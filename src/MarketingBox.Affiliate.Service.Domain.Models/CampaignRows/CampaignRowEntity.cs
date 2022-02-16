@@ -1,8 +1,7 @@
-﻿using MarketingBox.Affiliate.Postgres.Entities.Brands;
-using MarketingBox.Affiliate.Postgres.Entities.Campaigns;
-using MarketingBox.Affiliate.Service.Domain.CampaignRows;
+﻿using MarketingBox.Affiliate.Service.Domain.Models.Brands;
+using MarketingBox.Affiliate.Service.Domain.Models.Campaigns;
 
-namespace MarketingBox.Affiliate.Postgres.Entities.CampaignRows
+namespace MarketingBox.Affiliate.Service.Domain.Models.CampaignRows
 {
     public class CampaignRowEntity
     {

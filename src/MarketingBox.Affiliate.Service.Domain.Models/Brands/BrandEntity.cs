@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
-using MarketingBox.Affiliate.Postgres.Entities.CampaignRows;
-using MarketingBox.Affiliate.Postgres.Entities.Integrations;
-using MarketingBox.Affiliate.Service.Domain.Brands;
+using MarketingBox.Affiliate.Service.Domain.Models.CampaignRows;
+using MarketingBox.Affiliate.Service.Domain.Models.Integrations;
 
-namespace MarketingBox.Affiliate.Postgres.Entities.Brands
+namespace MarketingBox.Affiliate.Service.Domain.Models.Brands
 {
     public class BrandEntity
     {

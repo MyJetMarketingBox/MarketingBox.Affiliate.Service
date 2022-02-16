@@ -11,10 +11,9 @@ using System;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using MarketingBox.Affiliate.Postgres.Entities.Affiliates;
-using MarketingBox.Affiliate.Service.Domain.Affiliates;
+using MarketingBox.Affiliate.Service.Domain.Models.Affiliates;
+using MarketingBox.Affiliate.Service.Domain.Models.Common;
 using MarketingBox.Affiliate.Service.Grpc.Models.AffiliateAccesses.Requests;
 using MarketingBox.Affiliate.Service.Grpc.Models.Affiliates;
 using MarketingBox.Affiliate.Service.Grpc.Models.Affiliates.Requests;
@@ -25,6 +24,8 @@ using MyJetWallet.Sdk.ServiceBus;
 using AffiliateBank = MarketingBox.Affiliate.Service.Grpc.Models.Affiliates.AffiliateBank;
 using AffiliateCompany = MarketingBox.Affiliate.Service.Grpc.Models.Affiliates.AffiliateCompany;
 using AffiliateGeneralInfo = MarketingBox.Affiliate.Service.Grpc.Models.Affiliates.AffiliateGeneralInfo;
+using AffiliateRole = MarketingBox.Affiliate.Service.Domain.Models.Affiliates.AffiliateRole;
+using AffiliateState = MarketingBox.Affiliate.Service.Domain.Models.Affiliates.AffiliateState;
 
 namespace MarketingBox.Affiliate.Service.Services
 {
@@ -143,8 +144,8 @@ namespace MarketingBox.Affiliate.Service.Services
                         Email = request.Email,
                         Password = request.Password,
                         Username = request.Username,
-                        Role = Domain.Models.Affiliates.AffiliateRole.Affiliate,
-                        State = Domain.Models.Affiliates.AffiliateState.NotActive,
+                        Role = AffiliateRole.Affiliate,
+                        State = AffiliateState.NotActive,
                         ApiKey = Guid.NewGuid().ToString("N")
                     },
                     MasterAffiliateId = masterAffiliate.AffiliateId,
@@ -284,7 +285,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 CompanyRegNumber = request.Company?.RegNumber,
                 CompanyVatId = request.Company?.VatId,
                 CreatedAt = DateTime.UtcNow,
-                GeneralInfoCurrency = request.GeneralInfo.Currency.MapEnum<Domain.Common.Currency>(),
+                GeneralInfoCurrency = request.GeneralInfo.Currency.MapEnum<Currency>(),
                 GeneralInfoRole = request.GeneralInfo.Role.MapEnum<AffiliateRole>(),
                 GeneralInfoSkype = request.GeneralInfo.Skype,
                 GeneralInfoState = request.GeneralInfo.State.MapEnum<AffiliateState>(),
@@ -326,7 +327,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 CompanyRegNumber = request.Company.RegNumber,
                 CompanyVatId = request.Company.VatId,
                 CreatedAt = DateTime.UtcNow,
-                GeneralInfoCurrency = request.GeneralInfo.Currency.MapEnum<Domain.Common.Currency>(),
+                GeneralInfoCurrency = request.GeneralInfo.Currency.MapEnum<Currency>(),
                 GeneralInfoRole = request.GeneralInfo.Role.MapEnum<AffiliateRole>(),
                 GeneralInfoSkype = request.GeneralInfo.Skype,
                 GeneralInfoState = request.GeneralInfo.State.MapEnum<AffiliateState>(),

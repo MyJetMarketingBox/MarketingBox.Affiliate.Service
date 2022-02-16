@@ -8,12 +8,12 @@ using MyNoSqlServer.Abstractions;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using MarketingBox.Affiliate.Postgres.Entities.CampaignRows;
+using MarketingBox.Affiliate.Service.Domain.Models.CampaignRows;
 using MarketingBox.Affiliate.Service.Grpc.Models.CampaignRows;
 using MarketingBox.Affiliate.Service.Grpc.Models.CampaignRows.Requests;
 using MarketingBox.Affiliate.Service.MyNoSql.CampaignRows;
-using ActivityHours = MarketingBox.Affiliate.Postgres.Entities.CampaignRows.ActivityHours;
-using CapType = MarketingBox.Affiliate.Service.Domain.CampaignRows.CapType;
+using ActivityHours = MarketingBox.Affiliate.Service.Domain.Models.CampaignRows.ActivityHours;
+using CapType = MarketingBox.Affiliate.Service.Domain.Models.CampaignRows.CapType;
 
 namespace MarketingBox.Affiliate.Service.Services
 {

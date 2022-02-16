@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MarketingBox.Affiliate.Postgres.Entities.CampaignRows
+namespace MarketingBox.Affiliate.Service.Domain.Models.CampaignRows
 {
     public class ActivityHours
     {

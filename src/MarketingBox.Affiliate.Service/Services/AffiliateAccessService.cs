@@ -1,5 +1,4 @@
 ﻿using MarketingBox.Affiliate.Postgres;
-using MarketingBox.Affiliate.Postgres.Entities.AffiliateAccesses;
 using MarketingBox.Affiliate.Service.Grpc;
 using MarketingBox.Affiliate.Service.Grpc.Models.AffiliateAccesses;
 using MarketingBox.Affiliate.Service.Grpc.Models.AffiliateAccesses.Requests;
@@ -10,10 +9,10 @@ using MyJetWallet.Sdk.ServiceBus;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using MarketingBox.Affiliate.Service.Domain.Affiliates;
+using MarketingBox.Affiliate.Service.Domain.Models.AffiliateAccesses;
+using MarketingBox.Affiliate.Service.Domain.Models.Affiliates;
 using MarketingBox.Affiliate.Service.Extensions;
 using MarketingBox.Affiliate.Service.Messages.AffiliateAccesses;
-using Z.EntityFramework.Plus;
 
 namespace MarketingBox.Affiliate.Service.Services
 {

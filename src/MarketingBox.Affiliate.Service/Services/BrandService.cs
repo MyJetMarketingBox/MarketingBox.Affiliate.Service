@@ -1,5 +1,4 @@
-﻿using DotNetCoreDecorators;
-using MarketingBox.Affiliate.Postgres;
+﻿using MarketingBox.Affiliate.Postgres;
 using MarketingBox.Affiliate.Service.Domain.Extensions;
 using MarketingBox.Affiliate.Service.Grpc;
 using MarketingBox.Affiliate.Service.Grpc.Models.Common;
@@ -9,16 +8,15 @@ using MyNoSqlServer.Abstractions;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using MarketingBox.Affiliate.Postgres.Entities.Brands;
-using MarketingBox.Affiliate.Service.Domain.Brands;
+using MarketingBox.Affiliate.Service.Domain.Models.Brands;
+using MarketingBox.Affiliate.Service.Domain.Models.Common;
 using MarketingBox.Affiliate.Service.Grpc.Models.Brands;
 using MarketingBox.Affiliate.Service.Grpc.Models.Brands.Requests;
 using MarketingBox.Affiliate.Service.Messages.Brands;
 using MarketingBox.Affiliate.Service.MyNoSql.Brands;
 using MyJetWallet.Sdk.ServiceBus;
-using Z.EntityFramework.Plus;
-using Payout = MarketingBox.Affiliate.Postgres.Entities.Brands.Payout;
-using Revenue = MarketingBox.Affiliate.Postgres.Entities.Brands.Revenue;
+using Payout = MarketingBox.Affiliate.Service.Domain.Models.Brands.Payout;
+using Revenue = MarketingBox.Affiliate.Service.Domain.Models.Brands.Revenue;
 
 namespace MarketingBox.Affiliate.Service.Services
 {
@@ -58,7 +56,7 @@ namespace MarketingBox.Affiliate.Service.Services
                     Sequence = 0,
                     Payout = new Payout()
                     {
-                        Currency = request.Payout.Currency.MapEnum<Domain.Common.Currency>(),
+                        Currency = request.Payout.Currency.MapEnum<Currency>(),
                         Amount = request.Payout.Amount,
                         Plan = request.Payout.Plan.MapEnum<Plan>(),
                     },
@@ -67,7 +65,7 @@ namespace MarketingBox.Affiliate.Service.Services
                     {
                         Amount = request.Revenue.Amount,
                         Plan = request.Payout.Plan.MapEnum<Plan>(),
-                        Currency = request.Payout.Currency.MapEnum<Domain.Common.Currency>(),
+                        Currency = request.Payout.Currency.MapEnum<Currency>(),
                     },
                     Status = request.Status.MapEnum<BrandStatus>(),
                 };
@@ -107,7 +105,7 @@ namespace MarketingBox.Affiliate.Service.Services
                     Sequence = request.Sequence + 1,
                     Payout = new Payout()
                     {
-                        Currency = request.Payout.Currency.MapEnum<Domain.Common.Currency>(),
+                        Currency = request.Payout.Currency.MapEnum<Currency>(),
                         Amount = request.Payout.Amount,
                         Plan = request.Payout.Plan.MapEnum<Plan>(),
                     },
@@ -116,7 +114,7 @@ namespace MarketingBox.Affiliate.Service.Services
                     {
                         Amount = request.Revenue.Amount,
                         Plan = request.Payout.Plan.MapEnum<Plan>(),
-                        Currency = request.Payout.Currency.MapEnum<Domain.Common.Currency>(),
+                        Currency = request.Payout.Currency.MapEnum<Currency>(),
                     },
                     Status = request.Status.MapEnum<BrandStatus>(),
                     Id = request.Id

@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using DotNetCoreDecorators;
 using MarketingBox.Affiliate.Postgres;
-using MarketingBox.Affiliate.Postgres.Entities.Integrations;
+using MarketingBox.Affiliate.Service.Domain.Models.Integrations;
 using MarketingBox.Affiliate.Service.Grpc;
 using MarketingBox.Affiliate.Service.Grpc.Models.Common;
 using MarketingBox.Affiliate.Service.Grpc.Models.Integrations;

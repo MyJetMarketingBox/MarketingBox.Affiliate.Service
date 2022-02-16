@@ -1,16 +1,11 @@
 ﻿using System;
-using System.Linq;
 using System.Threading.Tasks;
 using MarketingBox.Affiliate.Service.Client;
 using MarketingBox.Affiliate.Service.Domain.Models.Affiliates;
-using MarketingBox.Affiliate.Service.Domain.Models.CampaignRows;
 using MarketingBox.Affiliate.Service.Domain.Models.Common;
 using MarketingBox.Affiliate.Service.Grpc.Models.AffiliateAccesses.Requests;
 using MarketingBox.Affiliate.Service.Grpc.Models.Affiliates;
 using MarketingBox.Affiliate.Service.Grpc.Models.Affiliates.Requests;
-using MarketingBox.Affiliate.Service.Grpc.Models.CampaignRows;
-using MarketingBox.Affiliate.Service.Grpc.Models.CampaignRows.Requests;
-using MarketingBox.Affiliate.Service.Grpc.Models.Common;
 using ProtoBuf.Grpc.Client;
 
 namespace TestApp
@@ -142,59 +137,59 @@ namespace TestApp
             //    AffiliateId = 0,
             //});
 
-            const int boxId = 1;
-            var activityHours = Enum.GetValues<DayOfWeek>().Select(x => new ActivityHours()
-            {
-                To = new TimeSpan(23, 59, 59),
-                Day = x,
-                From = new TimeSpan(0, 0, 0),
-                IsActive = true
-            }).ToList();
+            // const int boxId = 1;
+            // List<ActivityHours> activityHours = Enum.GetValues<DayOfWeek>().Select(x => new ActivityHours()
+            // {
+            //     To = new TimeSpan(23, 59, 59),
+            //     Day = x,
+            //     From = new TimeSpan(0, 0, 0),
+            //     IsActive = true
+            // }).ToList();
 
-            var campaignBox1= await campaignBoxClient.CreateAsync(new CampaignRowCreateRequest()
-            {
-                Sequence = 0,
-                ActivityHours = activityHours,
-                CampaignId = boxId,
-                BrandId = 1,
-                CapType = CapType.Lead,
-                CountryCode = "UA",
-                DailyCapValue = 1000,
-                EnableTraffic = true,
-                Information = null,
-                Priority = 1,
-                Weight = 5
-            });
-
-            var campaignBox2 = await campaignBoxClient.CreateAsync(new CampaignRowCreateRequest()
-            {
-                Sequence = 0,
-                ActivityHours = activityHours,
-                CampaignId = boxId,
-                BrandId = 2,
-                CapType = CapType.Lead,
-                CountryCode = "UA",
-                DailyCapValue = 1000,
-                EnableTraffic = true,
-                Information = null,
-                Priority = 1,
-                Weight = 2
-            });
-
-            var campaignBox3 = await campaignBoxClient.CreateAsync(new CampaignRowCreateRequest()
-            {
-                Sequence = 0,
-                ActivityHours = activityHours,
-                CampaignId = boxId,
-                BrandId = 3,
-                CapType = CapType.Lead,
-                CountryCode = "UA",
-                DailyCapValue = 1000,
-                EnableTraffic = true,
-                Information = null,
-                Priority = 1,
-                Weight = 1
-            });
+            // var campaignBox1= await campaignBoxClient.CreateAsync(new CampaignRowCreateRequest()
+            // {
+            //     Sequence = 0,
+            //     ActivityHours = activityHours,
+            //     CampaignId = boxId,
+            //     BrandId = 1,
+            //     CapType = CapType.Lead,
+            //     CountryCode = "UA",
+            //     DailyCapValue = 1000,
+            //     EnableTraffic = true,
+            //     Information = null,
+            //     Priority = 1,
+            //     Weight = 5
+            // });
+            //
+            // var campaignBox2 = await campaignBoxClient.CreateAsync(new CampaignRowCreateRequest()
+            // {
+            //     Sequence = 0,
+            //     ActivityHours = activityHours,
+            //     CampaignId = boxId,
+            //     BrandId = 2,
+            //     CapType = CapType.Lead,
+            //     CountryCode = "UA",
+            //     DailyCapValue = 1000,
+            //     EnableTraffic = true,
+            //     Information = null,
+            //     Priority = 1,
+            //     Weight = 2
+            // });
+            //
+            // var campaignBox3 = await campaignBoxClient.CreateAsync(new CampaignRowCreateRequest()
+            // {
+            //     Sequence = 0,
+            //     ActivityHours = activityHours,
+            //     CampaignId = boxId,
+            //     BrandId = 3,
+            //     CapType = CapType.Lead,
+            //     CountryCode = "UA",
+            //     DailyCapValue = 1000,
+            //     EnableTraffic = true,
+            //     Information = null,
+            //     Priority = 1,
+            //     Weight = 1
+            // });
 
 
             var request = new AffiliateCreateRequest()

@@ -1,4 +1,4 @@
-namespace MarketingBox.Affiliate.Postgres.Entities.Affiliates
+namespace MarketingBox.Affiliate.Service.Domain.Models.Affiliates
 {
     public class AffiliateSubParamEntity
     {

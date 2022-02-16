@@ -18,12 +18,12 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("affiliate-service")
-                .HasAnnotation("ProductVersion", "6.0.1")
+                .HasAnnotation("ProductVersion", "6.0.2")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("MarketingBox.Affiliate.Postgres.Entities.AffiliateAccesses.AffiliateAccessEntity", b =>
+            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.AffiliateAccesses.AffiliateAccessEntity", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -47,7 +47,7 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
                     b.ToTable("affiliate_access", "affiliate-service");
                 });
 
-            modelBuilder.Entity("MarketingBox.Affiliate.Postgres.Entities.Affiliates.AffiliateEntity", b =>
+            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Affiliates.AffiliateEntity", b =>
                 {
                     b.Property<long>("AffiliateId")
                         .ValueGeneratedOnAdd()
@@ -150,7 +150,7 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
                     b.ToTable("affiliates", "affiliate-service");
                 });
 
-            modelBuilder.Entity("MarketingBox.Affiliate.Postgres.Entities.Affiliates.AffiliateSubParamEntity", b =>
+            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Affiliates.AffiliateSubParamEntity", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -174,7 +174,7 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
                     b.ToTable("affiliatesubparam", "affiliate-service");
                 });
 
-            modelBuilder.Entity("MarketingBox.Affiliate.Postgres.Entities.Brands.BrandEntity", b =>
+            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Brands.BrandEntity", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -213,7 +213,7 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
                     b.ToTable("brands", "affiliate-service");
                 });
 
-            modelBuilder.Entity("MarketingBox.Affiliate.Postgres.Entities.CampaignRows.CampaignRowEntity", b =>
+            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.CampaignRows.CampaignRowEntity", b =>
                 {
                     b.Property<long>("CampaignBoxId")
                         .ValueGeneratedOnAdd()
@@ -265,7 +265,7 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
                     b.ToTable("campaign-rows", "affiliate-service");
                 });
 
-            modelBuilder.Entity("MarketingBox.Affiliate.Postgres.Entities.Campaigns.CampaignEntity", b =>
+            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Campaigns.CampaignEntity", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -291,7 +291,7 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
                     b.ToTable("campaigns", "affiliate-service");
                 });
 
-            modelBuilder.Entity("MarketingBox.Affiliate.Postgres.Entities.Integrations.IntegrationEntity", b =>
+            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Integrations.IntegrationEntity", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -317,7 +317,29 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
                     b.ToTable("integrations", "affiliate-service");
                 });
 
-            modelBuilder.Entity("MarketingBox.Affiliate.Postgres.Entities.Brands.BrandEntity", b =>
+            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Offers.Offer", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("BrnadId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("OfferLink")
+                        .HasColumnType("text");
+
+                    b.Property<string>("OfferName")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("offers", "affiliate-service");
+                });
+
+            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Offers.OfferSubParameter", b =>
                 {
                     b.HasOne("MarketingBox.Affiliate.Postgres.Entities.Integrations.IntegrationEntity", "Integration")
                         .WithMany("Campaigns")
@@ -325,7 +347,7 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.OwnsOne("MarketingBox.Affiliate.Postgres.Entities.Brands.Payout", "Payout", b1 =>
+                    b.OwnsOne("MarketingBox.Affiliate.Service.Domain.Models.Brands.Payout", "Payout", b1 =>
                         {
                             b1.Property<long>("BrandEntityId")
                                 .HasColumnType("bigint");
@@ -347,7 +369,7 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
                                 .HasForeignKey("BrandEntityId");
                         });
 
-                    b.OwnsOne("MarketingBox.Affiliate.Postgres.Entities.Brands.Revenue", "Revenue", b1 =>
+                    b.OwnsOne("MarketingBox.Affiliate.Service.Domain.Models.Brands.Revenue", "Revenue", b1 =>
                         {
                             b1.Property<long>("BrandEntityId")
                                 .HasColumnType("bigint");
@@ -376,15 +398,15 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
                     b.Navigation("Revenue");
                 });
 
-            modelBuilder.Entity("MarketingBox.Affiliate.Postgres.Entities.CampaignRows.CampaignRowEntity", b =>
+            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.CampaignRows.CampaignRowEntity", b =>
                 {
-                    b.HasOne("MarketingBox.Affiliate.Postgres.Entities.Brands.BrandEntity", "Brand")
+                    b.HasOne("MarketingBox.Affiliate.Service.Domain.Models.Brands.BrandEntity", "Brand")
                         .WithMany("CampaignBoxes")
                         .HasForeignKey("BrandId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("MarketingBox.Affiliate.Postgres.Entities.Campaigns.CampaignEntity", "Campaign")
+                    b.HasOne("MarketingBox.Affiliate.Service.Domain.Models.Campaigns.CampaignEntity", "Campaign")
                         .WithMany("CampaignBoxes")
                         .HasForeignKey("CampaignId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -395,19 +417,33 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
                     b.Navigation("Campaign");
                 });
 
-            modelBuilder.Entity("MarketingBox.Affiliate.Postgres.Entities.Brands.BrandEntity", b =>
+            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Offers.OfferSubParameter", b =>
+                {
+                    b.HasOne("MarketingBox.Affiliate.Service.Domain.Models.Offers.Offer", null)
+                        .WithMany("Parameters")
+                        .HasForeignKey("OfferId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Brands.BrandEntity", b =>
                 {
                     b.Navigation("CampaignBoxes");
                 });
 
-            modelBuilder.Entity("MarketingBox.Affiliate.Postgres.Entities.Campaigns.CampaignEntity", b =>
+            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Campaigns.CampaignEntity", b =>
                 {
                     b.Navigation("CampaignBoxes");
                 });
 
-            modelBuilder.Entity("MarketingBox.Affiliate.Postgres.Entities.Integrations.IntegrationEntity", b =>
+            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Integrations.IntegrationEntity", b =>
                 {
                     b.Navigation("Campaigns");
+                });
+
+            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Offers.Offer", b =>
+                {
+                    b.Navigation("Parameters");
                 });
 #pragma warning restore 612, 618
         }

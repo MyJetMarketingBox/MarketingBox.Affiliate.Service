@@ -22,6 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\MarketingBox.Affiliate.Service.Domain.Models\MarketingBox.Affiliate.Service.Domain.Models.csproj" />
     <ProjectReference Include="..\MarketingBox.Affiliate.Service.Domain\MarketingBox.Affiliate.Service.Domain.csproj" />
   </ItemGroup>
 

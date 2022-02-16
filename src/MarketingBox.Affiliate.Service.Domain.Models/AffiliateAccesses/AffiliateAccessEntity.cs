@@ -1,4 +1,4 @@
-﻿namespace MarketingBox.Affiliate.Postgres.Entities.AffiliateAccesses
+﻿namespace MarketingBox.Affiliate.Service.Domain.Models.AffiliateAccesses
 {
     public class AffiliateAccessEntity
     {

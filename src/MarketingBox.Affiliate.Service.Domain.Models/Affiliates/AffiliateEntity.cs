@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using MarketingBox.Affiliate.Postgres.Entities.AffiliateAccesses;
-using MarketingBox.Affiliate.Service.Domain.Affiliates;
-using MarketingBox.Affiliate.Service.Domain.Common;
+using MarketingBox.Affiliate.Service.Domain.Models.Common;
 
-namespace MarketingBox.Affiliate.Postgres.Entities.Affiliates
+namespace MarketingBox.Affiliate.Service.Domain.Models.Affiliates
 {
     public class AffiliateEntity
     {
