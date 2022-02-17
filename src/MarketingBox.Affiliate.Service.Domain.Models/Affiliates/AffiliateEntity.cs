@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using MarketingBox.Affiliate.Service.Domain.Models.Common;
+using MarketingBox.Affiliate.Service.Domain.Models.Integrations;
 
 namespace MarketingBox.Affiliate.Service.Domain.Models.Affiliates
 {
@@ -43,5 +45,7 @@ namespace MarketingBox.Affiliate.Service.Domain.Models.Affiliates
 
         public long AccessIsGivenById { get; set; }
         public string LandingUrl { get; set; }
+
+        public ICollection<IntegrationEntity> Integrations { get; set; }
     }
 }

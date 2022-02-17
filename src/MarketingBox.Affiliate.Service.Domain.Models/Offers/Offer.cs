@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Runtime.Serialization;
+using MarketingBox.Affiliate.Service.Domain.Models.Integrations;
 
 namespace MarketingBox.Affiliate.Service.Domain.Models.Offers
 {
@@ -11,5 +12,6 @@ namespace MarketingBox.Affiliate.Service.Domain.Models.Offers
         [DataMember(Order = 3)] public string OfferName { get; set; }
         [DataMember(Order = 4)] public string OfferLink { get; set; }
         [DataMember(Order = 5)] public ICollection<OfferSubParameter> Parameters { get; set; }
+        [DataMember(Order = 6)] public ICollection<IntegrationEntity> Integrations { get; set; }
     }
 }

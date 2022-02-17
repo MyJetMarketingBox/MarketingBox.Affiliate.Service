@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using MarketingBox.Affiliate.Service.Domain.Models.CampaignRows;
 using MarketingBox.Affiliate.Service.Domain.Models.Integrations;
+using MarketingBox.Affiliate.Service.Domain.Models.Offers;
 
 namespace MarketingBox.Affiliate.Service.Domain.Models.Brands
 {
@@ -26,5 +27,7 @@ namespace MarketingBox.Affiliate.Service.Domain.Models.Brands
         public long Sequence { get; set; }
 
         public ICollection<CampaignRowEntity> CampaignBoxes { get; set; }
+
+        public ICollection<Offer> Offers { get; set; }
     }
 }

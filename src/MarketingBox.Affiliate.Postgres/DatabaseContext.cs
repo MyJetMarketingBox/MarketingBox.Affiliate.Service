@@ -82,6 +82,10 @@ namespace MarketingBox.Affiliate.Postgres
                 .HasMany(x => x.Parameters)
                 .WithOne()
                 .HasForeignKey(x => x.OfferId);
+            modelBuilder.Entity<Offer>()
+                .HasMany(x => x.Integrations)
+                .WithOne()
+                .HasForeignKey(x => x.OfferId);
         }
 
         private void SetSubParam(ModelBuilder modelBuilder)
@@ -115,6 +119,11 @@ namespace MarketingBox.Affiliate.Postgres
             modelBuilder.Entity<AffiliateEntity>().HasIndex(e => new { e.TenantId, e.GeneralInfoUsername }).IsUnique(true);
             modelBuilder.Entity<AffiliateEntity>().HasIndex(e => new { e.TenantId, e.CreatedAt });
             modelBuilder.Entity<AffiliateEntity>().HasIndex(e => new { e.TenantId, e.GeneralInfoRole });
+
+            modelBuilder.Entity<AffiliateEntity>()
+                .HasMany(e => e.Integrations)
+                .WithOne()
+                .HasForeignKey(e => e.AffiliateId);
         }
 
         private void SetAffiliateAccessEntity(ModelBuilder modelBuilder)
@@ -138,8 +147,12 @@ namespace MarketingBox.Affiliate.Postgres
                 .HasForeignKey(x => x.IntegrationId);
 
             modelBuilder.Entity<BrandEntity>().HasIndex(e => new { e.TenantId, e.Id });
-            modelBuilder.Entity<BrandEntity>().HasIndex(e => new { e.TenantId, e.IntegrationId });
             modelBuilder.Entity<BrandEntity>().HasIndex(e => new { e.TenantId, e.Status });
+            
+            modelBuilder.Entity<BrandEntity>()
+                .HasMany(e => e.Offers)
+                .WithOne()
+                .HasForeignKey(e => e.BrnadId);
         }
 
         private void SetCampaignRowEntity(ModelBuilder modelBuilder)
@@ -178,6 +191,7 @@ namespace MarketingBox.Affiliate.Postgres
             modelBuilder.Entity<IntegrationEntity>().Property(e => e.Id);
             modelBuilder.Entity<IntegrationEntity>().Property(e => e.Sequence);
             
+            modelBuilder.Entity<IntegrationEntity>().HasIndex(e => e.IntegrationType);
             modelBuilder.Entity<IntegrationEntity>().HasIndex(e => new { e.TenantId, e.Id });
             modelBuilder.Entity<IntegrationEntity>().HasIndex(e => new { e.TenantId, e.Name });
         }

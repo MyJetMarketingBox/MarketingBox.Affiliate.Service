@@ -3,6 +3,7 @@ using System;
 using MarketingBox.Affiliate.Postgres;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MarketingBox.Affiliate.Postgres.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20220217120108_Update_Integration_Entity")]
+    partial class Update_Integration_Entity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -433,6 +435,8 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
                             b1.WithOwner()
                                 .HasForeignKey("BrandEntityId");
                         });
+
+                    b.Navigation("Integration");
 
                     b.Navigation("Payout");
 

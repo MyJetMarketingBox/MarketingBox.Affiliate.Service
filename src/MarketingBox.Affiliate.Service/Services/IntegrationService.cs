@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
-using DotNetCoreDecorators;
 using MarketingBox.Affiliate.Postgres;
 using MarketingBox.Affiliate.Service.Domain.Models.Integrations;
 using MarketingBox.Affiliate.Service.Grpc;
@@ -14,7 +13,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MyJetWallet.Sdk.ServiceBus;
 using MyNoSqlServer.Abstractions;
-using Z.EntityFramework.Plus;
 
 namespace MarketingBox.Affiliate.Service.Services
 {
@@ -42,33 +40,22 @@ namespace MarketingBox.Affiliate.Service.Services
         public async Task<IntegrationResponse> CreateAsync(IntegrationCreateRequest request)
         {
             _logger.LogInformation("Creating new Integration {@context}", request);
-            
-            if (string.IsNullOrWhiteSpace(request.Name))
-                return new IntegrationResponse()
-                {
-                    Error = new Error()
-                    {
-                        Type = ErrorType.InvalidParameter,
-                        Message = "Cannot create entity with empty Name."
-                    }
-                };
-            
-            if (string.IsNullOrWhiteSpace(request.TenantId))
-                return new IntegrationResponse()
-                {
-                    Error = new Error()
-                    {
-                        Type = ErrorType.InvalidParameter,
-                        Message = "Cannot create entity with empty TenantId."
-                    }
-                };
-            
+
             await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+            
+            var response = await ValidateCreateIntegrationRequest(request, ctx); 
+            if (response is not null)
+            {
+                return response;
+            }
 
             var integrationEntity = new IntegrationEntity()
             {
                 TenantId = request.TenantId,
                 Name = request.Name,
+                AffiliateId = request.AffiliateId,
+                OfferId = request.OfferId,
+                IntegrationType = request.IntegrationType,
                 Sequence = 0
             };
 
@@ -90,8 +77,80 @@ namespace MarketingBox.Affiliate.Service.Services
             {
                 _logger.LogError(e, "Error creating integration {@context}", request);
 
-                return new IntegrationResponse() { Error = new Error() { Message = e.Message, Type = ErrorType.Unknown } };
+                return new IntegrationResponse() {Error = new Error() {Message = e.Message, Type = ErrorType.Unknown}};
             }
+        }
+
+        private async Task<IntegrationResponse> ValidateCreateIntegrationRequest(IntegrationCreateRequest request,
+            DatabaseContext ctx)
+        {
+            if (string.IsNullOrWhiteSpace(request.Name))
+            {
+                return new IntegrationResponse()
+                {
+                    Error = new Error()
+                    {
+                        Type = ErrorType.InvalidParameter,
+                        Message = "Cannot create entity with empty Name."
+                    }
+                };
+            }
+
+            if (string.IsNullOrWhiteSpace(request.TenantId))
+            {
+                return new IntegrationResponse()
+                {
+                    Error = new Error()
+                    {
+                        Type = ErrorType.InvalidParameter,
+                        Message = "Cannot create entity with empty TenantId."
+                    }
+                };
+            }
+
+            if (request.IntegrationType == IntegrationType.S2S &&
+                (!request.AffiliateId.HasValue ||
+                 !request.OfferId.HasValue))
+            {
+                return new IntegrationResponse()
+                {
+                    Error = new Error()
+                    {
+                        Type = ErrorType.InvalidParameter,
+                        Message = "OfferId and AffiliateId should be specified for 'S2S' integration type."
+                    }
+                };
+            }
+
+            var affiliateExists = await ctx.Affiliates.AnyAsync(x => x.AffiliateId == request.AffiliateId);
+
+            if (!affiliateExists)
+            {
+                return new IntegrationResponse()
+                {
+                    Error = new Error()
+                    {
+                        Type = ErrorType.NotFound,
+                        Message = $"There is no affiliate with id {request.AffiliateId}."
+                    }
+                };
+            }
+
+            var offerExists = await ctx.Offers.AnyAsync(x => x.Id == request.OfferId);
+
+            if (!offerExists)
+            {
+                return new IntegrationResponse()
+                {
+                    Error = new Error()
+                    {
+                        Type = ErrorType.NotFound,
+                        Message = $"There is no offer with id {request.OfferId}."
+                    }
+                };
+            }
+
+            return null;
         }
 
         public async Task<IntegrationResponse> UpdateAsync(IntegrationUpdateRequest request)
@@ -111,7 +170,7 @@ namespace MarketingBox.Affiliate.Service.Services
             {
                 var affectedRows = ctx.Integrations
                     .Where(x => x.Id == integrationEntity.Id &&
-                            x.Sequence < integrationEntity.Sequence)
+                                x.Sequence < integrationEntity.Sequence)
                     .ToList();
 
                 if (affectedRows.Any())
@@ -127,6 +186,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 {
                     await ctx.Integrations.AddAsync(integrationEntity);
                 }
+
                 await ctx.SaveChangesAsync();
 
                 var nosql = MapToNoSql(integrationEntity);
@@ -142,7 +202,7 @@ namespace MarketingBox.Affiliate.Service.Services
             {
                 _logger.LogError(e, "Error updating integration {@context}", request);
 
-                return new IntegrationResponse() { Error = new Error() { Message = e.Message, Type = ErrorType.Unknown } };
+                return new IntegrationResponse() {Error = new Error() {Message = e.Message, Type = ErrorType.Unknown}};
             }
         }
 
@@ -159,7 +219,7 @@ namespace MarketingBox.Affiliate.Service.Services
             {
                 _logger.LogError(e, "Error getting integration {@context}", request);
 
-                return new IntegrationResponse() { Error = new Error() { Message = e.Message, Type = ErrorType.Unknown } };
+                return new IntegrationResponse() {Error = new Error() {Message = e.Message, Type = ErrorType.Unknown}};
             }
         }
 
@@ -182,7 +242,8 @@ namespace MarketingBox.Affiliate.Service.Services
                 }
                 catch (Exception serializationException)
                 {
-                    _logger.LogInformation(serializationException, $"NoSql table {IntegrationNoSql.TableName} is empty");
+                    _logger.LogInformation(serializationException,
+                        $"NoSql table {IntegrationNoSql.TableName} is empty");
                 }
 
                 await _publisherIntegrationRemoved.PublishAsync(new IntegrationRemoved()
@@ -200,7 +261,7 @@ namespace MarketingBox.Affiliate.Service.Services
             {
                 _logger.LogError(e, "Error delete integration {@context}", request);
 
-                return new IntegrationResponse() { Error = new Error() { Message = e.Message, Type = ErrorType.Unknown } };
+                return new IntegrationResponse() {Error = new Error() {Message = e.Message, Type = ErrorType.Unknown}};
             }
         }
 
@@ -265,7 +326,8 @@ namespace MarketingBox.Affiliate.Service.Services
             {
                 _logger.LogError(e, "Error searching Integrations {@context}", request);
 
-                return new IntegrationSearchResponse() { Error = new Error() { Message = e.Message, Type = ErrorType.Unknown } };
+                return new IntegrationSearchResponse()
+                    {Error = new Error() {Message = e.Message, Type = ErrorType.Unknown}};
             }
         }
 
@@ -284,6 +346,9 @@ namespace MarketingBox.Affiliate.Service.Services
                 TenantId = integrationEntity.TenantId,
                 Sequence = integrationEntity.Sequence,
                 Name = integrationEntity.Name,
+                AffiliateId = integrationEntity.AffiliateId,
+                IntegrationType = integrationEntity.IntegrationType,
+                OfferId = integrationEntity.OfferId,
                 Id = integrationEntity.Id
             };
         }
