@@ -2,17 +2,20 @@
 using MarketingBox.Affiliate.Service.Grpc;
 using MarketingBox.Affiliate.Service.Grpc.Models.AffiliateAccesses;
 using MarketingBox.Affiliate.Service.Grpc.Models.AffiliateAccesses.Requests;
-using MarketingBox.Affiliate.Service.Grpc.Models.Common;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MyJetWallet.Sdk.ServiceBus;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using MarketingBox.Affiliate.Service.Domain.Models.AffiliateAccesses;
 using MarketingBox.Affiliate.Service.Domain.Models.Affiliates;
 using MarketingBox.Affiliate.Service.Extensions;
 using MarketingBox.Affiliate.Service.Messages.AffiliateAccesses;
+using MyJetWallet.Sdk.Common.Exceptions;
+using MyJetWallet.Sdk.Common.Extensions;
+using MyJetWallet.Sdk.Common.Models;
 
 namespace MarketingBox.Affiliate.Service.Services
 {
@@ -34,7 +37,7 @@ namespace MarketingBox.Affiliate.Service.Services
             _affiliateAccessRemoved = affiliateAccessRemoved;
         }
 
-        public async Task<AffiliateAccessResponse> CreateAsync(AffiliateAccessCreateRequest request)
+        public async Task<Response<AffiliateAccess>> CreateAsync(AffiliateAccessCreateRequest request)
         {
             _logger.LogInformation("Creating new Affiliate {@context}", request);
             await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
@@ -50,31 +53,27 @@ namespace MarketingBox.Affiliate.Service.Services
                 var existingEntity = await ctx.AffiliateAccess
                     .FirstOrDefaultAsync(x => x.AffiliateId == request.AffiliateId);
                 if (existingEntity != null)
-                    return new AffiliateAccessResponse() 
-                        { Error = new Error() { Message = $"Access with affiliate id {request.AffiliateId} already exists.", Type = ErrorType.Unknown }};
+                    throw new AlreadyExistsException(nameof(request.AffiliateId),request.AffiliateId);
                 
                 // affiliate existing
                 var affiliate = await ctx.Affiliates.FirstOrDefaultAsync(e => e.AffiliateId == request.AffiliateId);
                 if (affiliate == null)
-                    return new AffiliateAccessResponse() 
-                        { Error = new Error() { Message = $"Cannot find affiliate with id {request.AffiliateId}", Type = ErrorType.Unknown }};
+                    throw new NotFoundException(nameof(request.AffiliateId), request.AffiliateId);
 
                 // affiliate role
                 if (affiliate.GeneralInfoRole != AffiliateRole.Affiliate)
-                    return new AffiliateAccessResponse() 
-                        { Error = new Error() { Message = $"Incorrect role in affiliate with id {request.AffiliateId}", Type = ErrorType.Unknown }};
+                    throw new UnauthorizedException($"Incorrect role in affiliate with id {request.AffiliateId}");
                 
                 // master affiliate existing
                 var masterAffiliate = await ctx.Affiliates.FirstOrDefaultAsync(e => e.AffiliateId == request.MasterAffiliateId);
                 if (masterAffiliate == null)
-                    return new AffiliateAccessResponse() 
-                        { Error = new Error() { Message = $"Cannot find master affiliate with id {request.MasterAffiliateId}", Type = ErrorType.Unknown }};
+                    throw new NotFoundException(nameof(request.MasterAffiliateId), request.MasterAffiliateId);
 
                 // master affiliate role
-                if (masterAffiliate.GeneralInfoRole != AffiliateRole.MasterAffiliate && 
+                if (masterAffiliate.GeneralInfoRole != AffiliateRole.MasterAffiliate &&
                     masterAffiliate.GeneralInfoRole != AffiliateRole.MasterAffiliateReferral)
-                    return new AffiliateAccessResponse() 
-                        { Error = new Error() { Message = $"Incorrect role in master affiliate with id {request.MasterAffiliateId}", Type = ErrorType.Unknown }};
+                    throw new UnauthorizedException(
+                        $"Incorrect role in master affiliate with id {request.MasterAffiliateId}"); 
 
                 ctx.AffiliateAccess.Add(affiliateAccessEntity);
                 await ctx.SaveChangesAsync();
@@ -82,17 +81,22 @@ namespace MarketingBox.Affiliate.Service.Services
                 await _affiliateAccessUpdated.PublishAsync(AffiliateAccessMapping.MapToMessage(affiliateAccessEntity));
                 _logger.LogInformation("Sent partner update to service bus {@context}", request);
 
-                return AffiliateAccessMapping.MapToGrpc(affiliateAccessEntity);
+                return new Response<AffiliateAccess>
+                {
+                    Status = ResponseStatus.Ok,
+                    Data = AffiliateAccessMapping.MapToGrpcInner(affiliateAccessEntity)
+                };
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Error creating partner {@context}", request);
 
-                return new AffiliateAccessResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+
+                return e.FailedResponse<AffiliateAccess>();
             }
         }
 
-        public async Task<AffiliateAccessResponse> GetAsync(AffiliateAccessGetRequest request)
+        public async Task<Response<AffiliateAccess>> GetAsync(AffiliateAccessGetRequest request)
         {
             await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
@@ -100,18 +104,26 @@ namespace MarketingBox.Affiliate.Service.Services
             {
                 var affiliateAccessEntity = await ctx.AffiliateAccess.FirstOrDefaultAsync(x => x.AffiliateId == request.AffiliateId &&
                                                                                        x.MasterAffiliateId == request.MasterAffiliateId);
+                if (affiliateAccessEntity is null)
+                {
+                    throw new NotFoundException(nameof(request.AffiliateId), request.AffiliateId);
+                }
 
-                return affiliateAccessEntity != null ? AffiliateAccessMapping.MapToGrpc(affiliateAccessEntity) : new AffiliateAccessResponse();
+                return new Response<AffiliateAccess>
+                {
+                    Status = ResponseStatus.Ok,
+                    Data = AffiliateAccessMapping.MapToGrpcInner(affiliateAccessEntity)
+                };
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Error getting partner {@context}", request);
 
-                return new AffiliateAccessResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+                return e.FailedResponse<AffiliateAccess>();
             }
         }
 
-        public async Task<AffiliateAccessResponse> DeleteAsync(AffiliateAccessDeleteRequest request)
+        public async Task<Response<bool>> DeleteAsync(AffiliateAccessDeleteRequest request)
         {
             await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
@@ -121,7 +133,7 @@ namespace MarketingBox.Affiliate.Service.Services
                                                                                                && x.MasterAffiliateId == request.MasterAffiliateId);
 
                 if (affiliateAccessEntity == null)
-                    return new AffiliateAccessResponse();
+                    throw new NotFoundException(nameof(request.AffiliateId), request.AffiliateId);
 
                 await _affiliateAccessRemoved.PublishAsync(new AffiliateAccessRemoved()
                 {
@@ -133,17 +145,19 @@ namespace MarketingBox.Affiliate.Service.Services
                 await ctx.AffiliateAccess.Where(x => x.AffiliateId == request.AffiliateId
                                                           && x.MasterAffiliateId == request.MasterAffiliateId).DeleteFromQueryAsync();
 
-                return new AffiliateAccessResponse();
+                return new Response<bool>
+                {
+                    Status = ResponseStatus.Ok
+                };
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Error deleting partner {@context}", request);
-
-                return new AffiliateAccessResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+                return e.FailedResponse<bool>();
             }
         }
 
-        public async Task<AffiliateAccessSearchResponse> SearchAsync(AffiliateAccessSearchRequest request)
+        public async Task<Response<IReadOnlyCollection<AffiliateAccess>>> SearchAsync(AffiliateAccessSearchRequest request)
         {
             await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
@@ -189,16 +203,17 @@ namespace MarketingBox.Affiliate.Service.Services
                     .Select(AffiliateAccessMapping.MapToGrpcInner)
                     .ToArray();
 
-                return new AffiliateAccessSearchResponse()
+                return new Response<IReadOnlyCollection<AffiliateAccess>>()
                 {
-                    AffiliateAccesses = response
+                    Status = ResponseStatus.Ok,
+                    Data = response
                 };
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Error search request {@context}", request);
 
-                return new AffiliateAccessSearchResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+                return e.FailedResponse<IReadOnlyCollection<AffiliateAccess>>();
             }
         }
     }

@@ -4,17 +4,21 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MyNoSqlServer.Abstractions;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using MarketingBox.Affiliate.Service.Domain.Models.Campaigns;
+using MarketingBox.Affiliate.Service.Grpc.Models.CampaignRows;
 using MarketingBox.Affiliate.Service.Grpc.Models.Campaigns;
 using MarketingBox.Affiliate.Service.Grpc.Models.Campaigns.Requests;
-using MarketingBox.Affiliate.Service.Grpc.Models.Common;
 using MarketingBox.Affiliate.Service.Messages.Campaigns;
 using MarketingBox.Affiliate.Service.MyNoSql.Campaigns;
+using Microsoft.AspNetCore.Http;
+using MyJetWallet.Sdk.Common.Exceptions;
+using MyJetWallet.Sdk.Common.Extensions;
+using MyJetWallet.Sdk.Common.Models;
 using MyJetWallet.Sdk.ServiceBus;
 using Newtonsoft.Json;
-using Z.EntityFramework.Plus;
 
 namespace MarketingBox.Affiliate.Service.Services
 {
@@ -42,29 +46,15 @@ namespace MarketingBox.Affiliate.Service.Services
             _myNoSqlIndexServerDataWriter = myNoSqlIndexServerDataWriter;
         }
 
-        public async Task<CampaignResponse> CreateAsync(CampaignCreateRequest request)
+        public async Task<Response<Campaign>> CreateAsync(CampaignCreateRequest request)
         {
             _logger.LogInformation("Creating new Campaign {@context}", request);
 
             if (string.IsNullOrWhiteSpace(request.Name))
-                return new CampaignResponse()
-                {
-                    Error = new Error()
-                    {
-                        Type = ErrorType.InvalidParameter,
-                        Message = "Cannot create entity with empty Name."
-                    }
-                };
+                throw new BadRequestException("Cannot create entity with empty Name.");
             
             if (string.IsNullOrWhiteSpace(request.TenantId))
-                return new CampaignResponse()
-                {
-                    Error = new Error()
-                    {
-                        Type = ErrorType.InvalidParameter,
-                        Message = "Cannot create entity with empty TenantId."
-                    }
-                };
+                throw new BadRequestException("Cannot create entity with empty TenantId.");
 
             await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
             
@@ -89,17 +79,21 @@ namespace MarketingBox.Affiliate.Service.Services
                 await _publisherCampaignUpdated.PublishAsync(MapToMessage(campaignEntity));
                 _logger.LogInformation("Sent campaign update to service bus {@context}", request);
 
-                return MapToGrpc(campaignEntity);
+                return new Response<Campaign>()
+                {
+                    Status = ResponseStatus.Ok,
+                    Data = MapToGrpcInner(campaignEntity)
+                };
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Error creating campaign {@context}", request);
 
-                return new CampaignResponse() { Error = new Error() { Message = e.Message, Type = ErrorType.Unknown } };
+                return e.FailedResponse<Campaign>();
             }
         }
 
-        public async Task<CampaignResponse> UpdateAsync(CampaignUpdateRequest request)
+        public async Task<Response<Campaign>> UpdateAsync(CampaignUpdateRequest request)
         {
             _logger.LogInformation("Updating a Campaign {@context}", request);
             await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
@@ -141,35 +135,46 @@ namespace MarketingBox.Affiliate.Service.Services
                 await _publisherCampaignUpdated.PublishAsync(MapToMessage(campaignEntity));
                 _logger.LogInformation("Sent campaign update to service bus {@context}", request);
 
-                return MapToGrpc(campaignEntity);
+                return new Response<Campaign>()
+                {
+                    Status = ResponseStatus.Ok,
+                    Data = MapToGrpcInner(campaignEntity)
+                };
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Error updating campaign {@context}", request);
 
-                return new CampaignResponse() { Error = new Error() { Message = e.Message, Type = ErrorType.Unknown } };
+                return e.FailedResponse<Campaign>();
             }
         }
 
-        public async Task<CampaignResponse> GetAsync(CampaignGetRequest request)
+        public async Task<Response<Campaign>> GetAsync(CampaignGetRequest request)
         {
             await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
             try
             {
                 var campaignEntity = await ctx.Campaigns.FirstOrDefaultAsync(x => x.Id == request.CampaignId);
-
-                return campaignEntity != null ? MapToGrpc(campaignEntity) : new CampaignResponse();
+                if (campaignEntity is null)
+                {
+                    throw new NotFoundException(nameof(request.CampaignId), request.CampaignId);
+                }
+                return new Response<Campaign>()
+                {
+                    Status = ResponseStatus.Ok,
+                    Data = MapToGrpcInner(campaignEntity)
+                };
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Error getting campaign {@context}", request);
 
-                return new CampaignResponse() { Error = new Error() { Message = e.Message, Type = ErrorType.Unknown } };
+                return e.FailedResponse<Campaign>();
             }
         }
 
-        public async Task<CampaignResponse> DeleteAsync(CampaignDeleteRequest request)
+        public async Task<Response<bool>> DeleteAsync(CampaignDeleteRequest request)
         {
             await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
@@ -178,7 +183,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 var campaignEntity = await ctx.Campaigns.FirstOrDefaultAsync(x => x.Id == request.CampaignId);
 
                 if (campaignEntity == null)
-                    return new CampaignResponse();
+                    throw new NotFoundException(nameof(request.CampaignId), request.CampaignId);
 
                 await _myNoSqlServerDataWriter.DeleteAsync(
                     CampaignNoSql.GeneratePartitionKey(campaignEntity.TenantId),
@@ -193,17 +198,21 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 await ctx.Campaigns.Where(x => x.Id == campaignEntity.Id).DeleteFromQueryAsync();
 
-                return new CampaignResponse();
+                return new Response<bool>
+                {
+                    Status = ResponseStatus.Ok,
+                    Data = true
+                };
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Error deleting campaign {@context}", request);
 
-                return new CampaignResponse() { Error = new Error() { Message = e.Message, Type = ErrorType.Unknown } };
+                return e.FailedResponse<bool>();
             }
         }
 
-        public async Task<CampaignSearchResponse> SearchAsync(CampaignSearchRequest request)
+        public async Task<Response<IReadOnlyCollection<Campaign>>> SearchAsync(CampaignSearchRequest request)
         {
             _logger.LogInformation($"CampaignService.SearchAsync start with request : {JsonConvert.SerializeObject(request)}");
             await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
@@ -254,24 +263,17 @@ namespace MarketingBox.Affiliate.Service.Services
                 
                 _logger.LogInformation($"CampaignService.SearchAsync return Boxes : {JsonConvert.SerializeObject(response)}");
                 
-                return new CampaignSearchResponse()
+                return new Response<IReadOnlyCollection<Campaign>>()
                 {
-                    Boxes = response
+                    Status = ResponseStatus.Ok,
+                    Data = response
                 };
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Error searching campaignes {@context}", request);
-                return new CampaignSearchResponse() { Error = new Error() { Message = e.Message, Type = ErrorType.Unknown } };
+                return e.FailedResponse<IReadOnlyCollection<Campaign>>();
             }
-        }
-
-        private static CampaignResponse MapToGrpc(CampaignEntity campaignEntity)
-        {
-            return new CampaignResponse()
-            {
-                Campaign = MapToGrpcInner(campaignEntity)
-            };
         }
 
         private static Campaign MapToGrpcInner(CampaignEntity campaignEntity)

@@ -1,12 +1,12 @@
 using System;
 using System.Threading.Tasks;
-using MarketingBox.Affiliate.Service.Domain.Exceptions;
 using MarketingBox.Affiliate.Service.Domain.Models.Offers;
 using MarketingBox.Affiliate.Service.Domain.Models.Offers.Requests;
 using MarketingBox.Affiliate.Service.Grpc;
-using MarketingBox.Affiliate.Service.Grpc.Models.Common;
 using MarketingBox.Affiliate.Service.Repositories;
 using Microsoft.Extensions.Logging;
+using MyJetWallet.Sdk.Common.Extensions;
+using MyJetWallet.Sdk.Common.Models;
 
 namespace MarketingBox.Affiliate.Service.Services
 {
@@ -14,27 +14,6 @@ namespace MarketingBox.Affiliate.Service.Services
     {
         private readonly IOfferRepository _offerRepository;
         private readonly ILogger<OfferService> _logger;
-
-        private Response<T> FailedResponse<T>(Exception e)
-        {
-            _logger.LogError(e.Message);
-
-            var type = ErrorType.Unknown;
-            if (e is NotFoundException)
-            {
-                type = ErrorType.NotFound;
-            }
-
-            return new Response<T>
-            {
-                Error = new Error
-                {
-                    Message = e.Message,
-                    Type = type
-                }
-            };
-        }
-        
         public OfferService(
             IOfferRepository offerRepository,
             ILogger<OfferService> logger)
@@ -54,7 +33,7 @@ namespace MarketingBox.Affiliate.Service.Services
             }
             catch (Exception e)
             {
-                return FailedResponse<Offer>(e);
+                return e.FailedResponse<Offer>();
             }
         }
 
@@ -70,7 +49,7 @@ namespace MarketingBox.Affiliate.Service.Services
             }
             catch (Exception e)
             {
-                return FailedResponse<Offer>(e);
+                return e.FailedResponse<Offer>();
             }
         }
 
@@ -87,7 +66,7 @@ namespace MarketingBox.Affiliate.Service.Services
             }
             catch (Exception e)
             {
-                return FailedResponse<bool>(e);
+                return e.FailedResponse<bool>();
             }
         }
     }

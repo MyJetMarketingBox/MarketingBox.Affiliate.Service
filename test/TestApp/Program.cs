@@ -106,8 +106,8 @@ namespace TestApp
                 CreatedAt = DateTime.Now
             };
 
-            var masterAffiliate = (await affiliateService.CreateAsync(affiliateCreateRequestMaster)).Affiliate;
-            var affiliate = (await affiliateService.CreateAsync(affiliateCreateRequest)).Affiliate;
+            var masterAffiliate = (await affiliateService.CreateAsync(affiliateCreateRequestMaster)).Data;
+            var affiliate = (await affiliateService.CreateAsync(affiliateCreateRequest)).Data;
 
             //var access = await affiliateAccessService.CreateAsync(new AffiliateAccessCreateRequest()
             //{
@@ -228,7 +228,7 @@ namespace TestApp
                 CreatedAt = DateTime.Now
             };
 
-            var partnerCreated = (await  affiliateService.CreateAsync(request)).Affiliate;
+            var partnerCreated = (await  affiliateService.CreateAsync(request)).Data;
 
             Console.WriteLine(partnerCreated.AffiliateId);
 
@@ -240,7 +240,7 @@ namespace TestApp
                 Company = request.Company,
                 GeneralInfo = request.GeneralInfo,
                 Sequence = 1
-            })).Affiliate;
+            })).Data;
 
             //await affiliateService.DeleteAsync(new AffiliateDeleteRequest()
             //{

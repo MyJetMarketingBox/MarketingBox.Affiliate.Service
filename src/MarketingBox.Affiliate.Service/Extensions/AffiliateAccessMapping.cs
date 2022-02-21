@@ -6,14 +6,6 @@ namespace MarketingBox.Affiliate.Service.Extensions
 {
     public static class AffiliateAccessMapping
     {
-        public static AffiliateAccessResponse MapToGrpc(AffiliateAccessEntity affiliateAccessEntity)
-        {
-            return new AffiliateAccessResponse()
-            {
-                AffiliateAccess = MapToGrpcInner(affiliateAccessEntity)
-            };
-        }
-
         public static AffiliateAccess MapToGrpcInner(AffiliateAccessEntity affiliateAccessEntity)
         {
             return new AffiliateAccess()

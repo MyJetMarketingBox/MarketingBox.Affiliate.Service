@@ -1,9 +1,9 @@
-﻿using System.ServiceModel;
+﻿using System.Collections.Generic;
+using System.ServiceModel;
 using System.Threading.Tasks;
 using MarketingBox.Affiliate.Service.Grpc.Models.AffiliateAccesses;
 using MarketingBox.Affiliate.Service.Grpc.Models.AffiliateAccesses.Requests;
-using MarketingBox.Affiliate.Service.Grpc.Models.Affiliates;
-using MarketingBox.Affiliate.Service.Grpc.Models.Affiliates.Requests;
+using MyJetWallet.Sdk.Common.Models;
 
 namespace MarketingBox.Affiliate.Service.Grpc
 {
@@ -11,15 +11,15 @@ namespace MarketingBox.Affiliate.Service.Grpc
     public interface IAffiliateAccessService
     {
         [OperationContract]
-        Task<AffiliateAccessResponse> CreateAsync(AffiliateAccessCreateRequest request);
+        Task<Response<AffiliateAccess>> CreateAsync(AffiliateAccessCreateRequest request);
 
         [OperationContract]
-        Task<AffiliateAccessResponse> GetAsync(AffiliateAccessGetRequest request);
+        Task<Response<AffiliateAccess>> GetAsync(AffiliateAccessGetRequest request);
 
         [OperationContract]
-        Task<AffiliateAccessResponse> DeleteAsync(AffiliateAccessDeleteRequest request);
+        Task<Response<bool>> DeleteAsync(AffiliateAccessDeleteRequest request);
 
         [OperationContract]
-        Task<AffiliateAccessSearchResponse> SearchAsync(AffiliateAccessSearchRequest request);
+        Task<Response<IReadOnlyCollection<AffiliateAccess>>> SearchAsync(AffiliateAccessSearchRequest request);
     }
 }

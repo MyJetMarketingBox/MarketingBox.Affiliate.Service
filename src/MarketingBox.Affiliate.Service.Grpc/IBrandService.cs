@@ -1,7 +1,9 @@
-﻿using System.ServiceModel;
+﻿using System.Collections.Generic;
+using System.ServiceModel;
 using System.Threading.Tasks;
 using MarketingBox.Affiliate.Service.Grpc.Models.Brands;
 using MarketingBox.Affiliate.Service.Grpc.Models.Brands.Requests;
+using MyJetWallet.Sdk.Common.Models;
 
 namespace MarketingBox.Affiliate.Service.Grpc
 {
@@ -9,18 +11,18 @@ namespace MarketingBox.Affiliate.Service.Grpc
     public interface IBrandService
     {
         [OperationContract]
-        Task<BrandResponse> CreateAsync(BrandCreateRequest request);
+        Task<Response<Brand>> CreateAsync(BrandCreateRequest request);
 
         [OperationContract]
-        Task<BrandResponse> UpdateAsync(BrandUpdateRequest request);
+        Task<Response<Brand>> UpdateAsync(BrandUpdateRequest request);
 
         [OperationContract]
-        Task<BrandResponse> GetAsync(BrandGetRequest request);
+        Task<Response<Brand>> GetAsync(BrandGetRequest request);
 
         [OperationContract]
-        Task<BrandResponse> DeleteAsync(BrandDeleteRequest request);
+        Task<Response<bool>> DeleteAsync(BrandDeleteRequest request);
 
         [OperationContract]
-        Task<BrandSearchResponse> SearchAsync(BrandSearchRequest request);
+        Task<Response<IReadOnlyCollection<Brand>>> SearchAsync(BrandSearchRequest request);
     }
 }

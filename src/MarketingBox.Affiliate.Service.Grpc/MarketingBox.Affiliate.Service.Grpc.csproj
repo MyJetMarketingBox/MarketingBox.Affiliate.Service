@@ -13,6 +13,12 @@
     <ProjectReference Include="..\MarketingBox.Affiliate.Service.Domain.Models\MarketingBox.Affiliate.Service.Domain.Models.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="MyJetWallet.Sdk.Common, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>C:\Users\mezol\.nuget\packages\myjetwallet.sdk.common\1.0.0\lib\net6.0\MyJetWallet.Sdk.Common.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
   <PropertyGroup>
     <TargetsForTfmSpecificBuildOutput>
       $(TargetsForTfmSpecificBuildOutput);PackReferencedProjectOutputs
