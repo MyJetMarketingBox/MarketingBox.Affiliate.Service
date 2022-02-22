@@ -3,7 +3,7 @@ using System.ServiceModel;
 using System.Threading.Tasks;
 using MarketingBox.Affiliate.Service.Grpc.Models.AffiliateAccesses;
 using MarketingBox.Affiliate.Service.Grpc.Models.AffiliateAccesses.Requests;
-using MarketingBox.Sdk.Common.Models;
+using MarketingBox.Sdk.Common.Models.Grpc;
 
 namespace MarketingBox.Affiliate.Service.Grpc
 {

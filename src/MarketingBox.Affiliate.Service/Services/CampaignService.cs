@@ -14,7 +14,7 @@ using MarketingBox.Affiliate.Service.Messages.Campaigns;
 using MarketingBox.Affiliate.Service.MyNoSql.Campaigns;
 using MarketingBox.Sdk.Common.Exceptions;
 using MarketingBox.Sdk.Common.Extensions;
-using MarketingBox.Sdk.Common.Models;
+using MarketingBox.Sdk.Common.Models.Grpc;
 using MyJetWallet.Sdk.ServiceBus;
 using Newtonsoft.Json;
 

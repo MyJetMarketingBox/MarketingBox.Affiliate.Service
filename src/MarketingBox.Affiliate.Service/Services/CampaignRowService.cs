@@ -14,7 +14,7 @@ using MarketingBox.Affiliate.Service.Grpc.Models.CampaignRows.Requests;
 using MarketingBox.Affiliate.Service.MyNoSql.CampaignRows;
 using MarketingBox.Sdk.Common.Exceptions;
 using MarketingBox.Sdk.Common.Extensions;
-using MarketingBox.Sdk.Common.Models;
+using MarketingBox.Sdk.Common.Models.Grpc;
 using ActivityHours = MarketingBox.Affiliate.Service.Domain.Models.CampaignRows.ActivityHours;
 using CapType = MarketingBox.Affiliate.Service.Domain.Models.CampaignRows.CapType;
 

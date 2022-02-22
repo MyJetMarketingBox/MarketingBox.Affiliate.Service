@@ -15,7 +15,7 @@ using MarketingBox.Affiliate.Service.Extensions;
 using MarketingBox.Affiliate.Service.Messages.AffiliateAccesses;
 using MarketingBox.Sdk.Common.Exceptions;
 using MarketingBox.Sdk.Common.Extensions;
-using MarketingBox.Sdk.Common.Models;
+using MarketingBox.Sdk.Common.Models.Grpc;
 
 namespace MarketingBox.Affiliate.Service.Services
 {
@@ -62,7 +62,7 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 // affiliate role
                 if (affiliate.GeneralInfoRole != AffiliateRole.Affiliate)
-                    throw new UnauthorizedException($"Incorrect role in affiliate with id {request.AffiliateId}");
+                    throw new ForbiddenException($"Incorrect role in affiliate with id {request.AffiliateId}");
                 
                 // master affiliate existing
                 var masterAffiliate = await ctx.Affiliates.FirstOrDefaultAsync(e => e.AffiliateId == request.MasterAffiliateId);
@@ -72,7 +72,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 // master affiliate role
                 if (masterAffiliate.GeneralInfoRole != AffiliateRole.MasterAffiliate &&
                     masterAffiliate.GeneralInfoRole != AffiliateRole.MasterAffiliateReferral)
-                    throw new UnauthorizedException(
+                    throw new ForbiddenException(
                         $"Incorrect role in master affiliate with id {request.MasterAffiliateId}"); 
 
                 ctx.AffiliateAccess.Add(affiliateAccessEntity);
@@ -133,7 +133,9 @@ namespace MarketingBox.Affiliate.Service.Services
                                                                                                && x.MasterAffiliateId == request.MasterAffiliateId);
 
                 if (affiliateAccessEntity == null)
+                {
                     throw new NotFoundException(nameof(request.AffiliateId), request.AffiliateId);
+                }
 
                 await _affiliateAccessRemoved.PublishAsync(new AffiliateAccessRemoved()
                 {
@@ -147,7 +149,8 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 return new Response<bool>
                 {
-                    Status = ResponseStatus.Ok
+                    Status = ResponseStatus.Ok,
+                    Data = true
                 };
             }
             catch (Exception e)

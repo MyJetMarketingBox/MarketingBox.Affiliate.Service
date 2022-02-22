@@ -22,7 +22,7 @@ using MarketingBox.Affiliate.Service.MyNoSql.Affiliates;
 using MarketingBox.Auth.Service.Domain.Models.Users;
 using MarketingBox.Sdk.Common.Exceptions;
 using MarketingBox.Sdk.Common.Extensions;
-using MarketingBox.Sdk.Common.Models;
+using MarketingBox.Sdk.Common.Models.Grpc;
 using MyJetWallet.Sdk.ServiceBus;
 using AffiliateBank = MarketingBox.Affiliate.Service.Grpc.Models.Affiliates.AffiliateBank;
 using AffiliateCompany = MarketingBox.Affiliate.Service.Grpc.Models.Affiliates.AffiliateCompany;

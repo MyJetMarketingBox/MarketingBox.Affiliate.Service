@@ -5,7 +5,7 @@ using MarketingBox.Affiliate.Service.Domain.Models.Offers.Requests;
 using MarketingBox.Affiliate.Service.Grpc;
 using MarketingBox.Affiliate.Service.Repositories;
 using MarketingBox.Sdk.Common.Extensions;
-using MarketingBox.Sdk.Common.Models;
+using MarketingBox.Sdk.Common.Models.Grpc;
 using Microsoft.Extensions.Logging;
 
 namespace MarketingBox.Affiliate.Service.Services

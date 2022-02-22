@@ -16,7 +16,7 @@ using MarketingBox.Affiliate.Service.Messages.Brands;
 using MarketingBox.Affiliate.Service.MyNoSql.Brands;
 using MarketingBox.Sdk.Common.Exceptions;
 using MarketingBox.Sdk.Common.Extensions;
-using MarketingBox.Sdk.Common.Models;
+using MarketingBox.Sdk.Common.Models.Grpc;
 using MyJetWallet.Sdk.ServiceBus;
 using Payout = MarketingBox.Affiliate.Service.Domain.Models.Brands.Payout;
 using Revenue = MarketingBox.Affiliate.Service.Domain.Models.Brands.Revenue;

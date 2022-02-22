@@ -12,6 +12,7 @@ using MarketingBox.Affiliate.Service.MyNoSql.Integrations;
 using MarketingBox.Sdk.Common.Exceptions;
 using MarketingBox.Sdk.Common.Extensions;
 using MarketingBox.Sdk.Common.Models;
+using MarketingBox.Sdk.Common.Models.Grpc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MyJetWallet.Sdk.ServiceBus;
@@ -61,25 +62,56 @@ namespace MarketingBox.Affiliate.Service.Services
                 integrationEntity.Sequence);
         }
 
-        private async Task<Response<Integration>> ValidateCreateIntegrationRequest(IntegrationCreateRequest request,
+        private async Task ValidateCreateIntegrationRequest(IntegrationCreateRequest request,
             DatabaseContext ctx)
         {
+            var validationErrors = new List<ValidationError>();
             if (string.IsNullOrWhiteSpace(request.Name))
             {
-                throw new BadRequestException("Cannot create entity with empty Name.");
+                validationErrors.Add(new ValidationError
+                {
+                    ErrorMessage = "Should not be empty.",
+                    ParameterName = nameof(request.Name)
+                });
             }
 
             if (string.IsNullOrWhiteSpace(request.TenantId))
             {
-                throw new BadRequestException("Cannot create entity with empty TenantId.");
+                validationErrors.Add(new ValidationError
+                {
+                    ErrorMessage = "Should not be empty.",
+                    ParameterName = nameof(request.TenantId)
+                });
             }
 
-            if (request.IntegrationType == IntegrationType.S2S &&
-                (!request.AffiliateId.HasValue ||
-                 !request.OfferId.HasValue))
+            if (request.IntegrationType == IntegrationType.S2S)
             {
-                throw new BadRequestException(
-                    "OfferId and AffiliateId should be specified for 'S2S' integration type.");
+                if (!request.AffiliateId.HasValue)
+                {
+                    validationErrors.Add(new ValidationError
+                    {
+                        ErrorMessage = "Should be specified for 'S2S' integration type.",
+                        ParameterName = nameof(request.AffiliateId)
+                    });
+                }
+
+                if (!request.OfferId.HasValue)
+                {
+                    validationErrors.Add(new ValidationError
+                    {
+                        ErrorMessage = "Should be specified for 'S2S' integration type.",
+                        ParameterName = nameof(request.OfferId)
+                    });
+                }
+            }
+
+            if (validationErrors.Any())
+            {
+                throw new BadRequestException(new Error
+                {
+                    ErrorMessage = "Request responded with one or more validation errors.",
+                    ValidationErrors = validationErrors
+                });
             }
 
             var affiliateExists = await ctx.Affiliates.AnyAsync(x => x.AffiliateId == request.AffiliateId);
@@ -95,10 +127,8 @@ namespace MarketingBox.Affiliate.Service.Services
             {
                 throw new NotFoundException(nameof(request.OfferId), request.OfferId);
             }
-
-            return null;
         }
-        
+
         public IntegrationService(ILogger<IntegrationService> logger,
             DbContextOptionsBuilder<DatabaseContext> dbContextOptionsBuilder,
             IServiceBusPublisher<IntegrationUpdated> publisherIntegrationUpdated,
@@ -114,28 +144,24 @@ namespace MarketingBox.Affiliate.Service.Services
 
         public async Task<Response<Integration>> CreateAsync(IntegrationCreateRequest request)
         {
-            _logger.LogInformation("Creating new Integration {@context}", request);
-
-            await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
-            
-            var response = await ValidateCreateIntegrationRequest(request, ctx); 
-            if (response is not null)
-            {
-                return response;
-            }
-
-            var integrationEntity = new IntegrationEntity()
-            {
-                TenantId = request.TenantId,
-                Name = request.Name,
-                AffiliateId = request.AffiliateId,
-                OfferId = request.OfferId,
-                IntegrationType = request.IntegrationType,
-                Sequence = 0
-            };
-
             try
             {
+                _logger.LogInformation("Creating new Integration {@context}", request);
+
+                await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+
+                await ValidateCreateIntegrationRequest(request, ctx);
+
+                var integrationEntity = new IntegrationEntity()
+                {
+                    TenantId = request.TenantId,
+                    Name = request.Name,
+                    AffiliateId = request.AffiliateId,
+                    OfferId = request.OfferId,
+                    IntegrationType = request.IntegrationType,
+                    Sequence = 0
+                };
+
                 ctx.Integrations.Add(integrationEntity);
                 await ctx.SaveChangesAsync();
 
@@ -227,7 +253,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 {
                     throw new NotFoundException(nameof(request.IntegrationId), request.IntegrationId);
                 }
-                
+
                 return new Response<Integration>()
                 {
                     Status = ResponseStatus.Ok,
