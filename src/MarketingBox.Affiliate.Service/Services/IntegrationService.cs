@@ -9,11 +9,11 @@ using MarketingBox.Affiliate.Service.Grpc.Models.Integrations;
 using MarketingBox.Affiliate.Service.Grpc.Models.Integrations.Requests;
 using MarketingBox.Affiliate.Service.Messages.Integrations;
 using MarketingBox.Affiliate.Service.MyNoSql.Integrations;
+using MarketingBox.Sdk.Common.Exceptions;
+using MarketingBox.Sdk.Common.Extensions;
+using MarketingBox.Sdk.Common.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using MyJetWallet.Sdk.Common.Exceptions;
-using MyJetWallet.Sdk.Common.Extensions;
-using MyJetWallet.Sdk.Common.Models;
 using MyJetWallet.Sdk.ServiceBus;
 using MyNoSqlServer.Abstractions;
 

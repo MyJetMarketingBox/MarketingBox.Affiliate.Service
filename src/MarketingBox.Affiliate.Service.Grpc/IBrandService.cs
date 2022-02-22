@@ -3,8 +3,7 @@ using System.ServiceModel;
 using System.Threading.Tasks;
 using MarketingBox.Affiliate.Service.Grpc.Models.Brands;
 using MarketingBox.Affiliate.Service.Grpc.Models.Brands.Requests;
-using MyJetWallet.Sdk.Common.Models;
-
+using MarketingBox.Sdk.Common.Models;
 namespace MarketingBox.Affiliate.Service.Grpc
 {
     [ServiceContract]

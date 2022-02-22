@@ -4,9 +4,9 @@ using AutoMapper;
 using MarketingBox.Affiliate.Postgres;
 using MarketingBox.Affiliate.Service.Domain.Models.Offers;
 using MarketingBox.Affiliate.Service.Domain.Models.Offers.Requests;
+using MarketingBox.Sdk.Common.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using MyJetWallet.Sdk.Common.Exceptions;
 using Newtonsoft.Json;
 
 namespace MarketingBox.Affiliate.Service.Repositories

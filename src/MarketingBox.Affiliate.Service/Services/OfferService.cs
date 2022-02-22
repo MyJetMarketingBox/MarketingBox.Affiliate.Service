@@ -4,9 +4,9 @@ using MarketingBox.Affiliate.Service.Domain.Models.Offers;
 using MarketingBox.Affiliate.Service.Domain.Models.Offers.Requests;
 using MarketingBox.Affiliate.Service.Grpc;
 using MarketingBox.Affiliate.Service.Repositories;
+using MarketingBox.Sdk.Common.Extensions;
+using MarketingBox.Sdk.Common.Models;
 using Microsoft.Extensions.Logging;
-using MyJetWallet.Sdk.Common.Extensions;
-using MyJetWallet.Sdk.Common.Models;
 
 namespace MarketingBox.Affiliate.Service.Services
 {

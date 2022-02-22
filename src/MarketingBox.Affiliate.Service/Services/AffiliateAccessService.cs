@@ -13,9 +13,9 @@ using MarketingBox.Affiliate.Service.Domain.Models.AffiliateAccesses;
 using MarketingBox.Affiliate.Service.Domain.Models.Affiliates;
 using MarketingBox.Affiliate.Service.Extensions;
 using MarketingBox.Affiliate.Service.Messages.AffiliateAccesses;
-using MyJetWallet.Sdk.Common.Exceptions;
-using MyJetWallet.Sdk.Common.Extensions;
-using MyJetWallet.Sdk.Common.Models;
+using MarketingBox.Sdk.Common.Exceptions;
+using MarketingBox.Sdk.Common.Extensions;
+using MarketingBox.Sdk.Common.Models;
 
 namespace MarketingBox.Affiliate.Service.Services
 {

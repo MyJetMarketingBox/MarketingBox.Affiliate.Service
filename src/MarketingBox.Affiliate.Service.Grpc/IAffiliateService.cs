@@ -3,7 +3,7 @@ using System.ServiceModel;
 using System.Threading.Tasks;
 using MarketingBox.Affiliate.Service.Grpc.Models.Affiliates;
 using MarketingBox.Affiliate.Service.Grpc.Models.Affiliates.Requests;
-using MyJetWallet.Sdk.Common.Models;
+using MarketingBox.Sdk.Common.Models;
 
 namespace MarketingBox.Affiliate.Service.Grpc
 {

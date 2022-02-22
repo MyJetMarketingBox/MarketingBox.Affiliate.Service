@@ -12,9 +12,9 @@ using MarketingBox.Affiliate.Service.Grpc.Models.Campaigns;
 using MarketingBox.Affiliate.Service.Grpc.Models.Campaigns.Requests;
 using MarketingBox.Affiliate.Service.Messages.Campaigns;
 using MarketingBox.Affiliate.Service.MyNoSql.Campaigns;
-using MyJetWallet.Sdk.Common.Exceptions;
-using MyJetWallet.Sdk.Common.Extensions;
-using MyJetWallet.Sdk.Common.Models;
+using MarketingBox.Sdk.Common.Exceptions;
+using MarketingBox.Sdk.Common.Extensions;
+using MarketingBox.Sdk.Common.Models;
 using MyJetWallet.Sdk.ServiceBus;
 using Newtonsoft.Json;
 
