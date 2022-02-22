@@ -8,12 +8,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using MarketingBox.Affiliate.Service.Domain.Models.Campaigns;
-using MarketingBox.Affiliate.Service.Grpc.Models.CampaignRows;
 using MarketingBox.Affiliate.Service.Grpc.Models.Campaigns;
 using MarketingBox.Affiliate.Service.Grpc.Models.Campaigns.Requests;
 using MarketingBox.Affiliate.Service.Messages.Campaigns;
 using MarketingBox.Affiliate.Service.MyNoSql.Campaigns;
-using Microsoft.AspNetCore.Http;
 using MyJetWallet.Sdk.Common.Exceptions;
 using MyJetWallet.Sdk.Common.Extensions;
 using MyJetWallet.Sdk.Common.Models;
@@ -52,12 +50,12 @@ namespace MarketingBox.Affiliate.Service.Services
 
             if (string.IsNullOrWhiteSpace(request.Name))
                 throw new BadRequestException("Cannot create entity with empty Name.");
-            
+
             if (string.IsNullOrWhiteSpace(request.TenantId))
                 throw new BadRequestException("Cannot create entity with empty TenantId.");
 
             await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
-            
+
             var campaignEntity = new CampaignEntity()
             {
                 TenantId = request.TenantId,
@@ -73,7 +71,8 @@ namespace MarketingBox.Affiliate.Service.Services
                 var nosql = MapToNoSql(campaignEntity);
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 await _myNoSqlIndexServerDataWriter.InsertOrReplaceAsync(
-                    CampaignIndexNoSql.Create(campaignEntity.TenantId, campaignEntity.Id, campaignEntity.Name, campaignEntity.Sequence));
+                    CampaignIndexNoSql.Create(campaignEntity.TenantId, campaignEntity.Id, campaignEntity.Name,
+                        campaignEntity.Sequence));
                 _logger.LogInformation("Sent campaign update to MyNoSql {@context}", request);
 
                 await _publisherCampaignUpdated.PublishAsync(MapToMessage(campaignEntity));
@@ -110,7 +109,7 @@ namespace MarketingBox.Affiliate.Service.Services
             {
                 var affectedRows = ctx.Campaigns
                     .Where(x => x.Id == campaignEntity.Id &&
-                            x.Sequence < campaignEntity.Sequence)
+                                x.Sequence < campaignEntity.Sequence)
                     .ToList();
 
                 if (affectedRows.Any())
@@ -126,6 +125,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 {
                     await ctx.Campaigns.AddAsync(campaignEntity);
                 }
+
                 await ctx.SaveChangesAsync();
 
                 var nosql = MapToNoSql(campaignEntity);
@@ -160,6 +160,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 {
                     throw new NotFoundException(nameof(request.CampaignId), request.CampaignId);
                 }
+
                 return new Response<Campaign>()
                 {
                     Status = ResponseStatus.Ok,
@@ -214,7 +215,8 @@ namespace MarketingBox.Affiliate.Service.Services
 
         public async Task<Response<IReadOnlyCollection<Campaign>>> SearchAsync(CampaignSearchRequest request)
         {
-            _logger.LogInformation($"CampaignService.SearchAsync start with request : {JsonConvert.SerializeObject(request)}");
+            _logger.LogInformation(
+                $"CampaignService.SearchAsync start with request : {JsonConvert.SerializeObject(request)}");
             await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
             try
             {
@@ -243,6 +245,7 @@ namespace MarketingBox.Affiliate.Service.Services
                     {
                         query = query.Where(x => x.Id > request.Cursor);
                     }
+
                     query = query.OrderBy(x => x.Id);
                 }
                 else
@@ -251,18 +254,21 @@ namespace MarketingBox.Affiliate.Service.Services
                     {
                         query = query.Where(x => x.Id < request.Cursor);
                     }
+
                     query = query.OrderByDescending(x => x.Id);
                 }
+
                 query = query.Take(limit);
                 await query.LoadAsync();
-                
+
                 var response = query
                     .AsEnumerable()
                     .Select(MapToGrpcInner)
                     .ToArray();
-                
-                _logger.LogInformation($"CampaignService.SearchAsync return Boxes : {JsonConvert.SerializeObject(response)}");
-                
+
+                _logger.LogInformation(
+                    $"CampaignService.SearchAsync return Boxes : {JsonConvert.SerializeObject(response)}");
+
                 return new Response<IReadOnlyCollection<Campaign>>()
                 {
                     Status = ResponseStatus.Ok,

@@ -11,7 +11,6 @@ using MarketingBox.Affiliate.Service.Messages.Integrations;
 using MarketingBox.Affiliate.Service.MyNoSql.Integrations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualBasic.CompilerServices;
 using MyJetWallet.Sdk.Common.Exceptions;
 using MyJetWallet.Sdk.Common.Extensions;
 using MyJetWallet.Sdk.Common.Models;
