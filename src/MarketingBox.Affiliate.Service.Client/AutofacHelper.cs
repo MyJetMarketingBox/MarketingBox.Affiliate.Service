@@ -17,6 +17,8 @@ namespace MarketingBox.Affiliate.Service.Client
             builder.RegisterInstance(factory.GetIntegrationService()).As<IIntegrationService>().SingleInstance();
             builder.RegisterInstance(factory.GetBrandService()).As<IBrandService>().SingleInstance();
             builder.RegisterInstance(factory.GetCampaignRowService()).As<ICampaignRowService>().SingleInstance();
+            builder.RegisterInstance(factory.GetCountryService()).As<ICountryService>().SingleInstance();
+            builder.RegisterInstance(factory.GetGeoService()).As<IGeoService>().SingleInstance();
         }
     }
 }
