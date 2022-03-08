@@ -16,7 +16,7 @@ namespace MarketingBox.Affiliate.Service.MyNoSql.CampaignRows
 
         public long BrandId { get; set; }
 
-        public string CountryCode { get; set; }
+        public int? GeoId { get; set; }
 
         public int Priority { get; set; }
 
@@ -32,32 +32,28 @@ namespace MarketingBox.Affiliate.Service.MyNoSql.CampaignRows
 
         public bool EnableTraffic { get; set; }
 
-        public long Sequence { get; set; }
-
         public static CampaignRowNoSql Create(
             long campaignId,
             long campaignRowId,
             long brandId,
-            string countryCode,
+            int? GeoId,
             int priority,
             int weight,
             CapType capType,
             long dailyCapValue,
             ActivityHours[] activityHours,
             string information,
-            bool enableTraffic,
-            long sequence) =>
+            bool enableTraffic) =>
             new()
             {
                 PartitionKey = GeneratePartitionKey(campaignId),
                 RowKey = GenerateRowKey(campaignRowId),
-                Sequence = sequence,
                 CampaignId = campaignId,
                 BrandId = brandId,
                 ActivityHours = activityHours,
                 CampaignRowId = campaignRowId,
                 CapType = capType,
-                CountryCode = countryCode,
+                GeoId = GeoId,
                 DailyCapValue = dailyCapValue,
                 EnableTraffic = enableTraffic,
                 Information =information,

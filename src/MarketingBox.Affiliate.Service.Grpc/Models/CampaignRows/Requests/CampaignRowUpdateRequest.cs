@@ -14,7 +14,7 @@ namespace MarketingBox.Affiliate.Service.Grpc.Models.CampaignRows.Requests
         public long BrandId { get; set; }
 
         [DataMember(Order = 3)]
-        public string CountryCode { get; set; }
+        public int GeoId { get; set; }
 
         [DataMember(Order = 4)]
         public int Priority { get; set; }
@@ -38,9 +38,6 @@ namespace MarketingBox.Affiliate.Service.Grpc.Models.CampaignRows.Requests
         public bool EnableTraffic { get; set; }
 
         [DataMember(Order = 11)]
-        public long Sequence { get; set; }
-
-        [DataMember(Order = 12)]
         public long CampaignRowId { get; set; }
     }
 }

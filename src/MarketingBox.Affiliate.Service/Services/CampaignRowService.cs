@@ -29,27 +29,26 @@ namespace MarketingBox.Affiliate.Service.Services
         private static CampaignRow MapToGrpcInner(CampaignRowEntity campaignRowEntity)
         {
             return new CampaignRow()
-                {
-                    Sequence = campaignRowEntity.Sequence,
-                    CampaignId = campaignRowEntity.CampaignId,
-                    BrandId = campaignRowEntity.BrandId,
-                    ActivityHours = campaignRowEntity.ActivityHours.Select(x =>
-                        new Grpc.Models.CampaignRows.ActivityHours()
-                        {
-                            To = x.To,
-                            Day = x.Day,
-                            From = x.From,
-                            IsActive = x.IsActive
-                        }).ToList(),
-                    CampaignRowId = campaignRowEntity.CampaignBoxId,
-                    CapType = campaignRowEntity.CapType.MapEnum<Domain.Models.CampaignRows.CapType>(),
-                    CountryCode = campaignRowEntity.CountryCode,
-                    DailyCapValue = campaignRowEntity.DailyCapValue,
-                    EnableTraffic = campaignRowEntity.EnableTraffic,
-                    Information = campaignRowEntity.Information,
-                    Priority = campaignRowEntity.Priority,
-                    Weight = campaignRowEntity.Weight
-                };
+            {
+                CampaignId = campaignRowEntity.CampaignId,
+                BrandId = campaignRowEntity.BrandId,
+                ActivityHours = campaignRowEntity.ActivityHours.Select(x =>
+                    new Grpc.Models.CampaignRows.ActivityHours()
+                    {
+                        To = x.To,
+                        Day = x.Day,
+                        From = x.From,
+                        IsActive = x.IsActive
+                    }).ToList(),
+                CampaignRowId = campaignRowEntity.CampaignBoxId,
+                CapType = campaignRowEntity.CapType.MapEnum<CapType>(),
+
+                DailyCapValue = campaignRowEntity.DailyCapValue,
+                EnableTraffic = campaignRowEntity.EnableTraffic,
+                Information = campaignRowEntity.Information,
+                Priority = campaignRowEntity.Priority,
+                Weight = campaignRowEntity.Weight
+            };
         }
 
         private static CampaignRowNoSql MapToNoSql(CampaignRowEntity campaignRowEntity)
@@ -58,10 +57,10 @@ namespace MarketingBox.Affiliate.Service.Services
                 campaignRowEntity.CampaignId,
                 campaignRowEntity.CampaignBoxId,
                 campaignRowEntity.BrandId,
-                campaignRowEntity.CountryCode,
+                campaignRowEntity.GeoId,
                 campaignRowEntity.Priority,
                 campaignRowEntity.Weight,
-                campaignRowEntity.CapType.MapEnum< Domain.Models.CampaignRows.CapType >(),
+                campaignRowEntity.CapType.MapEnum<CapType>(),
                 campaignRowEntity.DailyCapValue,
                 campaignRowEntity.ActivityHours.Select(x => new MyNoSql.CampaignRows.ActivityHours()
                 {
@@ -71,10 +70,9 @@ namespace MarketingBox.Affiliate.Service.Services
                     IsActive = x.IsActive
                 }).ToArray(),
                 campaignRowEntity.Information,
-                campaignRowEntity.EnableTraffic,
-                campaignRowEntity.Sequence);
+                campaignRowEntity.EnableTraffic);
         }
-        
+
         public CampaignRowService(ILogger<CampaignRowService> logger,
             DbContextOptionsBuilder<DatabaseContext> dbContextOptionsBuilder,
             IMyNoSqlServerDataWriter<CampaignRowNoSql> myNoSqlServerDataWriter)
@@ -91,6 +89,12 @@ namespace MarketingBox.Affiliate.Service.Services
 
             try
             {
+                var geoExists = ctx.Geos.FirstOrDefault(x => x.Id == request.GeoId) is null;
+                if (!geoExists)
+                {
+                    throw new NotFoundException(nameof(request.GeoId), request.GeoId);
+                }
+
                 var campaignRowEntity = new CampaignRowEntity()
                 {
                     ActivityHours = request.ActivityHours.Select(x => new ActivityHours()
@@ -103,12 +107,11 @@ namespace MarketingBox.Affiliate.Service.Services
                     CampaignId = request.CampaignId,
                     BrandId = request.BrandId,
                     CapType = request.CapType.MapEnum<CapType>(),
-                    CountryCode = request.CountryCode,
+                    GeoId = request.GeoId,
                     DailyCapValue = request.DailyCapValue,
                     EnableTraffic = request.EnableTraffic,
                     Information = request.Information,
                     Priority = request.Priority,
-                    Sequence = request.Sequence,
                     Weight = request.Weight
                 };
 
@@ -142,6 +145,11 @@ namespace MarketingBox.Affiliate.Service.Services
 
             try
             {
+                var geoExists = ctx.Geos.FirstOrDefault(x => x.Id == request.GeoId) is null;
+                if (!geoExists)
+                {
+                    throw new NotFoundException(nameof(request.GeoId), request.GeoId);
+                }
                 var campaignRowEntity = new CampaignRowEntity()
                 {
                     CampaignBoxId = request.CampaignRowId,
@@ -153,20 +161,18 @@ namespace MarketingBox.Affiliate.Service.Services
                         To = x.To
                     }).ToArray(),
                     CampaignId = request.CampaignId,
+                    GeoId = request.GeoId,
                     BrandId = request.BrandId,
                     CapType = request.CapType.MapEnum<CapType>(),
-                    CountryCode = request.CountryCode,
                     DailyCapValue = request.DailyCapValue,
                     EnableTraffic = request.EnableTraffic,
                     Information = request.Information,
                     Priority = request.Priority,
-                    Sequence = request.Sequence + 1,
                     Weight = request.Weight
                 };
-                
+
                 var campaignRows = ctx.CampaignRows
-                    .Where(x => x.CampaignBoxId == request.CampaignRowId 
-                                && x.Sequence < campaignRowEntity.Sequence)
+                    .Where(x => x.CampaignBoxId == request.CampaignRowId)
                     .ToList();
 
                 if (campaignRows.Any())
@@ -178,12 +184,11 @@ namespace MarketingBox.Affiliate.Service.Services
                         campaignRow.CampaignId = campaignRowEntity.CampaignId;
                         campaignRow.BrandId = campaignRowEntity.BrandId;
                         campaignRow.CapType = campaignRowEntity.CapType;
-                        campaignRow.CountryCode = campaignRowEntity.CountryCode;
+                        campaignRow.GeoId = campaignRowEntity.GeoId;
                         campaignRow.DailyCapValue = campaignRowEntity.DailyCapValue;
                         campaignRow.EnableTraffic = campaignRowEntity.EnableTraffic;
                         campaignRow.Information = campaignRowEntity.Information;
                         campaignRow.Priority = campaignRowEntity.Priority;
-                        campaignRow.Sequence = campaignRowEntity.Sequence;
                         campaignRow.Weight = campaignRowEntity.Weight;
                     }
                 }
@@ -191,6 +196,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 {
                     await ctx.CampaignRows.AddAsync(campaignRowEntity);
                 }
+
                 await ctx.SaveChangesAsync();
 
                 var nosql = MapToNoSql(campaignRowEntity);
@@ -224,6 +230,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 {
                     throw new NotFoundException(nameof(request.CampaignRowId), request.CampaignRowId);
                 }
+
                 return new Response<CampaignRow>()
                 {
                     Status = ResponseStatus.Ok,
@@ -244,7 +251,8 @@ namespace MarketingBox.Affiliate.Service.Services
 
             try
             {
-                var campaignRowEntity = await ctx.CampaignRows.FirstOrDefaultAsync(x => x.CampaignBoxId == request.CampaignRowId);
+                var campaignRowEntity =
+                    await ctx.CampaignRows.FirstOrDefaultAsync(x => x.CampaignBoxId == request.CampaignRowId);
 
                 if (campaignRowEntity == null)
                     throw new NotFoundException(nameof(request.CampaignRowId), request.CampaignRowId);
@@ -253,7 +261,8 @@ namespace MarketingBox.Affiliate.Service.Services
                     CampaignRowNoSql.GeneratePartitionKey(campaignRowEntity.CampaignId),
                     CampaignRowNoSql.GenerateRowKey(campaignRowEntity.CampaignBoxId));
 
-                await ctx.CampaignRows.Where(x => x.CampaignBoxId == campaignRowEntity.CampaignBoxId).DeleteFromQueryAsync();
+                await ctx.CampaignRows.Where(x => x.CampaignBoxId == campaignRowEntity.CampaignBoxId)
+                    .DeleteFromQueryAsync();
 
                 return new Response<bool>
                 {
@@ -286,7 +295,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 {
                     query = query.Where(x => x.CampaignId == request.CampaignId);
                 }
-                
+
                 if (request.CampaignRowId.HasValue)
                 {
                     query = query.Where(x => x.CampaignBoxId == request.CampaignRowId);

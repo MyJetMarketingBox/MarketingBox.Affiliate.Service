@@ -5,6 +5,7 @@ using MarketingBox.Affiliate.Service.Domain.Models.Affiliates;
 using MarketingBox.Affiliate.Service.Domain.Models.Brands;
 using MarketingBox.Affiliate.Service.Domain.Models.CampaignRows;
 using MarketingBox.Affiliate.Service.Domain.Models.Campaigns;
+using MarketingBox.Affiliate.Service.Domain.Models.Country;
 using MarketingBox.Affiliate.Service.Domain.Models.Integrations;
 using MarketingBox.Affiliate.Service.Domain.Models.Offers;
 using Microsoft.EntityFrameworkCore;
@@ -29,6 +30,8 @@ namespace MarketingBox.Affiliate.Postgres
         private const string AffiliateSubParamsTableName = "affiliatesubparam";
         private const string OfferTableName = "offers";
         private const string OfferSubParamsTableName = "offersubparams";
+        private const string GeoTableName = "geos";
+        private const string CountryTableName = "countries";
 
         public DbSet<AffiliateEntity> Affiliates { get; set; }
         public DbSet<AffiliateAccessEntity> AffiliateAccess { get; set; }
@@ -44,6 +47,8 @@ namespace MarketingBox.Affiliate.Postgres
 
         public DbSet<Offer> Offers { get; set; }
         public DbSet<OfferSubParameter> SubParameters { get; set; }
+        public DbSet<Country> Countries { get; set; }
+        public DbSet<Geo> Geos { get; set; }
         
         public DatabaseContext(DbContextOptions options) : base(options)
         {
@@ -70,8 +75,34 @@ namespace MarketingBox.Affiliate.Postgres
             SetAffiliateSubParamEntity(modelBuilder);
             SetOffer(modelBuilder);
             SetSubParam(modelBuilder);
+            SetCountry(modelBuilder);
+            SetCountryBox(modelBuilder);
 
             base.OnModelCreating(modelBuilder);
+        }
+
+        private void SetCountryBox(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Geo>().ToTable(GeoTableName);
+            modelBuilder.Entity<Geo>().HasKey(x => x.Id);
+            modelBuilder.Entity<Geo>().HasIndex(x => x.Name).IsUnique();
+            modelBuilder.Entity<Geo>().Property(x => x.Name).IsRequired();
+            modelBuilder.Entity<Geo>().HasIndex(x => x.CreatedAt);
+            modelBuilder.Entity<Geo>()
+                .HasMany<CampaignRowEntity>()
+                .WithOne(x => x.Geo)
+                .HasForeignKey(x => x.GeoId);
+        }
+
+        private void SetCountry(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Country>().ToTable(CountryTableName);
+            modelBuilder.Entity<Country>().HasKey(x => x.Id);
+            modelBuilder.Entity<Country>().HasIndex(x => x.Name).IsUnique();
+            modelBuilder.Entity<Country>().Property(x => x.Name).IsRequired();
+            modelBuilder.Entity<Country>().Property(x => x.Alfa2Code).IsRequired();
+            modelBuilder.Entity<Country>().Property(x => x.Alfa3Code).IsRequired();
+            modelBuilder.Entity<Country>().Property(x => x.Numeric).IsRequired();
         }
 
         private void SetOffer(ModelBuilder modelBuilder)
@@ -163,7 +194,6 @@ namespace MarketingBox.Affiliate.Postgres
                 .HasOne(x => x.Campaign)
                 .WithMany(x => x.CampaignBoxes)
                 .HasForeignKey(x => x.CampaignId);
-
             modelBuilder.Entity<CampaignRowEntity>()
                 .HasOne(x => x.Brand)
                 .WithMany(x => x.CampaignBoxes)
@@ -180,7 +210,6 @@ namespace MarketingBox.Affiliate.Postgres
 
             modelBuilder.Entity<CampaignRowEntity>().HasIndex(e => new {e.CampaignId});
             modelBuilder.Entity<CampaignRowEntity>().HasIndex(e => new {e.BrandId});
-            modelBuilder.Entity<CampaignRowEntity>().HasIndex(e => new { e.CountryCode });
         }
 
         private void SetIntegrationEntity(ModelBuilder modelBuilder)

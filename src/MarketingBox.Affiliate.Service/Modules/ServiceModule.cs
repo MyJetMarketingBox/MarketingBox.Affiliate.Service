@@ -1,5 +1,7 @@
 ﻿using Autofac;
+using FluentValidation;
 using MarketingBox.Affiliate.Postgres;
+using MarketingBox.Affiliate.Service.Domain.Models.Country;
 using MarketingBox.Affiliate.Service.Engines;
 using MarketingBox.Affiliate.Service.Grpc;
 using MarketingBox.Affiliate.Service.Messages;
@@ -16,6 +18,7 @@ using MarketingBox.Affiliate.Service.MyNoSql.Integrations;
 using MarketingBox.Affiliate.Service.Repositories;
 using MarketingBox.Affiliate.Service.Services;
 using MarketingBox.Affiliate.Service.Subscribers;
+using MarketingBox.Affiliate.Service.Validators;
 using MarketingBox.Auth.Service.Client;
 using MyJetWallet.Sdk.NoSql;
 using MyJetWallet.Sdk.ServiceBus;
@@ -136,6 +139,21 @@ namespace MarketingBox.Affiliate.Service.Modules
                 .As<IOfferService>()
                 .SingleInstance();
         }
+        private void SetupCountries(ContainerBuilder builder)
+        {
+            builder.RegisterType<CountryRepository>()
+                .As<ICountryRepository>()
+                .SingleInstance();
+            builder.RegisterType<GeoRepository>()
+                .As<IGeoRepository>()
+                .SingleInstance();
+        }
+        private void SetupValidators(ContainerBuilder builder)
+        {
+            builder.RegisterType<GeoValidator>()
+                .As<IValidator<Geo>>()
+                .SingleInstance();
+        }
 
         protected override void Load(ContainerBuilder builder)
         {
@@ -160,6 +178,8 @@ namespace MarketingBox.Affiliate.Service.Modules
             SetupBrands(builder, serviceBusClient);
             SetupCampaignRows(builder);
             SetupOffers(builder);
+            SetupCountries(builder);
+            SetupValidators(builder);
         }
     }
 }

@@ -28,7 +28,7 @@ namespace MarketingBox.Affiliate.Service.Grpc.Models.CampaignRows
         [DataMember(Order = 10)] public string Information { get; set; }
 
         [DataMember(Order = 11)] public bool EnableTraffic { get; set; }
-
-        [DataMember(Order = 12)] public long Sequence { get; set; }
+        [DataMember(Order = 12)] public int? GeoId { get; set; }
+        [DataMember(Order = 13)] public string GeoName { get; set; }
     }
 }
