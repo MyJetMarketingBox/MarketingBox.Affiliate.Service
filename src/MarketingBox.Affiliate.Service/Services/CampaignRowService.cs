@@ -42,7 +42,8 @@ namespace MarketingBox.Affiliate.Service.Services
                     }).ToList(),
                 CampaignRowId = campaignRowEntity.CampaignBoxId,
                 CapType = campaignRowEntity.CapType.MapEnum<CapType>(),
-
+                GeoId = campaignRowEntity.GeoId,
+                GeoName = campaignRowEntity.Geo?.Name,
                 DailyCapValue = campaignRowEntity.DailyCapValue,
                 EnableTraffic = campaignRowEntity.EnableTraffic,
                 Information = campaignRowEntity.Information,
@@ -89,7 +90,7 @@ namespace MarketingBox.Affiliate.Service.Services
 
             try
             {
-                var geoExists = ctx.Geos.FirstOrDefault(x => x.Id == request.GeoId) is null;
+                var geoExists = ctx.Geos.FirstOrDefault(x => x.Id == request.GeoId) is not null;
                 if (!geoExists)
                 {
                     throw new NotFoundException(nameof(request.GeoId), request.GeoId);
@@ -145,7 +146,7 @@ namespace MarketingBox.Affiliate.Service.Services
 
             try
             {
-                var geoExists = ctx.Geos.FirstOrDefault(x => x.Id == request.GeoId) is null;
+                var geoExists = ctx.Geos.FirstOrDefault(x => x.Id == request.GeoId) is not null;
                 if (!geoExists)
                 {
                     throw new NotFoundException(nameof(request.GeoId), request.GeoId);
@@ -225,7 +226,9 @@ namespace MarketingBox.Affiliate.Service.Services
 
             try
             {
-                var campaignRowEntity = await ctx.CampaignRows.FirstOrDefaultAsync(x => x.CampaignBoxId == request.CampaignRowId);
+                var campaignRowEntity = await ctx.CampaignRows
+                    .Include(x => x.Geo)
+                    .FirstOrDefaultAsync(x => x.CampaignBoxId == request.CampaignRowId);
                 if (campaignRowEntity is null)
                 {
                     throw new NotFoundException(nameof(request.CampaignRowId), request.CampaignRowId);
@@ -284,7 +287,9 @@ namespace MarketingBox.Affiliate.Service.Services
 
             try
             {
-                var query = ctx.CampaignRows.AsQueryable();
+                var query = ctx.CampaignRows
+                    .Include(x=>x.Geo)
+                    .AsQueryable();
 
                 if (request.BrandId.HasValue)
                 {
