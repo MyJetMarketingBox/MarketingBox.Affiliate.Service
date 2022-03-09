@@ -16,6 +16,15 @@ namespace MarketingBox.Affiliate.Service.Repositories
         private readonly ILogger<GeoRepository> _logger;
         private readonly DbContextOptionsBuilder<DatabaseContext> _dbContextOptionsBuilder;
 
+        private static void ValidateExistingNames(Geo request, DatabaseContext context)
+        {
+            var nameExists = context.Geos.Any(x => x.Name == request.Name);
+            if (nameExists)
+            {
+                throw new AlreadyExistsException(nameof(request.Name), request.Name);
+            }
+        }
+        
         public GeoRepository(
             ILogger<GeoRepository> logger,
             DbContextOptionsBuilder<DatabaseContext> dbContextOptionsBuilder)
@@ -105,6 +114,16 @@ namespace MarketingBox.Affiliate.Service.Repositories
                     throw new NotFoundException("Geo with id", id);
                 }
 
+                var campaignRows = context.CampaignRows
+                    .Where(x => x.GeoId == id)
+                    .Select(x => x.CampaignBoxId)
+                    .ToList();
+                if (campaignRows.Any())
+                {
+                    throw new BadRequestException(
+                        $"Geo with id {id} is used by campaign rows: {string.Join(',', campaignRows)}.");
+                }
+
                 context.Geos.Remove(result);
                 await context.SaveChangesAsync();
             }
@@ -120,12 +139,15 @@ namespace MarketingBox.Affiliate.Service.Repositories
             try
             {
                 await using var context = new DatabaseContext(_dbContextOptionsBuilder.Options);
+
                 var geo = new Geo
                 {
                     CreatedAt = DateTime.UtcNow,
                     CountryIds = request.CountryIds,
                     Name = request.Name
                 };
+                ValidateExistingNames(geo, context);
+                
                 context.Geos.Add(geo);
                 await context.SaveChangesAsync();
                 
@@ -149,9 +171,12 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 {
                     throw new NotFoundException("Geo with id", request.Id);
                 }
-
+                
                 result.Name = request.Name;
                 result.CountryIds = request.CountryIds;
+                
+                ValidateExistingNames(result, context);
+
                 await context.SaveChangesAsync();
                 return await GetAsync(result.Id);
             }
