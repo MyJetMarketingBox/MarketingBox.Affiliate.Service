@@ -26,7 +26,7 @@ namespace MarketingBox.Affiliate.Service.Client
         public static void RegisterCountryClient(
             this ContainerBuilder builder,
             string grpcServiceUrl,
-            MyNoSqlTcpClient noSqlClient)
+            IMyNoSqlSubscriber noSqlClient)
         {
             var factory = new AffiliateServiceClientFactory(grpcServiceUrl);
             builder.RegisterInstance(factory.GetCountryService()).As<ICountryService>().SingleInstance();
