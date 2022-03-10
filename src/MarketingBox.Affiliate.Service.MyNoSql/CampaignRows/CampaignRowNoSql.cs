@@ -1,4 +1,5 @@
 ﻿using MarketingBox.Affiliate.Service.Domain.Models.CampaignRows;
+using MarketingBox.Affiliate.Service.Domain.Models.Country;
 using MyNoSqlServer.Abstractions;
 
 namespace MarketingBox.Affiliate.Service.MyNoSql.CampaignRows
@@ -16,7 +17,7 @@ namespace MarketingBox.Affiliate.Service.MyNoSql.CampaignRows
 
         public long BrandId { get; set; }
 
-        public int? GeoId { get; set; }
+        public Geo Geo { get; set; }
 
         public int Priority { get; set; }
 
@@ -36,7 +37,7 @@ namespace MarketingBox.Affiliate.Service.MyNoSql.CampaignRows
             long campaignId,
             long campaignRowId,
             long brandId,
-            int? GeoId,
+            Geo geo,
             int priority,
             int weight,
             CapType capType,
@@ -53,7 +54,7 @@ namespace MarketingBox.Affiliate.Service.MyNoSql.CampaignRows
                 ActivityHours = activityHours,
                 CampaignRowId = campaignRowId,
                 CapType = capType,
-                GeoId = GeoId,
+                Geo = geo,
                 DailyCapValue = dailyCapValue,
                 EnableTraffic = enableTraffic,
                 Information =information,

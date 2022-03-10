@@ -15,6 +15,7 @@ using MarketingBox.Affiliate.Service.MyNoSql.CampaignRows;
 using MarketingBox.Sdk.Common.Exceptions;
 using MarketingBox.Sdk.Common.Extensions;
 using MarketingBox.Sdk.Common.Models.Grpc;
+using Newtonsoft.Json;
 using ActivityHours = MarketingBox.Affiliate.Service.Domain.Models.CampaignRows.ActivityHours;
 using CapType = MarketingBox.Affiliate.Service.Domain.Models.CampaignRows.CapType;
 
@@ -58,7 +59,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 campaignRowEntity.CampaignId,
                 campaignRowEntity.CampaignBoxId,
                 campaignRowEntity.BrandId,
-                campaignRowEntity.GeoId,
+                campaignRowEntity.Geo,
                 campaignRowEntity.Priority,
                 campaignRowEntity.Weight,
                 campaignRowEntity.CapType.MapEnum<CapType>(),
@@ -90,8 +91,8 @@ namespace MarketingBox.Affiliate.Service.Services
 
             try
             {
-                var geoExists = ctx.Geos.FirstOrDefault(x => x.Id == request.GeoId) is not null;
-                if (!geoExists)
+                var geo = ctx.Geos.FirstOrDefault(x => x.Id == request.GeoId);
+                if (geo is null)
                 {
                     throw new NotFoundException(nameof(request.GeoId), request.GeoId);
                 }
@@ -115,10 +116,9 @@ namespace MarketingBox.Affiliate.Service.Services
                     Priority = request.Priority,
                     Weight = request.Weight
                 };
-
                 ctx.CampaignRows.Add(campaignRowEntity);
                 await ctx.SaveChangesAsync();
-
+                
                 var nosql = MapToNoSql(campaignRowEntity);
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 _logger.LogInformation("Sent campaignRow update to MyNoSql {@Context}", request);
