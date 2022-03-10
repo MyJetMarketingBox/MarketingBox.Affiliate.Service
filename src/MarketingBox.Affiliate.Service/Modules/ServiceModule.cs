@@ -14,6 +14,7 @@ using MarketingBox.Affiliate.Service.MyNoSql.Affiliates;
 using MarketingBox.Affiliate.Service.MyNoSql.Brands;
 using MarketingBox.Affiliate.Service.MyNoSql.CampaignRows;
 using MarketingBox.Affiliate.Service.MyNoSql.Campaigns;
+using MarketingBox.Affiliate.Service.MyNoSql.Country;
 using MarketingBox.Affiliate.Service.MyNoSql.Integrations;
 using MarketingBox.Affiliate.Service.Repositories;
 using MarketingBox.Affiliate.Service.Services;
@@ -141,6 +142,8 @@ namespace MarketingBox.Affiliate.Service.Modules
         }
         private void SetupCountries(ContainerBuilder builder)
         {
+            builder.RegisterMyNoSqlWriter<CountriesNoSql>(Program.ReloadedSettings(e => e.MyNoSqlWriterUrl),
+                CountriesNoSql.TableName);
             builder.RegisterType<CountryRepository>()
                 .As<ICountryRepository>()
                 .SingleInstance();

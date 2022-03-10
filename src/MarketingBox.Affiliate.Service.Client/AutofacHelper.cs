@@ -1,5 +1,8 @@
 ﻿using Autofac;
 using MarketingBox.Affiliate.Service.Grpc;
+using MarketingBox.Affiliate.Service.MyNoSql.Country;
+using MyJetWallet.Sdk.NoSql;
+using MyNoSqlServer.DataReader;
 
 // ReSharper disable UnusedMember.Global
 
@@ -19,6 +22,16 @@ namespace MarketingBox.Affiliate.Service.Client
             builder.RegisterInstance(factory.GetCampaignRowService()).As<ICampaignRowService>().SingleInstance();
             builder.RegisterInstance(factory.GetCountryService()).As<ICountryService>().SingleInstance();
             builder.RegisterInstance(factory.GetGeoService()).As<IGeoService>().SingleInstance();
+        }
+        public static void RegisterCountryClient(
+            this ContainerBuilder builder,
+            string grpcServiceUrl,
+            MyNoSqlTcpClient noSqlClient)
+        {
+            var factory = new AffiliateServiceClientFactory(grpcServiceUrl);
+            builder.RegisterInstance(factory.GetCountryService()).As<ICountryService>().SingleInstance();
+            builder.RegisterType<CountryClient>().As<ICountryClient>().SingleInstance();
+            builder.RegisterMyNoSqlReader<CountriesNoSql>(noSqlClient, CountriesNoSql.TableName);
         }
     }
 }
