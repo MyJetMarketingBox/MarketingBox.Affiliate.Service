@@ -5,7 +5,6 @@ using MarketingBox.Affiliate.Service.Domain.Models.Country;
 using MarketingBox.Affiliate.Service.Engines;
 using MarketingBox.Affiliate.Service.Grpc;
 using MarketingBox.Affiliate.Service.Messages;
-using MarketingBox.Affiliate.Service.Messages.AffiliateAccesses;
 using MarketingBox.Affiliate.Service.Messages.Affiliates;
 using MarketingBox.Affiliate.Service.Messages.Brands;
 using MarketingBox.Affiliate.Service.Messages.Campaigns;
@@ -84,22 +83,6 @@ namespace MarketingBox.Affiliate.Service.Modules
                 CampaignIndexNoSql.TableName);
         }
 
-        private static void SetupAffiliateAccess(ContainerBuilder builder, MyServiceBusTcpClient serviceBusClient)
-        {
-            // publisher (IServiceBusPublisher<AffiliateUpdated>)
-            builder.RegisterMyServiceBusPublisher<AffiliateAccessUpdated>(serviceBusClient,
-                Topics.AffiliateAccessUpdatedTopic,
-                false);
-
-            // publisher (IServiceBusPublisher<AffiliateRemoved>)
-            builder.RegisterMyServiceBusPublisher<AffiliateAccessRemoved>(serviceBusClient,
-                Topics.AffiliateAccessRemovedTopic,
-                false);
-
-            //// register writer (IMyNoSqlServerDataWriter<AffiliateNoSql>)
-            //builder.RegisterMyNoSqlWriter<AffiliateNoSql>(Program.ReloadedSettings(e => e.MyNoSqlWriterUrl), AffiliateNoSql.TableName);
-        }
-
         private static void SetupAffiliates(ContainerBuilder builder, MyServiceBusTcpClient serviceBusClient)
         {
             builder.RegisterMyServiceBusSubscriberSingle<AffiliateDeleteMessage>(serviceBusClient,
@@ -173,7 +156,6 @@ namespace MarketingBox.Affiliate.Service.Modules
             
             
             SetupAffiliates(builder, serviceBusClient);
-            SetupAffiliateAccess(builder, serviceBusClient);
             SetupCampaigns(builder, serviceBusClient);
             SetupIntegrations(builder, serviceBusClient);
             SetupBrands(builder, serviceBusClient);

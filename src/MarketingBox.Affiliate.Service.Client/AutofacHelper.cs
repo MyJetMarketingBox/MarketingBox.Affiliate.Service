@@ -15,7 +15,6 @@ namespace MarketingBox.Affiliate.Service.Client
             var factory = new AffiliateServiceClientFactory(grpcServiceUrl);
 
             builder.RegisterInstance(factory.GetAffiliateService()).As<IAffiliateService>().SingleInstance();
-            builder.RegisterInstance(factory.GetAffiliateAccessService()).As<IAffiliateAccessService>().SingleInstance();
             builder.RegisterInstance(factory.GetCampaignService()).As<ICampaignService>().SingleInstance();
             builder.RegisterInstance(factory.GetIntegrationService()).As<IIntegrationService>().SingleInstance();
             builder.RegisterInstance(factory.GetBrandService()).As<IBrandService>().SingleInstance();

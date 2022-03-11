@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using MarketingBox.Affiliate.Service.Client;
 using MarketingBox.Affiliate.Service.Domain.Models.Affiliates;
 using MarketingBox.Affiliate.Service.Domain.Models.Common;
-using MarketingBox.Affiliate.Service.Grpc.Models.AffiliateAccesses.Requests;
 using MarketingBox.Affiliate.Service.Grpc.Models.Affiliates;
 using MarketingBox.Affiliate.Service.Grpc.Models.Affiliates.Requests;
 using ProtoBuf.Grpc.Client;
@@ -21,16 +20,8 @@ namespace TestApp
             var testTenant = "default-tenant-id";
             var factory = new AffiliateServiceClientFactory("http://localhost:12347");
             var affiliateService = factory.GetAffiliateService();
-            var affiliateAccessService = factory.GetAffiliateAccessService();
             var boxClient = factory.GetCampaignService();
             var campaignBoxClient = factory.GetCampaignRowService();
-
-            var access = await affiliateAccessService.CreateAsync(new AffiliateAccessCreateRequest()
-            {
-                TenantId = testTenant,
-                AffiliateId =10,
-                MasterAffiliateId =9
-            });
 
             var affiliateCreateRequestMaster = new AffiliateCreateRequest()
             {

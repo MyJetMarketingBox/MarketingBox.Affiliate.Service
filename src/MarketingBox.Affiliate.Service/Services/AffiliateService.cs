@@ -14,7 +14,6 @@ using System.Text;
 using System.Threading.Tasks;
 using MarketingBox.Affiliate.Service.Domain.Models.Affiliates;
 using MarketingBox.Affiliate.Service.Domain.Models.Common;
-using MarketingBox.Affiliate.Service.Grpc.Models.AffiliateAccesses.Requests;
 using MarketingBox.Affiliate.Service.Grpc.Models.Affiliates;
 using MarketingBox.Affiliate.Service.Grpc.Models.Affiliates.Requests;
 using MarketingBox.Affiliate.Service.Messages.Affiliates;
@@ -39,7 +38,6 @@ namespace MarketingBox.Affiliate.Service.Services
         private readonly IServiceBusPublisher<AffiliateUpdated> _publisherPartnerUpdated;
         private readonly IMyNoSqlServerDataWriter<AffiliateNoSql> _myNoSqlServerDataWriter;
         private readonly IUserService _userService;
-        private readonly IAffiliateAccessService _affiliateAccessService;
 
         private static AffiliateEntity GetAffiliateEntity(AffiliateCreateRequest request)
         {
@@ -266,14 +264,12 @@ namespace MarketingBox.Affiliate.Service.Services
             IServiceBusPublisher<AffiliateUpdated> publisherPartnerUpdated,
             IMyNoSqlServerDataWriter<AffiliateNoSql> myNoSqlServerDataWriter,
             IUserService userService,
-            IAffiliateAccessService affiliateAccessService,
             DatabaseContextFactory databaseContextFactory)
         {
             _logger = logger;
             _publisherPartnerUpdated = publisherPartnerUpdated;
             _myNoSqlServerDataWriter = myNoSqlServerDataWriter;
             _userService = userService;
-            _affiliateAccessService = affiliateAccessService;
             _databaseContextFactory = databaseContextFactory;
         }
         
@@ -408,29 +404,6 @@ namespace MarketingBox.Affiliate.Service.Services
                 ctx.Affiliates.Add(affiliateEntity);
                 await ctx.SaveChangesAsync();
 
-                if (affiliateEntity.GeneralInfoRole == AffiliateRole.Affiliate ||
-                    affiliateEntity.GeneralInfoRole == AffiliateRole.MasterAffiliate ||
-                    affiliateEntity.GeneralInfoRole == AffiliateRole.MasterAffiliateReferral)
-                {
-                    await _affiliateAccessService.CreateAsync(new AffiliateAccessCreateRequest()
-                    {
-                        TenantId = request.TenantId,
-                        AffiliateId = affiliateEntity.AffiliateId,
-                        MasterAffiliateId = affiliateEntity.AffiliateId,
-                    });
-                }
-
-                var masterAffiliateId = request.MasterAffiliateId;
-
-                if (masterAffiliateId.HasValue)
-                {
-                    await _affiliateAccessService.CreateAsync(new AffiliateAccessCreateRequest()
-                    {
-                        TenantId = request.TenantId,
-                        AffiliateId = affiliateEntity.AffiliateId,
-                        MasterAffiliateId = masterAffiliateId.Value,
-                    });
-                }
                 await CreateOrUpdateUser(request.TenantId, affiliateEntity);
                 
                 var nosql = MapToNoSql(affiliateEntity);
