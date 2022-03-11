@@ -16,10 +16,11 @@ namespace MarketingBox.Affiliate.Service.Repositories
         private readonly ILogger<GeoRepository> _logger;
         private readonly DbContextOptionsBuilder<DatabaseContext> _dbContextOptionsBuilder;
 
-        private static void ValidateExistingNames(Geo request, DatabaseContext context)
+        private static async Task ValidateExistingNames(Geo request, DatabaseContext context, int? id = null)
         {
-            var nameExists = context.Geos.Any(x => x.Name == request.Name);
-            if (nameExists)
+            var geoWithName = await context.Geos.FirstOrDefaultAsync(x => x.Name == request.Name);
+            if ((id.HasValue && geoWithName != null && geoWithName.Id != id) ||
+                (!id.HasValue && geoWithName != null))
             {
                 throw new AlreadyExistsException(nameof(request.Name), request.Name);
             }
@@ -146,7 +147,7 @@ namespace MarketingBox.Affiliate.Service.Repositories
                     CountryIds = request.CountryIds,
                     Name = request.Name
                 };
-                ValidateExistingNames(geo, context);
+                await ValidateExistingNames(geo, context);
                 
                 context.Geos.Add(geo);
                 await context.SaveChangesAsync();
@@ -174,8 +175,8 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 
                 result.Name = request.Name;
                 result.CountryIds = request.CountryIds;
-                
-                ValidateExistingNames(result, context);
+
+                await ValidateExistingNames(result, context, result.Id);
 
                 await context.SaveChangesAsync();
                 return await GetAsync(result.Id);

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using FluentValidation;
 using MarketingBox.Affiliate.Service.Domain.Models.Country;
@@ -70,8 +71,10 @@ namespace MarketingBox.Affiliate.Service.Services
             {
                 await _validator.ValidateAndThrowAsync(new Geo
                     {Name = request.Name, CountryIds = request.CountryIds});
+                
+                request.CountryIds = request.CountryIds.Distinct().ToArray();
+                
                 var result = await _repository.CreateAsync(request);
-
 
                 return new Response<Geo>
                 {
@@ -92,7 +95,11 @@ namespace MarketingBox.Affiliate.Service.Services
             {
                 await _validator.ValidateAndThrowAsync(new Geo
                     {Name = request.Name, CountryIds = request.CountryIds});
+                
+                request.CountryIds = request.CountryIds.Distinct().ToArray();
+                
                 var result = await _repository.UpdateAsync(request);
+                
                 return new Response<Geo>
                 {
                     Status = ResponseStatus.Ok,
