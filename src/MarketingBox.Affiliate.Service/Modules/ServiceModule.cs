@@ -98,8 +98,6 @@ namespace MarketingBox.Affiliate.Service.Modules
 
             //// register writer (IMyNoSqlServerDataWriter<AffiliateNoSql>)
             //builder.RegisterMyNoSqlWriter<AffiliateNoSql>(Program.ReloadedSettings(e => e.MyNoSqlWriterUrl), AffiliateNoSql.TableName);
-
-            builder.RegisterType<AffiliateAccessService>().As<IAffiliateAccessService>();
         }
 
         private static void SetupAffiliates(ContainerBuilder builder, MyServiceBusTcpClient serviceBusClient)

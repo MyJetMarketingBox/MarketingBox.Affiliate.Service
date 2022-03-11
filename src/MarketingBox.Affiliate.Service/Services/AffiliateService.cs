@@ -491,16 +491,6 @@ namespace MarketingBox.Affiliate.Service.Services
             };
             try
             {
-                if (request.MasterAffiliateId.HasValue)
-                {
-                    var access = await ctx.AffiliateAccess
-                        .FirstOrDefaultAsync(x => x.MasterAffiliateId == request.MasterAffiliateId 
-                        && affiliateEntity.AffiliateId == x.AffiliateId);
-
-                    if (access == null)
-                        throw new UnauthorizedException(
-                            $"There is no access for master affiliate with id:{request.MasterAffiliateId.Value}");
-                }
                 var affectedRows = ctx.Affiliates
                     .Where(x => x.AffiliateId == affiliateEntity.AffiliateId &&
                                 x.Sequence < affiliateEntity.Sequence)

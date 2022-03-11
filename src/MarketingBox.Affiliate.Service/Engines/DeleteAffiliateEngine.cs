@@ -60,7 +60,6 @@ namespace MarketingBox.Affiliate.Service.Engines
                     TenantId = partnerEntity.TenantId
                 });
                 await _userService.DeleteAsync(new DeleteUserRequest() { TenantId = partnerEntity.TenantId, ExternalUserId = affiliateId.ToString() });
-                await ctx.AffiliateAccess.Where(e => e.AffiliateId == affiliateId).DeleteFromQueryAsync();
                 await ctx.Affiliates.Where(x => x.AffiliateId == partnerEntity.AffiliateId).DeleteFromQueryAsync();
             }
             catch (Exception e)
