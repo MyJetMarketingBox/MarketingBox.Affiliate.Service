@@ -9,9 +9,6 @@ namespace MarketingBox.Affiliate.Service.Validators
         public GeoValidator()
         {
             ValidatorOptions.Global.LanguageManager.Enabled = false;
-            RuleFor(x => x.Id)
-                .NotNull()
-                .GreaterThan(0);
             RuleFor(x => x.Name)
                 .NotEmpty()
                 .Length(1,128);
