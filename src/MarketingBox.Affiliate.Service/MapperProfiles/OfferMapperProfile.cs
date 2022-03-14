@@ -1,6 +1,6 @@
 using AutoMapper;
 using MarketingBox.Affiliate.Service.Domain.Models.Offers;
-using MarketingBox.Affiliate.Service.Domain.Models.Offers.Requests;
+using MarketingBox.Affiliate.Service.Grpc.Requests.Offers;
 
 namespace MarketingBox.Affiliate.Service.MapperProfiles
 {

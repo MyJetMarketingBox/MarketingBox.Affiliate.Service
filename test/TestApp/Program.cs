@@ -3,8 +3,7 @@ using System.Threading.Tasks;
 using MarketingBox.Affiliate.Service.Client;
 using MarketingBox.Affiliate.Service.Domain.Models.Affiliates;
 using MarketingBox.Affiliate.Service.Domain.Models.Common;
-using MarketingBox.Affiliate.Service.Grpc.Models.Affiliates;
-using MarketingBox.Affiliate.Service.Grpc.Models.Affiliates.Requests;
+using MarketingBox.Affiliate.Service.Grpc.Requests.Affiliates;
 using ProtoBuf.Grpc.Client;
 
 namespace TestApp
@@ -20,24 +19,21 @@ namespace TestApp
             var testTenant = "default-tenant-id";
             var factory = new AffiliateServiceClientFactory("http://localhost:12347");
             var affiliateService = factory.GetAffiliateService();
-            var boxClient = factory.GetCampaignService();
-            var campaignBoxClient = factory.GetCampaignRowService();
-
             var affiliateCreateRequestMaster = new AffiliateCreateRequest()
             {
                 TenantId = testTenant,
-                Company = new AffiliateCompany()
+                Company = new Company()
                 {
                     Address = "a1",
                     Name = "a2",
                     RegNumber = "a3",
                     VatId = "a4"
                 },
-                Bank = new AffiliateBank()
+                Bank = new Bank()
                 {
                     AccountNumber = "a1",
-                    BankAddress = "a1",
-                    BankName = "a1",
+                    Address = "a1",
+                    Name = "a1",
                     BeneficiaryAddress = "a1",
                     BeneficiaryName = "a1",
                     Iban = "a1",
@@ -45,15 +41,14 @@ namespace TestApp
                 }
             };
 
-            affiliateCreateRequestMaster.GeneralInfo = new AffiliateGeneralInfo()
+            affiliateCreateRequestMaster.GeneralInfo = new GeneralInfo()
             {
                 Currency = Currency.CHF,
                 Email = "email1235678_1@email.com",
                 Password = "qwerty_123456",
                 Phone = "+79990999999",
-                Role = AffiliateRole.MasterAffiliate,
                 Skype = "skype",
-                State = AffiliateState.Active,
+                State = State.Active,
                 Username = "SomeTestUser123X",
                 ZipCode = "414141",
                 ApiKey = "123-456-789",
@@ -63,18 +58,18 @@ namespace TestApp
             var affiliateCreateRequest = new AffiliateCreateRequest()
             {
                 TenantId = testTenant,
-                Company = new AffiliateCompany()
+                Company = new Company()
                 {
                     Address = "a1",
                     Name = "a2",
                     RegNumber = "a3",
                     VatId = "a4"
                 },
-                Bank = new AffiliateBank()
+                Bank = new Bank()
                 {
                     AccountNumber = "a1",
-                    BankAddress = "a1",
-                    BankName = "a1",
+                    Address = "a1",
+                    Name = "a1",
                     BeneficiaryAddress = "a1",
                     BeneficiaryName = "a1",
                     Iban = "a1",
@@ -82,15 +77,14 @@ namespace TestApp
                 }
             };
 
-            affiliateCreateRequest.GeneralInfo = new AffiliateGeneralInfo()
+            affiliateCreateRequest.GeneralInfo = new GeneralInfo()
             {
                 Currency = Currency.CHF,
                 Email = "email12356789_2@email.com",
                 Password = "qwerty_123456",
                 Phone = "+79990999999",
-                Role = AffiliateRole.Affiliate,
                 Skype = "skype",
-                State = AffiliateState.Active,
+                State = State.Active,
                 Username = "SomeTestUser12345X",
                 ZipCode = "414141",
                 ApiKey = "123-456-789",
@@ -186,33 +180,32 @@ namespace TestApp
             var request = new AffiliateCreateRequest()
             {
                 TenantId = testTenant,
-                Company = new AffiliateCompany()
+                Company = new Company()
                 {
                     Address = "a1",
                     Name = "a2",
                     RegNumber = "a3",
                     VatId = "a4"
                 },
-                Bank = new AffiliateBank()
+                Bank = new Bank()
                 {
                     AccountNumber = "a1",
-                    BankAddress = "a1",
-                    BankName = "a1",
+                    Address = "a1",
+                    Name = "a1",
                     BeneficiaryAddress = "a1",
                     BeneficiaryName = "a1",
                     Iban = "a1",
                     Swift = "a1"
                 }
             };
-            request.GeneralInfo = new AffiliateGeneralInfo()
+            request.GeneralInfo = new GeneralInfo()
             {
                 Currency = Currency.CHF,
                 Email = "email123@email.com",
                 Password = "qwerty_123456",
                 Phone = "+79990999999",
-                Role = AffiliateRole.MasterAffiliate,
                 Skype = "skype",
-                State = AffiliateState.Active,
+                State = State.Active,
                 Username = "SomeTestUser1",
                 ZipCode = "414141",
                 ApiKey = "123-456-789",
@@ -221,11 +214,11 @@ namespace TestApp
 
             var partnerCreated = (await  affiliateService.CreateAsync(request)).Data;
 
-            Console.WriteLine(partnerCreated.AffiliateId);
+            Console.WriteLine(partnerCreated.Id);
 
             var partnerUpdated = (await affiliateService.UpdateAsync(new AffiliateUpdateRequest()
             {
-                AffiliateId = partnerCreated.AffiliateId,
+                AffiliateId = partnerCreated.Id,
                 TenantId = partnerCreated.TenantId,
                 Bank = request.Bank,
                 Company = request.Company,
@@ -240,7 +233,7 @@ namespace TestApp
 
             var shouldBeNull = await affiliateService.GetAsync(new AffiliateGetRequest()
             {
-                AffiliateId = partnerUpdated.AffiliateId,
+                AffiliateId = partnerUpdated.Id,
             });
 
             Console.WriteLine("End");

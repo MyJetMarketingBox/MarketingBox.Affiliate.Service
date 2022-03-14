@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.ServiceModel;
 using System.Threading.Tasks;
-using MarketingBox.Affiliate.Service.Grpc.Models.Brands;
-using MarketingBox.Affiliate.Service.Grpc.Models.Brands.Requests;
+using MarketingBox.Affiliate.Service.Domain.Models.Brands;
+using MarketingBox.Affiliate.Service.Grpc.Requests.Brands;
 using MarketingBox.Sdk.Common.Models.Grpc;
 
 namespace MarketingBox.Affiliate.Service.Grpc

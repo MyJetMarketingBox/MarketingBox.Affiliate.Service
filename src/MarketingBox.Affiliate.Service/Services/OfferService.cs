@@ -1,9 +1,10 @@
 using System;
 using System.Threading.Tasks;
 using MarketingBox.Affiliate.Service.Domain.Models.Offers;
-using MarketingBox.Affiliate.Service.Domain.Models.Offers.Requests;
 using MarketingBox.Affiliate.Service.Grpc;
+using MarketingBox.Affiliate.Service.Grpc.Requests.Offers;
 using MarketingBox.Affiliate.Service.Repositories;
+using MarketingBox.Affiliate.Service.Repositories.Interfaces;
 using MarketingBox.Sdk.Common.Extensions;
 using MarketingBox.Sdk.Common.Models.Grpc;
 using Microsoft.Extensions.Logging;
@@ -28,6 +29,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 var result = await _offerRepository.CreateAsync(request);
                 return new Response<Offer>
                 {
+                    Status = ResponseStatus.Ok,
                     Data = result
                 };
             }
@@ -44,6 +46,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 var result = await _offerRepository.GetAsync(requestById.Id);
                 return new Response<Offer>
                 {
+                    Status = ResponseStatus.Ok,
                     Data = result
                 };
             }
@@ -61,6 +64,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 await _offerRepository.DeleteAsync(requestById.Id);
                 return new Response<bool>
                 {
+                    Status = ResponseStatus.Ok,
                     Data = true
                 };
             }

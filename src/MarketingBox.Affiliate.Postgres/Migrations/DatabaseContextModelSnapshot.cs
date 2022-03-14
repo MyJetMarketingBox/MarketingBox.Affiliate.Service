@@ -23,110 +23,147 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Affiliates.AffiliateEntity", b =>
+            modelBuilder.Entity("AffiliateAffiliatePayout", b =>
                 {
-                    b.Property<long>("AffiliateId")
+                    b.Property<long>("AffiliatesId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("PayoutsId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("AffiliatesId", "PayoutsId");
+
+                    b.HasIndex("PayoutsId");
+
+                    b.ToTable("AffiliateAffiliatePayout", "affiliate-service");
+                });
+
+            modelBuilder.Entity("BrandBrandPayout", b =>
+                {
+                    b.Property<long>("BrandsId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("PayoutsId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("BrandsId", "PayoutsId");
+
+                    b.HasIndex("PayoutsId");
+
+                    b.ToTable("BrandBrandPayout", "affiliate-service");
+                });
+
+            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Affiliates.Affiliate", b =>
+                {
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("AffiliateId"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<long>("AccessIsGivenById")
+                    b.Property<string>("ApiKey")
+                        .HasColumnType("text");
+
+                    b.Property<long>("BankId")
                         .HasColumnType("bigint");
 
-                    b.Property<string>("BankAccountNumber")
-                        .HasColumnType("text");
+                    b.Property<long>("CompanyId")
+                        .HasColumnType("bigint");
 
-                    b.Property<string>("BankAddress")
-                        .HasColumnType("text");
-
-                    b.Property<string>("BankBeneficiaryAddress")
-                        .HasColumnType("text");
-
-                    b.Property<string>("BankBeneficiaryName")
-                        .HasColumnType("text");
-
-                    b.Property<string>("BankIban")
-                        .HasColumnType("text");
-
-                    b.Property<string>("BankName")
-                        .HasColumnType("text");
-
-                    b.Property<string>("BankSwift")
-                        .HasColumnType("text");
-
-                    b.Property<string>("CompanyAddress")
-                        .HasColumnType("text");
-
-                    b.Property<string>("CompanyName")
-                        .HasColumnType("text");
-
-                    b.Property<string>("CompanyRegNumber")
-                        .HasColumnType("text");
-
-                    b.Property<string>("CompanyVatId")
-                        .HasColumnType("text");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("GeneralInfoApiKey")
-                        .HasColumnType("text");
-
-                    b.Property<int>("GeneralInfoCurrency")
+                    b.Property<int>("Currency")
                         .HasColumnType("integer");
 
-                    b.Property<string>("GeneralInfoEmail")
-                        .HasColumnType("text");
-
-                    b.Property<string>("GeneralInfoPassword")
-                        .HasColumnType("text");
-
-                    b.Property<string>("GeneralInfoPhone")
-                        .HasColumnType("text");
-
-                    b.Property<int>("GeneralInfoRole")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("GeneralInfoSkype")
-                        .HasColumnType("text");
-
-                    b.Property<int>("GeneralInfoState")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("GeneralInfoUsername")
-                        .HasColumnType("text");
-
-                    b.Property<string>("GeneralInfoZipCode")
+                    b.Property<string>("Email")
                         .HasColumnType("text");
 
                     b.Property<string>("LandingUrl")
                         .HasColumnType("text");
 
-                    b.Property<long>("Sequence")
-                        .HasColumnType("bigint");
+                    b.Property<string>("Password")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Phone")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Skype")
+                        .HasColumnType("text");
+
+                    b.Property<int>("State")
+                        .HasColumnType("integer");
 
                     b.Property<string>("TenantId")
                         .HasColumnType("text");
 
-                    b.HasKey("AffiliateId");
+                    b.Property<string>("Username")
+                        .HasColumnType("text");
 
-                    b.HasIndex("TenantId", "AffiliateId");
+                    b.Property<string>("ZipCode")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BankId");
+
+                    b.HasIndex("CompanyId");
 
                     b.HasIndex("TenantId", "CreatedAt");
 
-                    b.HasIndex("TenantId", "GeneralInfoEmail")
+                    b.HasIndex("TenantId", "Email")
                         .IsUnique();
 
-                    b.HasIndex("TenantId", "GeneralInfoRole");
+                    b.HasIndex("TenantId", "Id");
 
-                    b.HasIndex("TenantId", "GeneralInfoUsername")
+                    b.HasIndex("TenantId", "Username")
                         .IsUnique();
 
                     b.ToTable("affiliates", "affiliate-service");
                 });
 
-            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Affiliates.AffiliateSubParamEntity", b =>
+            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Affiliates.AffiliatePayout", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("numeric");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Currency")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("GeoId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("ModifiedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("PayoutType")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("Currency");
+
+                    b.HasIndex("GeoId");
+
+                    b.HasIndex("ModifiedAt");
+
+                    b.HasIndex("PayoutType");
+
+                    b.ToTable("affiliate-payouts", "affiliate-service");
+                });
+
+            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Affiliates.AffiliateSubParam", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -147,10 +184,10 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("affiliatesubparam", "affiliate-service");
+                    b.ToTable("affiliate-subparam", "affiliate-service");
                 });
 
-            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Brands.BrandEntity", b =>
+            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Affiliates.Bank", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -158,17 +195,84 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<long>("IntegrationId")
+                    b.Property<string>("AccountNumber")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Address")
+                        .HasColumnType("text");
+
+                    b.Property<string>("BeneficiaryAddress")
+                        .HasColumnType("text");
+
+                    b.Property<string>("BeneficiaryName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Iban")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Swift")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("banks", "affiliate-service");
+                });
+
+            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Affiliates.Company", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Address")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("RegNumber")
+                        .HasColumnType("text");
+
+                    b.Property<string>("VatId")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("companies", "affiliate-service");
+                });
+
+            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Brands.Brand", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long?>("IntegrationId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("IntegrationType")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Name")
                         .HasColumnType("text");
 
                     b.Property<int>("Privacy")
                         .HasColumnType("integer");
-
-                    b.Property<long>("Sequence")
-                        .HasColumnType("bigint");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");
@@ -187,13 +291,54 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
                     b.ToTable("brands", "affiliate-service");
                 });
 
-            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.CampaignRows.CampaignRowEntity", b =>
+            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Brands.BrandPayout", b =>
                 {
-                    b.Property<long>("CampaignBoxId")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("CampaignBoxId"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("numeric");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Currency")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("GeoId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("ModifiedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("PayoutType")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("Currency");
+
+                    b.HasIndex("GeoId");
+
+                    b.HasIndex("ModifiedAt");
+
+                    b.HasIndex("PayoutType");
+
+                    b.ToTable("brand-payouts", "affiliate-service");
+                });
+
+            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.CampaignRows.CampaignRow", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<string>("ActivityHours")
                         .HasColumnType("text");
@@ -213,7 +358,7 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
                     b.Property<bool>("EnableTraffic")
                         .HasColumnType("boolean");
 
-                    b.Property<int?>("GeoId")
+                    b.Property<int>("GeoId")
                         .HasColumnType("integer");
 
                     b.Property<string>("Information")
@@ -225,7 +370,7 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
                     b.Property<int>("Weight")
                         .HasColumnType("integer");
 
-                    b.HasKey("CampaignBoxId");
+                    b.HasKey("Id");
 
                     b.HasIndex("BrandId");
 
@@ -236,7 +381,7 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
                     b.ToTable("campaign-rows", "affiliate-service");
                 });
 
-            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Campaigns.CampaignEntity", b =>
+            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Campaigns.Campaign", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -246,9 +391,6 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
 
                     b.Property<string>("Name")
                         .HasColumnType("text");
-
-                    b.Property<long>("Sequence")
-                        .HasColumnType("bigint");
 
                     b.Property<string>("TenantId")
                         .HasColumnType("text");
@@ -288,8 +430,14 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Alfa2Code");
+
+                    b.HasIndex("Alfa3Code");
+
                     b.HasIndex("Name")
                         .IsUnique();
+
+                    b.HasIndex("Numeric");
 
                     b.ToTable("countries", "affiliate-service");
                 });
@@ -322,7 +470,7 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
                     b.ToTable("geos", "affiliate-service");
                 });
 
-            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Integrations.IntegrationEntity", b =>
+            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Integrations.Integration", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -330,31 +478,13 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<long?>("AffiliateId")
-                        .HasColumnType("bigint");
-
-                    b.Property<int>("IntegrationType")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Name")
                         .HasColumnType("text");
-
-                    b.Property<long?>("OfferId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("Sequence")
-                        .HasColumnType("bigint");
 
                     b.Property<string>("TenantId")
                         .HasColumnType("text");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("AffiliateId");
-
-                    b.HasIndex("IntegrationType");
-
-                    b.HasIndex("OfferId");
 
                     b.HasIndex("TenantId", "Id");
 
@@ -371,20 +501,43 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<long>("BrnadId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("OfferLink")
+                    b.Property<string>("Link")
                         .HasColumnType("text");
 
-                    b.Property<string>("OfferName")
+                    b.Property<string>("Name")
                         .HasColumnType("text");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BrnadId");
-
                     b.ToTable("offers", "affiliate-service");
+                });
+
+            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Offers.OfferAffiliates", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("AffiliateId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("CampaignId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("OfferId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AffiliateId");
+
+                    b.HasIndex("CampaignId");
+
+                    b.HasIndex("OfferId");
+
+                    b.ToTable("offer-affiliates", "affiliate-service");
                 });
 
             modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Offers.OfferSubParameter", b =>
@@ -410,85 +563,108 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
 
                     b.HasIndex("OfferId");
 
-                    b.ToTable("offersubparams", "affiliate-service");
+                    b.ToTable("offer-subparams", "affiliate-service");
                 });
 
-            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Brands.BrandEntity", b =>
+            modelBuilder.Entity("AffiliateAffiliatePayout", b =>
                 {
-                    b.HasOne("MarketingBox.Affiliate.Service.Domain.Models.Integrations.IntegrationEntity", "Integration")
-                        .WithMany("Campaigns")
-                        .HasForeignKey("IntegrationId")
+                    b.HasOne("MarketingBox.Affiliate.Service.Domain.Models.Affiliates.Affiliate", null)
+                        .WithMany()
+                        .HasForeignKey("AffiliatesId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.OwnsOne("MarketingBox.Affiliate.Service.Domain.Models.Brands.Payout", "Payout", b1 =>
-                        {
-                            b1.Property<long>("BrandEntityId")
-                                .HasColumnType("bigint");
-
-                            b1.Property<decimal>("Amount")
-                                .HasColumnType("numeric");
-
-                            b1.Property<int>("Currency")
-                                .HasColumnType("integer");
-
-                            b1.Property<int>("Plan")
-                                .HasColumnType("integer");
-
-                            b1.HasKey("BrandEntityId");
-
-                            b1.ToTable("brands", "affiliate-service");
-
-                            b1.WithOwner()
-                                .HasForeignKey("BrandEntityId");
-                        });
-
-                    b.OwnsOne("MarketingBox.Affiliate.Service.Domain.Models.Brands.Revenue", "Revenue", b1 =>
-                        {
-                            b1.Property<long>("BrandEntityId")
-                                .HasColumnType("bigint");
-
-                            b1.Property<decimal>("Amount")
-                                .HasColumnType("numeric");
-
-                            b1.Property<int>("Currency")
-                                .HasColumnType("integer");
-
-                            b1.Property<int>("Plan")
-                                .HasColumnType("integer");
-
-                            b1.HasKey("BrandEntityId");
-
-                            b1.ToTable("brands", "affiliate-service");
-
-                            b1.WithOwner()
-                                .HasForeignKey("BrandEntityId");
-                        });
-
-                    b.Navigation("Integration");
-
-                    b.Navigation("Payout");
-
-                    b.Navigation("Revenue");
+                    b.HasOne("MarketingBox.Affiliate.Service.Domain.Models.Affiliates.AffiliatePayout", null)
+                        .WithMany()
+                        .HasForeignKey("PayoutsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
-            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.CampaignRows.CampaignRowEntity", b =>
+            modelBuilder.Entity("BrandBrandPayout", b =>
                 {
-                    b.HasOne("MarketingBox.Affiliate.Service.Domain.Models.Brands.BrandEntity", "Brand")
-                        .WithMany("CampaignBoxes")
+                    b.HasOne("MarketingBox.Affiliate.Service.Domain.Models.Brands.Brand", null)
+                        .WithMany()
+                        .HasForeignKey("BrandsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MarketingBox.Affiliate.Service.Domain.Models.Brands.BrandPayout", null)
+                        .WithMany()
+                        .HasForeignKey("PayoutsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Affiliates.Affiliate", b =>
+                {
+                    b.HasOne("MarketingBox.Affiliate.Service.Domain.Models.Affiliates.Bank", "Bank")
+                        .WithMany()
+                        .HasForeignKey("BankId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MarketingBox.Affiliate.Service.Domain.Models.Affiliates.Company", "Company")
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Bank");
+
+                    b.Navigation("Company");
+                });
+
+            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Affiliates.AffiliatePayout", b =>
+                {
+                    b.HasOne("MarketingBox.Affiliate.Service.Domain.Models.Country.Geo", "Geo")
+                        .WithMany()
+                        .HasForeignKey("GeoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Geo");
+                });
+
+            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Brands.Brand", b =>
+                {
+                    b.HasOne("MarketingBox.Affiliate.Service.Domain.Models.Integrations.Integration", "Integration")
+                        .WithMany("Brands")
+                        .HasForeignKey("IntegrationId");
+
+                    b.Navigation("Integration");
+                });
+
+            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Brands.BrandPayout", b =>
+                {
+                    b.HasOne("MarketingBox.Affiliate.Service.Domain.Models.Country.Geo", "Geo")
+                        .WithMany()
+                        .HasForeignKey("GeoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Geo");
+                });
+
+            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.CampaignRows.CampaignRow", b =>
+                {
+                    b.HasOne("MarketingBox.Affiliate.Service.Domain.Models.Brands.Brand", "Brand")
+                        .WithMany("CampaignRows")
                         .HasForeignKey("BrandId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("MarketingBox.Affiliate.Service.Domain.Models.Campaigns.CampaignEntity", "Campaign")
-                        .WithMany("CampaignBoxes")
+                    b.HasOne("MarketingBox.Affiliate.Service.Domain.Models.Campaigns.Campaign", "Campaign")
+                        .WithMany("CampaignRows")
                         .HasForeignKey("CampaignId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("MarketingBox.Affiliate.Service.Domain.Models.Country.Geo", "Geo")
                         .WithMany()
-                        .HasForeignKey("GeoId");
+                        .HasForeignKey("GeoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Brand");
 
@@ -497,24 +673,31 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
                     b.Navigation("Geo");
                 });
 
-            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Integrations.IntegrationEntity", b =>
+            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Offers.OfferAffiliates", b =>
                 {
-                    b.HasOne("MarketingBox.Affiliate.Service.Domain.Models.Affiliates.AffiliateEntity", null)
-                        .WithMany("Integrations")
-                        .HasForeignKey("AffiliateId");
-
-                    b.HasOne("MarketingBox.Affiliate.Service.Domain.Models.Offers.Offer", null)
-                        .WithMany("Integrations")
-                        .HasForeignKey("OfferId");
-                });
-
-            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Offers.Offer", b =>
-                {
-                    b.HasOne("MarketingBox.Affiliate.Service.Domain.Models.Brands.BrandEntity", null)
-                        .WithMany("Offers")
-                        .HasForeignKey("BrnadId")
+                    b.HasOne("MarketingBox.Affiliate.Service.Domain.Models.Affiliates.Affiliate", "Affiliate")
+                        .WithMany("OfferAffiliates")
+                        .HasForeignKey("AffiliateId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("MarketingBox.Affiliate.Service.Domain.Models.Campaigns.Campaign", "Campaign")
+                        .WithMany("OfferAffiliates")
+                        .HasForeignKey("CampaignId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MarketingBox.Affiliate.Service.Domain.Models.Offers.Offer", "Offer")
+                        .WithMany("OfferAffiliates")
+                        .HasForeignKey("OfferId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Affiliate");
+
+                    b.Navigation("Campaign");
+
+                    b.Navigation("Offer");
                 });
 
             modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Offers.OfferSubParameter", b =>
@@ -526,31 +709,31 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Affiliates.AffiliateEntity", b =>
+            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Affiliates.Affiliate", b =>
                 {
-                    b.Navigation("Integrations");
+                    b.Navigation("OfferAffiliates");
                 });
 
-            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Brands.BrandEntity", b =>
+            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Brands.Brand", b =>
                 {
-                    b.Navigation("CampaignBoxes");
-
-                    b.Navigation("Offers");
+                    b.Navigation("CampaignRows");
                 });
 
-            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Campaigns.CampaignEntity", b =>
+            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Campaigns.Campaign", b =>
                 {
-                    b.Navigation("CampaignBoxes");
+                    b.Navigation("CampaignRows");
+
+                    b.Navigation("OfferAffiliates");
                 });
 
-            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Integrations.IntegrationEntity", b =>
+            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Integrations.Integration", b =>
                 {
-                    b.Navigation("Campaigns");
+                    b.Navigation("Brands");
                 });
 
             modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Offers.Offer", b =>
                 {
-                    b.Navigation("Integrations");
+                    b.Navigation("OfferAffiliates");
 
                     b.Navigation("Parameters");
                 });

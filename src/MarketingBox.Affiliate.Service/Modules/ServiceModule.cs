@@ -1,6 +1,7 @@
 ﻿using Autofac;
 using FluentValidation;
 using MarketingBox.Affiliate.Postgres;
+using MarketingBox.Affiliate.Service.Domain.Models.Brands;
 using MarketingBox.Affiliate.Service.Domain.Models.Country;
 using MarketingBox.Affiliate.Service.Engines;
 using MarketingBox.Affiliate.Service.Grpc;
@@ -16,6 +17,7 @@ using MarketingBox.Affiliate.Service.MyNoSql.Campaigns;
 using MarketingBox.Affiliate.Service.MyNoSql.Country;
 using MarketingBox.Affiliate.Service.MyNoSql.Integrations;
 using MarketingBox.Affiliate.Service.Repositories;
+using MarketingBox.Affiliate.Service.Repositories.Interfaces;
 using MarketingBox.Affiliate.Service.Services;
 using MarketingBox.Affiliate.Service.Subscribers;
 using MarketingBox.Affiliate.Service.Validators;
@@ -39,7 +41,7 @@ namespace MarketingBox.Affiliate.Service.Modules
         private static void SetupBrands(ContainerBuilder builder, MyServiceBusTcpClient serviceBusClient)
         {
             // publisher (IServiceBusPublisher<BrandUpdated>)
-            builder.RegisterMyServiceBusPublisher<BrandUpdated>(serviceBusClient, Topics.BrandUpdatedTopic, false);
+            builder.RegisterMyServiceBusPublisher<BrandMessage>(serviceBusClient, Topics.BrandUpdatedTopic, false);
 
             // publisher (IServiceBusPublisher<BrandRemoved>)
             builder.RegisterMyServiceBusPublisher<BrandRemoved>(serviceBusClient, Topics.BrandRemovedTopic, false);

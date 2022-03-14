@@ -15,19 +15,15 @@ namespace MarketingBox.Affiliate.Service.MyNoSql.Integrations
 
         public string TenantId { get; set; }
 
-        public long SequenceId { get; set; }
-
         public static IntegrationNoSql Create(
             string tenantId,
             long integrationId,
-            string name,
-            long sequence) =>
+            string name) =>
             new()
             {
                 PartitionKey = GeneratePartitionKey(tenantId),
                 RowKey = GenerateRowKey(integrationId),
                 TenantId = tenantId,
-                SequenceId = sequence,
                 Name = name,
                 IntegrationId = integrationId,
             };

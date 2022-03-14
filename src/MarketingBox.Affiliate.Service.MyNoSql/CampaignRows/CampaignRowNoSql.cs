@@ -11,55 +11,15 @@ namespace MarketingBox.Affiliate.Service.MyNoSql.CampaignRows
         public static string GenerateRowKey(long campaignRowId) =>
             $"{campaignRowId}";
 
-        public long CampaignRowId { get; set; }
-
-        public long CampaignId { get; set; }
-
-        public long BrandId { get; set; }
-
-        public Geo Geo { get; set; }
-
-        public int Priority { get; set; }
-
-        public int Weight { get; set; }
-
-        public CapType CapType { get; set; }
-
-        public long DailyCapValue { get; set; }
-
-        public ActivityHours[] ActivityHours { get; set; }
-
-        public string Information { get; set; }
-
-        public bool EnableTraffic { get; set; }
+        public CampaignRow CampaignRow { get; set; }
 
         public static CampaignRowNoSql Create(
-            long campaignId,
-            long campaignRowId,
-            long brandId,
-            Geo geo,
-            int priority,
-            int weight,
-            CapType capType,
-            long dailyCapValue,
-            ActivityHours[] activityHours,
-            string information,
-            bool enableTraffic) =>
+            CampaignRow campaignRow) =>
             new()
             {
-                PartitionKey = GeneratePartitionKey(campaignId),
-                RowKey = GenerateRowKey(campaignRowId),
-                CampaignId = campaignId,
-                BrandId = brandId,
-                ActivityHours = activityHours,
-                CampaignRowId = campaignRowId,
-                CapType = capType,
-                Geo = geo,
-                DailyCapValue = dailyCapValue,
-                EnableTraffic = enableTraffic,
-                Information =information,
-                Priority = priority,
-                Weight = weight,
+                PartitionKey = GeneratePartitionKey(campaignRow.CampaignId),
+                RowKey = GenerateRowKey(campaignRow.Id),
+                CampaignRow = campaignRow
             };
     }
 }

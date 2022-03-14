@@ -40,14 +40,14 @@ namespace MarketingBox.Affiliate.Service.Engines
             await using var ctx = _databaseContextFactory.Create();
             try
             {
-                var partnerEntity = await ctx.Affiliates.FirstOrDefaultAsync(x => x.AffiliateId == affiliateId);
+                var partnerEntity = await ctx.Affiliates.FirstOrDefaultAsync(x => x.Id == affiliateId);
                 if (partnerEntity == null)
                     return;
                 try
                 {
                     await _myNoSqlServerDataWriter.DeleteAsync(
                         AffiliateNoSql.GeneratePartitionKey(partnerEntity.TenantId),
-                        AffiliateNoSql.GenerateRowKey(partnerEntity.AffiliateId));
+                        AffiliateNoSql.GenerateRowKey(partnerEntity.Id));
                 }
                 catch (Exception serializationException)
                 {
@@ -55,12 +55,11 @@ namespace MarketingBox.Affiliate.Service.Engines
                 }
                 await _publisherPartnerRemoved.PublishAsync(new AffiliateRemoved()
                 {
-                    AffiliateId = partnerEntity.AffiliateId,
-                    Sequence = partnerEntity.Sequence,
+                    AffiliateId = partnerEntity.Id,
                     TenantId = partnerEntity.TenantId
                 });
                 await _userService.DeleteAsync(new DeleteUserRequest() { TenantId = partnerEntity.TenantId, ExternalUserId = affiliateId.ToString() });
-                await ctx.Affiliates.Where(x => x.AffiliateId == partnerEntity.AffiliateId).DeleteFromQueryAsync();
+                await ctx.Affiliates.Where(x => x.Id == partnerEntity.Id).DeleteFromQueryAsync();
             }
             catch (Exception e)
             {

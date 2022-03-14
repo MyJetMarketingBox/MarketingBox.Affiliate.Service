@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using MarketingBox.Affiliate.Service.Domain.Models.Country;
 using MarketingBox.Affiliate.Service.Grpc;
-using MarketingBox.Affiliate.Service.Grpc.Models.Country;
+using MarketingBox.Affiliate.Service.Grpc.Requests.Country;
 using MarketingBox.Affiliate.Service.MyNoSql.Country;
 using MarketingBox.Sdk.Common.Extensions;
 using Microsoft.Extensions.Logging;

@@ -9,6 +9,6 @@ namespace MarketingBox.Affiliate.Service.MyNoSql.Brands
 
         public Currency Currency { get; set; }
 
-        public Plan Plan { get; set; }
+        public PayoutType PayoutType { get; set; }
     }
 }

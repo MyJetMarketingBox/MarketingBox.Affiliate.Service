@@ -1,4 +1,5 @@
-﻿using MyNoSqlServer.Abstractions;
+﻿using MarketingBox.Affiliate.Service.Domain.Models.Affiliates;
+using MyNoSqlServer.Abstractions;
 
 namespace MarketingBox.Affiliate.Service.MyNoSql.Affiliates
 {
@@ -11,24 +12,20 @@ namespace MarketingBox.Affiliate.Service.MyNoSql.Affiliates
         
         public long AffiliateId { get; set; }
 
-        public AffiliateGeneralInfo GeneralInfo { get; set; }
+        public GeneralInfoMessage GeneralInfo { get; set; }
 
-        public AffiliateCompany Company { get; set; }
+        public Company Company { get; set; }
 
-        public AffiliateBank Bank { get; set; }
+        public Bank Bank { get; set; }
 
         public string TenantId { get; set; }
-
-        public long Sequence { get; set; }
-
 
         public static AffiliateNoSql Create(
             string tenantId,
             long affiliateId, 
-            AffiliateGeneralInfo generalInfo,
-            AffiliateCompany company,
-            AffiliateBank affiliateBank,
-            long sequence) =>
+            GeneralInfoMessage generalInfo,
+            Company company,
+            Bank affiliateBank) =>
             new()
             {
                 PartitionKey = GeneratePartitionKey(tenantId),
@@ -37,8 +34,7 @@ namespace MarketingBox.Affiliate.Service.MyNoSql.Affiliates
                 Bank = affiliateBank,
                 Company = company,
                 GeneralInfo = generalInfo,
-                TenantId = tenantId,
-                Sequence = sequence
+                TenantId = tenantId
             };
 
     }

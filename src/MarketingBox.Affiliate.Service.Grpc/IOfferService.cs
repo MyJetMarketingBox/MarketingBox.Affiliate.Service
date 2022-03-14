@@ -1,7 +1,7 @@
 using System.ServiceModel;
 using System.Threading.Tasks;
 using MarketingBox.Affiliate.Service.Domain.Models.Offers;
-using MarketingBox.Affiliate.Service.Domain.Models.Offers.Requests;
+using MarketingBox.Affiliate.Service.Grpc.Requests.Offers;
 using MarketingBox.Sdk.Common.Models.Grpc;
 
 namespace MarketingBox.Affiliate.Service.Grpc;

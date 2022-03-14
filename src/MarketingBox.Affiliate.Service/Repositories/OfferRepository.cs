@@ -3,7 +3,8 @@ using System.Threading.Tasks;
 using AutoMapper;
 using MarketingBox.Affiliate.Postgres;
 using MarketingBox.Affiliate.Service.Domain.Models.Offers;
-using MarketingBox.Affiliate.Service.Domain.Models.Offers.Requests;
+using MarketingBox.Affiliate.Service.Grpc.Requests.Offers;
+using MarketingBox.Affiliate.Service.Repositories.Interfaces;
 using MarketingBox.Sdk.Common.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -30,7 +31,7 @@ namespace MarketingBox.Affiliate.Service.Repositories
         {
             try
             {
-                _logger.LogInformation("Creating offer by request {CreateOfferRequest}", JsonConvert.SerializeObject(request));
+                _logger.LogInformation("Creating offer by request {@CreateOfferRequest}", request);
                 
                 await using var context = new DatabaseContext(_dbContextOptionsBuilder.Options);
                 var existingBrand = await context.Brands.AnyAsync(x => x.Id == request.BrnadId);

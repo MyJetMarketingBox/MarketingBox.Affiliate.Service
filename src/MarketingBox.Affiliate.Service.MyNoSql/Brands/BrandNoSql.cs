@@ -9,48 +9,14 @@ namespace MarketingBox.Affiliate.Service.MyNoSql.Brands
         public static string GeneratePartitionKey(string tenantId) => $"{tenantId}";
         public static string GenerateRowKey(long brandId) =>
             $"{brandId}";
-        public long Id { get; set; }
 
-        public string Name { get; set; }
+        public BrandMessage Brand { get; set; }
 
-        public long IntegrationId { get; set; }
-
-        public Payout Payout { get; set; }
-
-        public Revenue Revenue { get; set; }
-
-        public BrandStatus Status { get; set; }
-
-        public BrandPrivacy Privacy { get; set; }
-
-        public long Sequence { get; set; }
-
-        public string TenantId { get; set; }
-
-        public static BrandNoSql Create(
-            string tenantId,
-            long brandId,
-            string name,
-            long integrationId,
-            Payout payout,
-            Revenue revenue,
-            BrandStatus status,
-            BrandPrivacy brandPrivacy,
-            
-            long sequence) =>
+        public static BrandNoSql Create(BrandMessage brandMessage) =>
             new()
             {
-                PartitionKey = GeneratePartitionKey(tenantId),
-                RowKey = GenerateRowKey(brandId),
-                Id = brandId,
-                TenantId = tenantId,
-                Sequence = sequence,
-                IntegrationId = integrationId,
-                Name = name,
-                Payout = payout,
-                Privacy = brandPrivacy,
-                Revenue = revenue,
-                Status = status,
+                PartitionKey = GeneratePartitionKey(brandMessage.TenantId),
+                RowKey = GenerateRowKey(brandMessage.Id),
             };
     }
 }

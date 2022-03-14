@@ -5,8 +5,7 @@ using System.Threading.Tasks;
 using MarketingBox.Affiliate.Postgres;
 using MarketingBox.Affiliate.Service.Domain.Models.Integrations;
 using MarketingBox.Affiliate.Service.Grpc;
-using MarketingBox.Affiliate.Service.Grpc.Models.Integrations;
-using MarketingBox.Affiliate.Service.Grpc.Models.Integrations.Requests;
+using MarketingBox.Affiliate.Service.Grpc.Requests.Integrations;
 using MarketingBox.Affiliate.Service.Messages.Integrations;
 using MarketingBox.Affiliate.Service.MyNoSql.Integrations;
 using MarketingBox.Sdk.Common.Exceptions;
@@ -17,6 +16,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MyJetWallet.Sdk.ServiceBus;
 using MyNoSqlServer.Abstractions;
+using Integration = MarketingBox.Affiliate.Service.Domain.Models.Integrations.Integration;
 
 namespace MarketingBox.Affiliate.Service.Services
 {
@@ -28,41 +28,25 @@ namespace MarketingBox.Affiliate.Service.Services
         private readonly IMyNoSqlServerDataWriter<IntegrationNoSql> _myNoSqlServerDataWriter;
         private readonly IServiceBusPublisher<IntegrationRemoved> _publisherIntegrationRemoved;
 
-        private static Integration MapToGrpcInner(IntegrationEntity integrationEntity)
-        {
-            return new Integration()
-            {
-                TenantId = integrationEntity.TenantId,
-                Sequence = integrationEntity.Sequence,
-                Name = integrationEntity.Name,
-                AffiliateId = integrationEntity.AffiliateId,
-                IntegrationType = integrationEntity.IntegrationType,
-                OfferId = integrationEntity.OfferId,
-                Id = integrationEntity.Id
-            };
-        }
-
-        private static IntegrationUpdated MapToMessage(IntegrationEntity integrationEntity)
+        private static IntegrationUpdated MapToMessage(Integration integration)
         {
             return new IntegrationUpdated()
             {
-                TenantId = integrationEntity.TenantId,
-                Sequence = integrationEntity.Sequence,
-                Name = integrationEntity.Name,
-                IntegrationId = integrationEntity.Id
+                TenantId = integration.TenantId,
+                Name = integration.Name,
+                IntegrationId = integration.Id
             };
         }
 
-        private static IntegrationNoSql MapToNoSql(IntegrationEntity integrationEntity)
+        private static IntegrationNoSql MapToNoSql(Integration integration)
         {
             return IntegrationNoSql.Create(
-                integrationEntity.TenantId,
-                integrationEntity.Id,
-                integrationEntity.Name,
-                integrationEntity.Sequence);
+                integration.TenantId,
+                integration.Id,
+                integration.Name);
         }
 
-        private async Task ValidateCreateIntegrationRequest(IntegrationCreateRequest request,
+        private static async Task ValidateCreateIntegrationRequest(IntegrationCreateRequest request,
             DatabaseContext ctx)
         {
             var validationErrors = new List<ValidationError>();
@@ -114,7 +98,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 });
             }
 
-            var affiliateExists = await ctx.Affiliates.AnyAsync(x => x.AffiliateId == request.AffiliateId);
+            var affiliateExists = await ctx.Affiliates.AnyAsync(x => x.Id == request.AffiliateId);
 
             if (!affiliateExists)
             {
@@ -152,30 +136,26 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 await ValidateCreateIntegrationRequest(request, ctx);
 
-                var integrationEntity = new IntegrationEntity()
+                var integration = new Integration()
                 {
                     TenantId = request.TenantId,
                     Name = request.Name,
-                    AffiliateId = request.AffiliateId,
-                    OfferId = request.OfferId,
-                    IntegrationType = request.IntegrationType,
-                    Sequence = 0
                 };
 
-                ctx.Integrations.Add(integrationEntity);
+                ctx.Integrations.Add(integration);
                 await ctx.SaveChangesAsync();
 
-                var nosql = MapToNoSql(integrationEntity);
+                var nosql = MapToNoSql(integration);
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 _logger.LogInformation("Sent Integration update to MyNoSql {@context}", request);
 
-                await _publisherIntegrationUpdated.PublishAsync(MapToMessage(integrationEntity));
+                await _publisherIntegrationUpdated.PublishAsync(MapToMessage(integration));
                 _logger.LogInformation("Sent Integration update to service bus {@context}", request);
 
                 return new Response<Integration>()
                 {
                     Status = ResponseStatus.Ok,
-                    Data = MapToGrpcInner(integrationEntity)
+                    Data = integration
                 };
             }
             catch (Exception e)
@@ -188,51 +168,48 @@ namespace MarketingBox.Affiliate.Service.Services
 
         public async Task<Response<Integration>> UpdateAsync(IntegrationUpdateRequest request)
         {
-            _logger.LogInformation("Updating a Integration {@context}", request);
-            using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
-
-            var integrationEntity = new IntegrationEntity()
-            {
-                TenantId = request.TenantId,
-                Name = request.Name,
-                Sequence = request.Sequence + 1,
-                Id = request.IntegrationId
-            };
-
             try
             {
+                _logger.LogInformation("Updating a Integration {@context}", request);
+                await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+
+                var integration = new Integration()
+                {
+                    TenantId = request.TenantId,
+                    Name = request.Name,
+                    Id = request.IntegrationId
+                };
+
                 var affectedRows = ctx.Integrations
-                    .Where(x => x.Id == integrationEntity.Id &&
-                                x.Sequence < integrationEntity.Sequence)
+                    .Where(x => x.Id == integration.Id)
                     .ToList();
 
                 if (affectedRows.Any())
                 {
                     foreach (var affectedRow in affectedRows)
                     {
-                        affectedRow.TenantId = integrationEntity.TenantId;
-                        affectedRow.Name = integrationEntity.Name;
-                        affectedRow.Sequence = integrationEntity.Sequence;
+                        affectedRow.TenantId = integration.TenantId;
+                        affectedRow.Name = integration.Name;
                     }
                 }
                 else
                 {
-                    await ctx.Integrations.AddAsync(integrationEntity);
+                    await ctx.Integrations.AddAsync(integration);
                 }
 
                 await ctx.SaveChangesAsync();
 
-                var nosql = MapToNoSql(integrationEntity);
+                var nosql = MapToNoSql(integration);
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 _logger.LogInformation("Sent integration update to MyNoSql {@context}", request);
 
-                await _publisherIntegrationUpdated.PublishAsync(MapToMessage(integrationEntity));
+                await _publisherIntegrationUpdated.PublishAsync(MapToMessage(integration));
                 _logger.LogInformation("Sent integration update to service bus {@context}", request);
 
                 return new Response<Integration>()
                 {
                     Status = ResponseStatus.Ok,
-                    Data = MapToGrpcInner(integrationEntity)
+                    Data = integration
                 };
             }
             catch (Exception e)
@@ -245,11 +222,11 @@ namespace MarketingBox.Affiliate.Service.Services
 
         public async Task<Response<Integration>> GetAsync(IntegrationGetRequest request)
         {
-            await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
             try
             {
-                var integrationEntity = await ctx.Integrations.FirstOrDefaultAsync(x => x.Id == request.IntegrationId);
-                if (integrationEntity is null)
+                await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+                var integration = await ctx.Integrations.FirstOrDefaultAsync(x => x.Id == request.IntegrationId);
+                if (integration is null)
                 {
                     throw new NotFoundException(nameof(request.IntegrationId), request.IntegrationId);
                 }
@@ -257,7 +234,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 return new Response<Integration>()
                 {
                     Status = ResponseStatus.Ok,
-                    Data = MapToGrpcInner(integrationEntity)
+                    Data = integration
                 };
             }
             catch (Exception e)
@@ -270,20 +247,20 @@ namespace MarketingBox.Affiliate.Service.Services
 
         public async Task<Response<bool>> DeleteAsync(IntegrationDeleteRequest request)
         {
-            await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
-
             try
             {
-                var integrationEntity = await ctx.Integrations.FirstOrDefaultAsync(x => x.Id == request.IntegrationId);
+                await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
-                if (integrationEntity == null)
-                    return new Response<bool>();
+                var integration = await ctx.Integrations.FirstOrDefaultAsync(x => x.Id == request.IntegrationId);
+
+                if (integration == null)
+                    throw new NotFoundException(nameof(request.IntegrationId), request.IntegrationId);
 
                 try
                 {
                     await _myNoSqlServerDataWriter.DeleteAsync(
-                        IntegrationNoSql.GeneratePartitionKey(integrationEntity.TenantId),
-                        IntegrationNoSql.GenerateRowKey(integrationEntity.Id));
+                        IntegrationNoSql.GeneratePartitionKey(integration.TenantId),
+                        IntegrationNoSql.GenerateRowKey(integration.Id));
                 }
                 catch (Exception serializationException)
                 {
@@ -293,12 +270,11 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 await _publisherIntegrationRemoved.PublishAsync(new IntegrationRemoved()
                 {
-                    IntegrationId = integrationEntity.Id,
-                    Sequence = integrationEntity.Sequence,
-                    TenantId = integrationEntity.TenantId
+                    IntegrationId = integration.Id,
+                    TenantId = integration.TenantId
                 });
 
-                await ctx.Integrations.Where(x => x.Id == integrationEntity.Id).DeleteFromQueryAsync();
+                await ctx.Integrations.Where(x => x.Id == integration.Id).DeleteFromQueryAsync();
 
                 return new Response<bool>
                 {
@@ -316,10 +292,10 @@ namespace MarketingBox.Affiliate.Service.Services
 
         public async Task<Response<IReadOnlyCollection<Integration>>> SearchAsync(IntegrationSearchRequest request)
         {
-            using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
-
             try
             {
+                await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+
                 var query = ctx.Integrations.AsQueryable();
 
                 if (!string.IsNullOrEmpty(request.TenantId))
@@ -363,9 +339,13 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 var response = query
                     .AsEnumerable()
-                    .Select(MapToGrpcInner)
                     .ToArray();
 
+                if (response.Length==0)
+                {
+                    throw new NotFoundException(NotFoundException.DefaultMessage);
+                }
+                
                 return new Response<IReadOnlyCollection<Integration>>()
                 {
                     Status = ResponseStatus.Ok,

@@ -15,19 +15,15 @@ namespace MarketingBox.Affiliate.Service.MyNoSql.Campaigns
 
         public string TenantId { get; set; }
 
-        public long SequenceId { get; set; }
-
         public static CampaignIndexNoSql Create(
             string tenantId,
             long campaignId,
-            string name,
-            long sequence) =>
+            string name) =>
             new()
             {
                 PartitionKey = GeneratePartitionKey(campaignId),
                 RowKey = GenerateRowKey(tenantId),
                 TenantId = tenantId,
-                SequenceId = sequence,
                 Name = name,
                 CampaignId = campaignId,
             };
