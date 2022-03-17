@@ -87,33 +87,24 @@ namespace MarketingBox.Affiliate.Service.Services
                     throw new NotFoundException(nameof(request.GeoId), request.GeoId);
                 }
 
-                var campaignRow = _mapper.Map<CampaignRow>(request);
+                var campaignRow = await ctx.CampaignRows
+                    .FirstOrDefaultAsync(x => x.Id == request.CampaignRowId);
 
-                var campaignRows = ctx.CampaignRows
-                    .Where(x => x.Id == request.CampaignRowId)
-                    .ToList();
+                if (campaignRow is null)
+                {
+                    throw new NotFoundException(nameof(request.CampaignRowId), request.CampaignRowId);
+                }
 
-                if (campaignRows.Any())
-                {
-                    foreach (var row in campaignRows)
-                    {
-                        row.Id = campaignRow.Id;
-                        row.ActivityHours = campaignRow.ActivityHours;
-                        row.CampaignId = campaignRow.CampaignId;
-                        row.BrandId = campaignRow.BrandId;
-                        row.CapType = campaignRow.CapType;
-                        row.GeoId = campaignRow.GeoId;
-                        row.DailyCapValue = campaignRow.DailyCapValue;
-                        row.EnableTraffic = campaignRow.EnableTraffic;
-                        row.Information = campaignRow.Information;
-                        row.Priority = campaignRow.Priority;
-                        row.Weight = campaignRow.Weight;
-                    }
-                }
-                else
-                {
-                    await ctx.CampaignRows.AddAsync(campaignRow);
-                }
+                campaignRow.ActivityHours = request.ActivityHours;
+                campaignRow.CampaignId = request.CampaignId.Value;
+                campaignRow.BrandId = request.BrandId.Value;
+                campaignRow.CapType = request.CapType.Value;
+                campaignRow.GeoId = request.GeoId.Value;
+                campaignRow.DailyCapValue = request.DailyCapValue.Value;
+                campaignRow.EnableTraffic = request.EnableTraffic.Value;
+                campaignRow.Information = request.Information;
+                campaignRow.Priority = request.Priority.Value;
+                campaignRow.Weight = request.Weight.Value;
 
                 await ctx.SaveChangesAsync();
 

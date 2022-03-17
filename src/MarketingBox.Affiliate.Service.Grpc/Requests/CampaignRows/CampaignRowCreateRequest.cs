@@ -32,14 +32,14 @@ namespace MarketingBox.Affiliate.Service.Grpc.Requests.CampaignRows
         public long? DailyCapValue { get; set; }
 
         [DataMember(Order = 8)]
-        public List<ActivityHours> ActivityHours { get; set; }
+        public ActivityHours[] ActivityHours { get; set; }
             = Enumerable.Range(0, 6).Select(x => new ActivityHours
             {
                 Day = (DayOfWeek) x,
                 From = new TimeSpan(0, 0, 0),
                 To = new TimeSpan(23, 59, 59),
                 IsActive = true
-            }).ToList();
+            }).ToArray();
 
         [DataMember(Order = 9)] public string Information { get; set; }
 

@@ -102,28 +102,20 @@ namespace MarketingBox.Affiliate.Service.Services
                 _logger.LogInformation("Updating a Campaign {@context}", request);
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
-                var campaignEntity = _mapper.Map<Campaign>(request);
+                var existingCampaign = await ctx.Campaigns
+                    .FirstOrDefaultAsync(x => x.Id == request.CampaignId);
 
-                var affectedRows = ctx.Campaigns
-                    .Where(x => x.Id == campaignEntity.Id)
-                    .ToList();
+                if (existingCampaign is null)
+                {
+                    throw new NotFoundException(nameof(request.CampaignId), request.CampaignId);
+                }
 
-                if (affectedRows.Any())
-                {
-                    foreach (var affectedRow in affectedRows)
-                    {
-                        affectedRow.TenantId = campaignEntity.TenantId;
-                        affectedRow.Name = campaignEntity.Name;
-                    }
-                }
-                else
-                {
-                    await ctx.Campaigns.AddAsync(campaignEntity);
-                }
+                existingCampaign.Name = request.Name;
+                existingCampaign.TenantId = request.TenantId;
 
                 await ctx.SaveChangesAsync();
 
-                var campaignMessage = _mapper.Map<CampaignMessage>(campaignEntity);
+                var campaignMessage = _mapper.Map<CampaignMessage>(existingCampaign);
                 var nosql = CampaignNoSql.Create(campaignMessage);
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 _logger.LogInformation("Sent campaign update to MyNoSql {@context}", request);
@@ -134,7 +126,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 return new Response<Campaign>()
                 {
                     Status = ResponseStatus.Ok,
-                    Data = campaignEntity
+                    Data = existingCampaign
                 };
             }
             catch (Exception e)

@@ -29,7 +29,7 @@ namespace MarketingBox.Affiliate.Service.Grpc.Requests.CampaignRows
         [DataMember(Order = 7), Required, Range(1, long.MaxValue)]
         public long? DailyCapValue { get; set; }
 
-        [DataMember(Order = 8)] public List<ActivityHours> ActivityHours { get; set; }
+        [DataMember(Order = 8)] public ActivityHours[] ActivityHours { get; set; }
 
         [DataMember(Order = 9)] public string Information { get; set; }
 

@@ -101,44 +101,31 @@ namespace MarketingBox.Affiliate.Service.Services
                 _logger.LogInformation("Updating a Integration {@context}", request);
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
-                var integration = new Integration()
-                {
-                    TenantId = request.TenantId,
-                    Name = request.Name,
-                    Id = request.IntegrationId.Value
-                };
+                var existingIntegration = await ctx.Integrations
+                    .FirstOrDefaultAsync(x => x.Id == request.IntegrationId);
 
-                var affectedRows = ctx.Integrations
-                    .Where(x => x.Id == integration.Id)
-                    .ToList();
-
-                if (affectedRows.Any())
+                if (existingIntegration is null)
                 {
-                    foreach (var affectedRow in affectedRows)
-                    {
-                        affectedRow.TenantId = integration.TenantId;
-                        affectedRow.Name = integration.Name;
-                    }
-                }
-                else
-                {
-                    await ctx.Integrations.AddAsync(integration);
+                    throw new NotFoundException(nameof(request.IntegrationId), request.IntegrationId);
                 }
 
+                existingIntegration.TenantId = request.TenantId;
+                existingIntegration.Name = request.Name;
+                
+                await ctx.SaveChangesAsync();
 
-                var integrationMessage = MapToMessage(integration);
+                var integrationMessage = MapToMessage(existingIntegration);
                 var nosql = IntegrationNoSql.Create(integrationMessage);
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 _logger.LogInformation("Sent integration update to MyNoSql {@context}", request);
 
                 await _publisherIntegrationUpdated.PublishAsync(integrationMessage);
                 _logger.LogInformation("Sent integration update to service bus {@context}", request);
-                await ctx.SaveChangesAsync();
 
                 return new Response<Integration>()
                 {
                     Status = ResponseStatus.Ok,
-                    Data = integration
+                    Data = existingIntegration
                 };
             }
             catch (Exception e)
