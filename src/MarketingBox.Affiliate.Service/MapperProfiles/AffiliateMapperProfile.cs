@@ -2,7 +2,6 @@ using System;
 using AutoMapper;
 using MarketingBox.Affiliate.Service.Domain.Models.Affiliates;
 using MarketingBox.Affiliate.Service.Grpc.Requests.Affiliates;
-using MarketingBox.Affiliate.Service.Messages.Affiliates;
 
 namespace MarketingBox.Affiliate.Service.MapperProfiles
 {
@@ -12,7 +11,7 @@ namespace MarketingBox.Affiliate.Service.MapperProfiles
         {
             CreateMap<CreateSubRequest, AffiliateCreateRequest>()
                 .ForMember(d => d.CreatedBy,
-                    s => s.MapFrom(req => req.MasterAffiliateId));
+                    s => s.MapFrom(x => x.MasterAffiliateId));
             CreateMap<AffiliateCreateRequest, Domain.Models.Affiliates.Affiliate>()
                 .ForMember(d => d.CreatedAt,
                     s => s.MapFrom(_ => DateTime.UtcNow))
@@ -24,19 +23,12 @@ namespace MarketingBox.Affiliate.Service.MapperProfiles
 
             CreateMap<GeneralInfoRequest, Domain.Models.Affiliates.Affiliate>();
             CreateMap<AffiliateUpdateRequest, Domain.Models.Affiliates.Affiliate>();
-            CreateMap<Domain.Models.Affiliates.Affiliate, AffiliateUpdated>()
-                .ForMember(
-                    x => x.AffiliateId,
-                    x => x.MapFrom(x => x.Id))
+            CreateMap<Domain.Models.Affiliates.Affiliate, AffiliateMessage>()
                 .ForMember(x => x.GeneralInfo,
-                    x => x.MapFrom(x => x));
+                    x => x.MapFrom(z => z));
+            CreateMap<Domain.Models.Affiliates.Affiliate, GeneralInfo>();
             CreateMap<BankRequest, Bank>();
             CreateMap<CompanyRequest, Company>();
-            CreateMap<GeneralInfoRequest, GeneralInfo>()
-                .ForMember(d => d.CreatedAt,
-                    s => s.MapFrom(_ => DateTime.UtcNow));
-            
-            CreateMap<Domain.Models.Affiliates.Affiliate, GeneralInfoMessage>();
         }
     }
 }

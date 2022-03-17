@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using Destructurama.Attributed;
 using MarketingBox.Affiliate.Service.Domain.Models.Common;
-using MarketingBox.Affiliate.Service.Domain.Models.Offers;
+using MarketingBox.Affiliate.Service.Domain.Models.OfferAffiliates;
 
 namespace MarketingBox.Affiliate.Service.Domain.Models.Affiliates
 {
@@ -66,7 +66,7 @@ namespace MarketingBox.Affiliate.Service.Domain.Models.Affiliates
             = new List<AffiliatePayout>();
 
         [DataMember(Order = 19)]
-        public ICollection<OfferAffiliates.OfferAffiliate> OfferAffiliates { get; set; } =
-            new List<OfferAffiliates.OfferAffiliate>();
+        public ICollection<OfferAffiliate> OfferAffiliates { get; set; } =
+            new List<OfferAffiliate>();
     }
 }

@@ -1,4 +1,5 @@
-﻿using MyNoSqlServer.Abstractions;
+﻿using MarketingBox.Affiliate.Service.Domain.Models.Integrations;
+using MyNoSqlServer.Abstractions;
 
 namespace MarketingBox.Affiliate.Service.MyNoSql.Integrations
 {
@@ -9,23 +10,14 @@ namespace MarketingBox.Affiliate.Service.MyNoSql.Integrations
         public static string GenerateRowKey(long integrationId) =>
             $"{integrationId}";
 
-        public long IntegrationId { get; set; }
+        public IntegrationMessage Integration { get; set; }
 
-        public string Name { get; set; }
-
-        public string TenantId { get; set; }
-
-        public static IntegrationNoSql Create(
-            string tenantId,
-            long integrationId,
-            string name) =>
+        public static IntegrationNoSql Create(IntegrationMessage integration) =>
             new()
             {
-                PartitionKey = GeneratePartitionKey(tenantId),
-                RowKey = GenerateRowKey(integrationId),
-                TenantId = tenantId,
-                Name = name,
-                IntegrationId = integrationId,
+                PartitionKey = GeneratePartitionKey(integration.TenantId),
+                RowKey = GenerateRowKey(integration.Id),
+                Integration = integration
             };
     }
 }

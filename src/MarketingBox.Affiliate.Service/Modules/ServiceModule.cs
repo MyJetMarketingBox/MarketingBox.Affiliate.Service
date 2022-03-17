@@ -1,6 +1,8 @@
 ﻿using Autofac;
 using MarketingBox.Affiliate.Postgres;
 using MarketingBox.Affiliate.Service.Domain.Models.Brands;
+using MarketingBox.Affiliate.Service.Domain.Models.Campaigns;
+using MarketingBox.Affiliate.Service.Domain.Models.Integrations;
 using MarketingBox.Affiliate.Service.Engines;
 using MarketingBox.Affiliate.Service.Grpc;
 using MarketingBox.Affiliate.Service.Messages;
@@ -51,7 +53,7 @@ namespace MarketingBox.Affiliate.Service.Modules
         private static void SetupIntegrations(ContainerBuilder builder, MyServiceBusTcpClient serviceBusClient)
         {
             // publisher (IServiceBusPublisher<IntegrationUpdated>)
-            builder.RegisterMyServiceBusPublisher<IntegrationUpdated>(serviceBusClient, Topics.IntegrationUpdatedTopic,
+            builder.RegisterMyServiceBusPublisher<IntegrationMessage>(serviceBusClient, Topics.IntegrationUpdatedTopic,
                 false);
 
             // publisher (IServiceBusPublisher<CampaignRemoved>)
@@ -66,7 +68,7 @@ namespace MarketingBox.Affiliate.Service.Modules
         private static void SetupCampaigns(ContainerBuilder builder, MyServiceBusTcpClient serviceBusClient)
         {
             // publisher (IServiceBusPublisher<CampaignUpdated>)
-            builder.RegisterMyServiceBusPublisher<CampaignUpdated>(serviceBusClient, Topics.CampaignUpdatedTopic,
+            builder.RegisterMyServiceBusPublisher<CampaignMessage>(serviceBusClient, Topics.CampaignUpdatedTopic,
                 false);
 
             // publisher (IServiceBusPublisher<CampaignRemoved>)

@@ -9,32 +9,15 @@ namespace MarketingBox.Affiliate.Service.MyNoSql.Affiliates
         public static string GeneratePartitionKey(string tenantId) => $"{tenantId}";
         public static string GenerateRowKey(long affiliateId) =>
             $"{affiliateId}";
-        
-        public long AffiliateId { get; set; }
 
-        public GeneralInfoMessage GeneralInfo { get; set; }
+        public AffiliateMessage Affiliate { get; set; }
 
-        public Company Company { get; set; }
-
-        public Bank Bank { get; set; }
-
-        public string TenantId { get; set; }
-
-        public static AffiliateNoSql Create(
-            string tenantId,
-            long affiliateId, 
-            GeneralInfoMessage generalInfo,
-            Company company,
-            Bank affiliateBank) =>
+        public static AffiliateNoSql Create(AffiliateMessage affiliate) =>
             new()
             {
-                PartitionKey = GeneratePartitionKey(tenantId),
-                RowKey = GenerateRowKey(affiliateId),
-                AffiliateId = affiliateId,
-                Bank = affiliateBank,
-                Company = company,
-                GeneralInfo = generalInfo,
-                TenantId = tenantId
+                PartitionKey = GeneratePartitionKey(affiliate.TenantId),
+                RowKey = GenerateRowKey(affiliate.AffiliateId),
+                Affiliate = affiliate
             };
 
     }

@@ -33,13 +33,8 @@ namespace MarketingBox.Affiliate.Service.Services
         private readonly IUserService _userService;
         private readonly IMapper _mapper;
 
-        private async Task CreateOrUpdateUser(string tenantId, Domain.Models.Affiliates.Affiliate affiliate)
+        private async Task CreateOrUpdateUser(Domain.Models.Affiliates.Affiliate affiliate)
         {
-            var existingUsers = await _userService.GetAsync(new GetUserRequest()
-            {
-                ExternalUserId = affiliate.Id.ToString(),
-                TenantId = tenantId
-            });
             var response = await _userService.UpdateAsync(new UpsertUserRequest()
             {
                 Email = affiliate.Email,
@@ -51,22 +46,15 @@ namespace MarketingBox.Affiliate.Service.Services
             response.Process();
         }
 
-        private AffiliateUpdated MapToMessage(Domain.Models.Affiliates.Affiliate affiliate,
+        private AffiliateUpdated MapToMessage(AffiliateMessage affiliate,
             AffiliateUpdatedEventType type)
         {
-            var message = _mapper.Map<AffiliateUpdated>(affiliate);
-            message.EventType = type;
+            var message = new AffiliateUpdated
+            {
+                Affiliate = affiliate,
+                EventType = type
+            };
             return message;
-        }
-
-        private AffiliateNoSql MapToNoSql(Domain.Models.Affiliates.Affiliate affiliate)
-        {
-            return AffiliateNoSql.Create(
-                affiliate.TenantId,
-                affiliate.Id,
-                _mapper.Map<GeneralInfoMessage>(affiliate),
-                affiliate.Company,
-                affiliate.Bank);
         }
 
         public AffiliateService(ILogger<AffiliateService> logger,
@@ -202,20 +190,22 @@ namespace MarketingBox.Affiliate.Service.Services
                 }
 
                 ctx.Affiliates.Add(affiliate);
+                await ctx.SaveChangesAsync();
 
-                await CreateOrUpdateUser(request.TenantId, affiliate);
+                await CreateOrUpdateUser(affiliate);
 
-                var nosql = MapToNoSql(affiliate);
+                var affiliateMassage = _mapper.Map<AffiliateMessage>(affiliate);
+                var nosql = AffiliateNoSql.Create(affiliateMassage);
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 _logger.LogInformation("Sent partner update to MyNoSql {@context}", request);
 
                 // TODO: change logic
 
-                await _publisherPartnerUpdated.PublishAsync(MapToMessage(affiliate,
-                    request.CreatedBy.HasValue
+                await _publisherPartnerUpdated.PublishAsync(
+                    MapToMessage(affiliateMassage,
+                        request.CreatedBy.HasValue
                         ? AffiliateUpdatedEventType.CreatedSub
                         : AffiliateUpdatedEventType.CreatedManual));
-                await ctx.SaveChangesAsync();
 
                 _logger.LogInformation("Sent partner update to service bus {@context}", request);
 
@@ -250,16 +240,16 @@ namespace MarketingBox.Affiliate.Service.Services
                 }
 
                 await ctx.Affiliates.Upsert(affiliate).RunAsync();
-
                 await ctx.SaveChangesAsync();
 
-                await CreateOrUpdateUser(request.TenantId, affiliate);
+                await CreateOrUpdateUser(affiliate);
 
-                var nosql = MapToNoSql(affiliate);
+                var affiliateMessage = _mapper.Map<AffiliateMessage>(affiliate);
+                var nosql = AffiliateNoSql.Create(affiliateMessage);
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 _logger.LogInformation("Sent partner update to MyNoSql {@context}", request);
 
-                await _publisherPartnerUpdated.PublishAsync(MapToMessage(affiliate,
+                await _publisherPartnerUpdated.PublishAsync(MapToMessage(affiliateMessage,
                     AffiliateUpdatedEventType.Updated));
                 _logger.LogInformation("Sent partner update to service bus {@context}", request);
 

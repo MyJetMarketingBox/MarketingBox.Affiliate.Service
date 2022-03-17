@@ -67,11 +67,12 @@ namespace MarketingBox.Affiliate.Service.Services
                 ctx.Brands.Add(brand);
                 await ctx.SaveChangesAsync();
 
-                var nosql = BrandNoSql.Create(_mapper.Map<BrandMessage>(brand));
+                var brandMessage = _mapper.Map<BrandMessage>(brand);
+                var nosql = BrandNoSql.Create(brandMessage);
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 _logger.LogInformation("Sent brand update to MyNoSql {@context}", request);
 
-                await _publisherBrandUpdated.PublishAsync(_mapper.Map<BrandMessage>(brand));
+                await _publisherBrandUpdated.PublishAsync(brandMessage);
                 _logger.LogInformation("Sent brand update to service bus {@context}", request);
 
                 return new Response<Brand>
@@ -115,14 +116,15 @@ namespace MarketingBox.Affiliate.Service.Services
                 }
 
                 await ctx.Brands.Upsert(brand).RunAsync();
-
                 await ctx.SaveChangesAsync();
 
-                var nosql = BrandNoSql.Create(_mapper.Map<BrandMessage>(brand));
+
+                var brandMessage = _mapper.Map<BrandMessage>(brand);
+                var nosql = BrandNoSql.Create(brandMessage);
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 _logger.LogInformation("Sent brand update to MyNoSql {@context}", request);
 
-                await _publisherBrandUpdated.PublishAsync(_mapper.Map<BrandMessage>(brand));
+                await _publisherBrandUpdated.PublishAsync(brandMessage);
                 _logger.LogInformation("Sent brand update to service bus {@context}", request);
 
                 return new Response<Brand>

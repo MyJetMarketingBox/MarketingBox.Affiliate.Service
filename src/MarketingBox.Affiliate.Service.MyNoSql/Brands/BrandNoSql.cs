@@ -7,8 +7,7 @@ namespace MarketingBox.Affiliate.Service.MyNoSql.Brands
     {
         public const string TableName = "marketingbox-affiliateservice-brands";
         public static string GeneratePartitionKey(string tenantId) => $"{tenantId}";
-        public static string GenerateRowKey(long brandId) =>
-            $"{brandId}";
+        public static string GenerateRowKey(long brandId) => $"{brandId}";
 
         public BrandMessage Brand { get; set; }
 

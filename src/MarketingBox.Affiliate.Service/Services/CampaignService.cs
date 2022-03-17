@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using MarketingBox.Affiliate.Service.Domain.Models.Campaigns;
 using MarketingBox.Affiliate.Service.Grpc.Requests.Campaigns;
 using MarketingBox.Affiliate.Service.Messages.Campaigns;
 using MarketingBox.Affiliate.Service.MyNoSql.Campaigns;
@@ -24,7 +25,7 @@ namespace MarketingBox.Affiliate.Service.Services
     {
         private readonly ILogger<CampaignService> _logger;
         private readonly DbContextOptionsBuilder<DatabaseContext> _dbContextOptionsBuilder;
-        private readonly IServiceBusPublisher<CampaignUpdated> _publisherCampaignUpdated;
+        private readonly IServiceBusPublisher<CampaignMessage> _publisherCampaignUpdated;
         private readonly IMyNoSqlServerDataWriter<CampaignNoSql> _myNoSqlServerDataWriter;
         private readonly IServiceBusPublisher<CampaignRemoved> _publisherCampaignRemoved;
         private readonly IMyNoSqlServerDataWriter<CampaignIndexNoSql> _myNoSqlIndexServerDataWriter;
@@ -32,7 +33,7 @@ namespace MarketingBox.Affiliate.Service.Services
 
         public CampaignService(ILogger<CampaignService> logger,
             DbContextOptionsBuilder<DatabaseContext> dbContextOptionsBuilder,
-            IServiceBusPublisher<CampaignUpdated> publisherCampaignUpdated,
+            IServiceBusPublisher<CampaignMessage> publisherCampaignUpdated,
             IMyNoSqlServerDataWriter<CampaignNoSql> myNoSqlServerDataWriter,
             IServiceBusPublisher<CampaignRemoved> publisherCampaignRemoved,
             IMyNoSqlServerDataWriter<CampaignIndexNoSql> myNoSqlIndexServerDataWriter,
@@ -68,13 +69,14 @@ namespace MarketingBox.Affiliate.Service.Services
                 ctx.Campaigns.Add(campaign);
                 await ctx.SaveChangesAsync();
 
-                var nosql = MapToNoSql(campaign);
+                var campaignMessage = _mapper.Map<CampaignMessage>(campaign);
+                var nosql = CampaignNoSql.Create(campaignMessage);
+                var nosqlIndexies = CampaignIndexNoSql.Create(campaignMessage);
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
-                await _myNoSqlIndexServerDataWriter.InsertOrReplaceAsync(
-                    CampaignIndexNoSql.Create(campaign.TenantId, campaign.Id, campaign.Name));
+                await _myNoSqlIndexServerDataWriter.InsertOrReplaceAsync(nosqlIndexies);
                 _logger.LogInformation("Sent campaign update to MyNoSql {@context}", request);
 
-                await _publisherCampaignUpdated.PublishAsync(_mapper.Map<CampaignUpdated>(campaign));
+                await _publisherCampaignUpdated.PublishAsync(campaignMessage);
                 _logger.LogInformation("Sent campaign update to service bus {@context}", request);
 
                 return new Response<Campaign>()
@@ -121,11 +123,12 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 await ctx.SaveChangesAsync();
 
-                var nosql = MapToNoSql(campaignEntity);
+                var campaignMessage = _mapper.Map<CampaignMessage>(campaignEntity);
+                var nosql = CampaignNoSql.Create(campaignMessage);
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 _logger.LogInformation("Sent campaign update to MyNoSql {@context}", request);
 
-                await _publisherCampaignUpdated.PublishAsync(_mapper.Map<CampaignUpdated>(campaignEntity));
+                await _publisherCampaignUpdated.PublishAsync(campaignMessage);
                 _logger.LogInformation("Sent campaign update to service bus {@context}", request);
 
                 return new Response<Campaign>()
@@ -277,14 +280,6 @@ namespace MarketingBox.Affiliate.Service.Services
                 _logger.LogError(e, "Error searching campaignes {@context}", request);
                 return e.FailedResponse<IReadOnlyCollection<Campaign>>();
             }
-        }
-
-        private static CampaignNoSql MapToNoSql(Campaign campaign)
-        {
-            return CampaignNoSql.Create(
-                campaign.TenantId,
-                campaign.Id,
-                campaign.Name);
         }
     }
 }

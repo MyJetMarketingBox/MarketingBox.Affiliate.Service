@@ -13,9 +13,7 @@ namespace MarketingBox.Affiliate.Service.MapperProfiles
             CreateMap<CampaignUpdateRequest,Campaign>()
                 .ForMember(d => d.Id,
                     s => s.MapFrom(x => x.CampaignId));
-            CreateMap<Campaign, CampaignUpdated>()
-                .ForMember(d => d.CampaignId,
-                    s => s.MapFrom(x => x.Id));
+            CreateMap<Campaign, CampaignMessage>();
             CreateMap<Campaign,CampaignRemoved>()
                 .ForMember(d => d.CampaignId,
                     s => s.MapFrom(x => x.Id));;

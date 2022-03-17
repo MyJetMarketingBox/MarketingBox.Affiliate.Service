@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using MarketingBox.Affiliate.Postgres;
+using MarketingBox.Affiliate.Service.Domain.Models.Integrations;
 using MarketingBox.Affiliate.Service.Grpc;
 using MarketingBox.Affiliate.Service.Grpc.Requests.Integrations;
 using MarketingBox.Affiliate.Service.Messages.Integrations;
 using MarketingBox.Affiliate.Service.MyNoSql.Integrations;
 using MarketingBox.Sdk.Common.Exceptions;
 using MarketingBox.Sdk.Common.Extensions;
-using MarketingBox.Sdk.Common.Models;
 using MarketingBox.Sdk.Common.Models.Grpc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -23,63 +23,13 @@ namespace MarketingBox.Affiliate.Service.Services
     {
         private readonly ILogger<IntegrationService> _logger;
         private readonly DbContextOptionsBuilder<DatabaseContext> _dbContextOptionsBuilder;
-        private readonly IServiceBusPublisher<IntegrationUpdated> _publisherIntegrationUpdated;
+        private readonly IServiceBusPublisher<IntegrationMessage> _publisherIntegrationUpdated;
         private readonly IMyNoSqlServerDataWriter<IntegrationNoSql> _myNoSqlServerDataWriter;
         private readonly IServiceBusPublisher<IntegrationRemoved> _publisherIntegrationRemoved;
 
-        private static IntegrationUpdated MapToMessage(Integration integration)
-        {
-            return new IntegrationUpdated()
-            {
-                TenantId = integration.TenantId,
-                Name = integration.Name,
-                IntegrationId = integration.Id
-            };
-        }
-
-        private static IntegrationNoSql MapToNoSql(Integration integration)
-        {
-            return IntegrationNoSql.Create(
-                integration.TenantId,
-                integration.Id,
-                integration.Name);
-        }
-
-        private static void ValidateCreateIntegrationRequest(IntegrationCreateRequest request,
-            DatabaseContext ctx)
-        {
-            var validationErrors = new List<ValidationError>();
-            if (string.IsNullOrWhiteSpace(request.Name))
-            {
-                validationErrors.Add(new ValidationError
-                {
-                    ErrorMessage = "Should not be empty.",
-                    ParameterName = nameof(request.Name)
-                });
-            }
-
-            if (string.IsNullOrWhiteSpace(request.TenantId))
-            {
-                validationErrors.Add(new ValidationError
-                {
-                    ErrorMessage = "Should not be empty.",
-                    ParameterName = nameof(request.TenantId)
-                });
-            }
-
-            if (validationErrors.Any())
-            {
-                throw new BadRequestException(new Error
-                {
-                    ErrorMessage = "Request responded with one or more validation errors.",
-                    ValidationErrors = validationErrors
-                });
-            }
-        }
-
         public IntegrationService(ILogger<IntegrationService> logger,
             DbContextOptionsBuilder<DatabaseContext> dbContextOptionsBuilder,
-            IServiceBusPublisher<IntegrationUpdated> publisherIntegrationUpdated,
+            IServiceBusPublisher<IntegrationMessage> publisherIntegrationUpdated,
             IMyNoSqlServerDataWriter<IntegrationNoSql> myNoSqlServerDataWriter,
             IServiceBusPublisher<IntegrationRemoved> publisherIntegrationRemoved)
         {
@@ -88,6 +38,17 @@ namespace MarketingBox.Affiliate.Service.Services
             _publisherIntegrationUpdated = publisherIntegrationUpdated;
             _myNoSqlServerDataWriter = myNoSqlServerDataWriter;
             _publisherIntegrationRemoved = publisherIntegrationRemoved;
+            
+        }
+        
+        private static IntegrationMessage MapToMessage(Integration integration)
+        {
+            return new IntegrationMessage()
+            {
+                TenantId = integration.TenantId,
+                Name = integration.Name,
+                Id = integration.Id
+            };
         }
 
         public async Task<Response<Integration>> CreateAsync(IntegrationCreateRequest request)
@@ -100,8 +61,6 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
-                ValidateCreateIntegrationRequest(request, ctx);
-
                 var integration = new Integration()
                 {
                     TenantId = request.TenantId,
@@ -109,14 +68,15 @@ namespace MarketingBox.Affiliate.Service.Services
                 };
 
                 ctx.Integrations.Add(integration);
-                await ctx.SaveChangesAsync();
 
-                var nosql = MapToNoSql(integration);
+                var integrationMessage = MapToMessage(integration);
+                var nosql = IntegrationNoSql.Create(integrationMessage);
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 _logger.LogInformation("Sent Integration update to MyNoSql {@context}", request);
 
-                await _publisherIntegrationUpdated.PublishAsync(MapToMessage(integration));
+                await _publisherIntegrationUpdated.PublishAsync(integrationMessage);
                 _logger.LogInformation("Sent Integration update to service bus {@context}", request);
+                await ctx.SaveChangesAsync();
 
                 return new Response<Integration>()
                 {
@@ -165,14 +125,15 @@ namespace MarketingBox.Affiliate.Service.Services
                     await ctx.Integrations.AddAsync(integration);
                 }
 
-                await ctx.SaveChangesAsync();
 
-                var nosql = MapToNoSql(integration);
+                var integrationMessage = MapToMessage(integration);
+                var nosql = IntegrationNoSql.Create(integrationMessage);
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 _logger.LogInformation("Sent integration update to MyNoSql {@context}", request);
 
-                await _publisherIntegrationUpdated.PublishAsync(MapToMessage(integration));
+                await _publisherIntegrationUpdated.PublishAsync(integrationMessage);
                 _logger.LogInformation("Sent integration update to service bus {@context}", request);
+                await ctx.SaveChangesAsync();
 
                 return new Response<Integration>()
                 {
