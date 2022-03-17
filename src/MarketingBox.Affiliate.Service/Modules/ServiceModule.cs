@@ -1,8 +1,6 @@
 ﻿using Autofac;
-using FluentValidation;
 using MarketingBox.Affiliate.Postgres;
 using MarketingBox.Affiliate.Service.Domain.Models.Brands;
-using MarketingBox.Affiliate.Service.Domain.Models.Country;
 using MarketingBox.Affiliate.Service.Engines;
 using MarketingBox.Affiliate.Service.Grpc;
 using MarketingBox.Affiliate.Service.Messages;
@@ -20,7 +18,6 @@ using MarketingBox.Affiliate.Service.Repositories;
 using MarketingBox.Affiliate.Service.Repositories.Interfaces;
 using MarketingBox.Affiliate.Service.Services;
 using MarketingBox.Affiliate.Service.Subscribers;
-using MarketingBox.Affiliate.Service.Validators;
 using MarketingBox.Auth.Service.Client;
 using MyJetWallet.Sdk.NoSql;
 using MyJetWallet.Sdk.ServiceBus;
@@ -114,7 +111,7 @@ namespace MarketingBox.Affiliate.Service.Modules
                 AffiliateNoSql.TableName);
         }
 
-        private void SetupOffers(ContainerBuilder builder)
+        private static void SetupOffers(ContainerBuilder builder)
         {
             builder.RegisterType<OfferRepository>()
                 .As<IOfferRepository>()
@@ -123,7 +120,7 @@ namespace MarketingBox.Affiliate.Service.Modules
                 .As<IOfferService>()
                 .SingleInstance();
         }
-        private void SetupCountries(ContainerBuilder builder)
+        private static void SetupCountries(ContainerBuilder builder)
         {
             builder.RegisterMyNoSqlWriter<CountriesNoSql>(Program.ReloadedSettings(e => e.MyNoSqlWriterUrl),
                 CountriesNoSql.TableName);
@@ -134,10 +131,20 @@ namespace MarketingBox.Affiliate.Service.Modules
                 .As<IGeoRepository>()
                 .SingleInstance();
         }
-        private void SetupValidators(ContainerBuilder builder)
+        
+        private static void SetupPayouts(ContainerBuilder builder)
         {
-            builder.RegisterType<GeoValidator>()
-                .As<IValidator<Geo>>()
+            builder.RegisterType<AffiliatePayoutRepository>()
+                .As<IAffiliatePayoutRepository>()
+                .SingleInstance();
+            builder.RegisterType<BrandPayoutRepository>()
+                .As<IBrandPayoutRepository>()
+                .SingleInstance();
+        }
+        private static void SetupOfferAffiliates(ContainerBuilder builder)
+        {
+            builder.RegisterType<OfferAffiliatesRepository>()
+                .As<IOfferAffiliatesRepository>()
                 .SingleInstance();
         }
 
@@ -155,8 +162,7 @@ namespace MarketingBox.Affiliate.Service.Modules
 
             builder.RegisterAuthServiceClient(Program.Settings.AuthServiceUrl);
             var noSqlClient = builder.CreateNoSqlClient(Program.ReloadedSettings(e => e.MyNoSqlReaderHostPort));
-            
-            
+
             SetupAffiliates(builder, serviceBusClient);
             SetupCampaigns(builder, serviceBusClient);
             SetupIntegrations(builder, serviceBusClient);
@@ -164,7 +170,9 @@ namespace MarketingBox.Affiliate.Service.Modules
             SetupCampaignRows(builder);
             SetupOffers(builder);
             SetupCountries(builder);
-            SetupValidators(builder);
+            SetupPayouts(builder);
+            SetupOfferAffiliates(builder);
         }
+
     }
 }

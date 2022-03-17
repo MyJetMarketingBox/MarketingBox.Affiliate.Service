@@ -22,14 +22,14 @@ namespace TestApp
             var affiliateCreateRequestMaster = new AffiliateCreateRequest()
             {
                 TenantId = testTenant,
-                Company = new Company()
+                Company = new CompanyRequest()
                 {
                     Address = "a1",
                     Name = "a2",
                     RegNumber = "a3",
                     VatId = "a4"
                 },
-                Bank = new Bank()
+                Bank = new BankRequest()
                 {
                     AccountNumber = "a1",
                     Address = "a1",
@@ -41,7 +41,7 @@ namespace TestApp
                 }
             };
 
-            affiliateCreateRequestMaster.GeneralInfo = new GeneralInfo()
+            affiliateCreateRequestMaster.GeneralInfo = new GeneralInfoRequest()
             {
                 Currency = Currency.CHF,
                 Email = "email1235678_1@email.com",
@@ -50,22 +50,20 @@ namespace TestApp
                 Skype = "skype",
                 State = State.Active,
                 Username = "SomeTestUser123X",
-                ZipCode = "414141",
-                ApiKey = "123-456-789",
-                CreatedAt = DateTime.Now
+                ZipCode = "414141"
             };
 
             var affiliateCreateRequest = new AffiliateCreateRequest()
             {
                 TenantId = testTenant,
-                Company = new Company()
+                Company = new CompanyRequest()
                 {
                     Address = "a1",
                     Name = "a2",
                     RegNumber = "a3",
                     VatId = "a4"
                 },
-                Bank = new Bank()
+                Bank = new BankRequest()
                 {
                     AccountNumber = "a1",
                     Address = "a1",
@@ -77,7 +75,7 @@ namespace TestApp
                 }
             };
 
-            affiliateCreateRequest.GeneralInfo = new GeneralInfo()
+            affiliateCreateRequest.GeneralInfo = new GeneralInfoRequest()
             {
                 Currency = Currency.CHF,
                 Email = "email12356789_2@email.com",
@@ -86,9 +84,7 @@ namespace TestApp
                 Skype = "skype",
                 State = State.Active,
                 Username = "SomeTestUser12345X",
-                ZipCode = "414141",
-                ApiKey = "123-456-789",
-                CreatedAt = DateTime.Now
+                ZipCode = "414141"
             };
 
             var masterAffiliate = (await affiliateService.CreateAsync(affiliateCreateRequestMaster)).Data;
@@ -180,14 +176,14 @@ namespace TestApp
             var request = new AffiliateCreateRequest()
             {
                 TenantId = testTenant,
-                Company = new Company()
+                Company = new CompanyRequest()
                 {
                     Address = "a1",
                     Name = "a2",
                     RegNumber = "a3",
                     VatId = "a4"
                 },
-                Bank = new Bank()
+                Bank = new BankRequest()
                 {
                     AccountNumber = "a1",
                     Address = "a1",
@@ -198,7 +194,7 @@ namespace TestApp
                     Swift = "a1"
                 }
             };
-            request.GeneralInfo = new GeneralInfo()
+            request.GeneralInfo = new GeneralInfoRequest()
             {
                 Currency = Currency.CHF,
                 Email = "email123@email.com",
@@ -207,9 +203,7 @@ namespace TestApp
                 Skype = "skype",
                 State = State.Active,
                 Username = "SomeTestUser1",
-                ZipCode = "414141",
-                ApiKey = "123-456-789",
-                CreatedAt = DateTime.Now
+                ZipCode = "414141"
             };
 
             var partnerCreated = (await  affiliateService.CreateAsync(request)).Data;
@@ -222,8 +216,7 @@ namespace TestApp
                 TenantId = partnerCreated.TenantId,
                 Bank = request.Bank,
                 Company = request.Company,
-                GeneralInfo = request.GeneralInfo,
-                Sequence = 1
+                GeneralInfo = request.GeneralInfo
             })).Data;
 
             //await affiliateService.DeleteAsync(new AffiliateDeleteRequest()
@@ -231,7 +224,7 @@ namespace TestApp
             //    AffiliateId = partnerUpdated.AffiliateId,
             //});
 
-            var shouldBeNull = await affiliateService.GetAsync(new AffiliateGetRequest()
+            var shouldBeNull = await affiliateService.GetAsync(new AffiliateByIdRequest()
             {
                 AffiliateId = partnerUpdated.Id,
             });

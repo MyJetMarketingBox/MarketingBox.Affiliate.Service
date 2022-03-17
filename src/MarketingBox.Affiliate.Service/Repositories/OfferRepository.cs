@@ -27,7 +27,7 @@ namespace MarketingBox.Affiliate.Service.Repositories
             _logger = logger;
             _mapper = mapper;
         }
-        public async Task<Offer> CreateAsync(CreateOfferRequest request)
+        public async Task<Offer> CreateAsync(OfferCreateRequest request)
         {
             try
             {

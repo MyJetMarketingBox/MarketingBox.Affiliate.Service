@@ -1,6 +1,6 @@
 using System.Runtime.Serialization;
 
-namespace MarketingBox.Affiliate.Service.Grpc.Requests.Country;
+namespace MarketingBox.Affiliate.Service.Grpc.Requests;
 
 [DataContract]
 public class GetAllRequest

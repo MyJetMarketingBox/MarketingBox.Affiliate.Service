@@ -1,7 +1,6 @@
 ﻿using MarketingBox.Affiliate.Postgres;
 using MarketingBox.Affiliate.Service.Grpc;
 using MarketingBox.Auth.Service.Grpc;
-using MarketingBox.Auth.Service.Grpc.Models.Users.Requests;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MyNoSqlServer.Abstractions;
@@ -16,6 +15,7 @@ using MarketingBox.Affiliate.Service.Domain.Models.Affiliates;
 using MarketingBox.Affiliate.Service.Grpc.Requests.Affiliates;
 using MarketingBox.Affiliate.Service.Messages.Affiliates;
 using MarketingBox.Affiliate.Service.MyNoSql.Affiliates;
+using MarketingBox.Auth.Service.Grpc.Models;
 using MarketingBox.Sdk.Common.Exceptions;
 using MarketingBox.Sdk.Common.Extensions;
 using MarketingBox.Sdk.Common.Models.Grpc;
@@ -40,39 +40,15 @@ namespace MarketingBox.Affiliate.Service.Services
                 ExternalUserId = affiliate.Id.ToString(),
                 TenantId = tenantId
             });
-
-            if (existingUsers.Error != null)
-                throw new InvalidOperationException($"{existingUsers.Error.Message} - {existingUsers.Error.ErrorType}");
-
-            if (existingUsers.User == null ||
-                !existingUsers.User.Any())
+            var response = await _userService.UpdateAsync(new UpsertUserRequest()
             {
-                var response = await _userService.CreateAsync(new CreateUserRequest()
-                {
-                    Email = affiliate.Email,
-                    ExternalUserId = affiliate.Id.ToString(),
-                    Password = affiliate.Password,
-                    TenantId = affiliate.TenantId,
-                    Username = affiliate.Username
-                });
-
-                if (response.Error != null)
-                    throw new InvalidOperationException($"{response.Error.Message} - {response.Error.ErrorType}");
-            }
-            else
-            {
-                var response = await _userService.UpdateAsync(new UpdateUserRequest()
-                {
-                    Email = affiliate.Email,
-                    ExternalUserId = affiliate.Id.ToString(),
-                    Password = affiliate.Password,
-                    TenantId = affiliate.TenantId,
-                    Username = affiliate.Username
-                });
-
-                if (response.Error != null)
-                    throw new InvalidOperationException($"{response.Error.Message} - {response.Error.ErrorType}");
-            }
+                Email = affiliate.Email,
+                ExternalUserId = affiliate.Id.ToString(),
+                Password = affiliate.Password,
+                TenantId = affiliate.TenantId,
+                Username = affiliate.Username
+            });
+            response.Process();
         }
 
         private AffiliateUpdated MapToMessage(Domain.Models.Affiliates.Affiliate affiliate,
@@ -97,7 +73,8 @@ namespace MarketingBox.Affiliate.Service.Services
             IServiceBusPublisher<AffiliateUpdated> publisherPartnerUpdated,
             IMyNoSqlServerDataWriter<AffiliateNoSql> myNoSqlServerDataWriter,
             IUserService userService,
-            DatabaseContextFactory databaseContextFactory, IMapper mapper)
+            DatabaseContextFactory databaseContextFactory,
+            IMapper mapper)
         {
             _logger = logger;
             _publisherPartnerUpdated = publisherPartnerUpdated;
@@ -130,16 +107,17 @@ namespace MarketingBox.Affiliate.Service.Services
 
         public async Task<Response<bool>> SetAffiliateStateAsync(SetAffiliateStateRequest request)
         {
-            _logger.LogInformation("SetAffiliateStateAsync {@context}", request);
             try
             {
+                request.ValidateEntity();
+                _logger.LogInformation("SetAffiliateStateAsync {@context}", request);
                 await using var ctx = _databaseContextFactory.Create();
                 var affiliate = ctx.Affiliates.FirstOrDefault(e => e.Id == request.AffiliateId);
 
                 if (affiliate == null)
                     throw new NotFoundException(nameof(request.AffiliateId), request.AffiliateId);
                 var newState = request.State;
-                affiliate.State = newState;
+                affiliate.State = newState.Value;
 
                 _logger.LogInformation(
                     $"SetAffiliateStateAsync change affiliate({request.AffiliateId}) state to {newState}");
@@ -159,9 +137,10 @@ namespace MarketingBox.Affiliate.Service.Services
 
         public async Task<Response<GrpcModels.Affiliate>> CreateSubAsync(CreateSubRequest request)
         {
-            _logger.LogInformation("Creating new Sub Affiliate {@context}", request);
             try
             {
+                request.ValidateEntity();
+                _logger.LogInformation("Creating new Sub Affiliate {@context}", request);
                 await using var ctx = _databaseContextFactory.Create();
                 var masterAffiliate = await ctx.Affiliates
                     .FirstOrDefaultAsync(e => e.Id == request.MasterAffiliateId);
@@ -207,6 +186,8 @@ namespace MarketingBox.Affiliate.Service.Services
         {
             try
             {
+                request.ValidateEntity();
+
                 _logger.LogInformation("Creating new Affiliate {@context}", request);
                 await using var ctx = _databaseContextFactory.Create();
 
@@ -221,7 +202,6 @@ namespace MarketingBox.Affiliate.Service.Services
                 }
 
                 ctx.Affiliates.Add(affiliate);
-                await ctx.SaveChangesAsync();
 
                 await CreateOrUpdateUser(request.TenantId, affiliate);
 
@@ -230,11 +210,12 @@ namespace MarketingBox.Affiliate.Service.Services
                 _logger.LogInformation("Sent partner update to MyNoSql {@context}", request);
 
                 // TODO: change logic
-                
-                await _publisherPartnerUpdated.PublishAsync(MapToMessage(affiliate, 
-                    request.IsSubAffiliate
-                    ? AffiliateUpdatedEventType.CreatedSub
-                    : AffiliateUpdatedEventType.CreatedManual));
+
+                await _publisherPartnerUpdated.PublishAsync(MapToMessage(affiliate,
+                    request.CreatedBy.HasValue
+                        ? AffiliateUpdatedEventType.CreatedSub
+                        : AffiliateUpdatedEventType.CreatedManual));
+                await ctx.SaveChangesAsync();
 
                 _logger.LogInformation("Sent partner update to service bus {@context}", request);
 
@@ -255,6 +236,8 @@ namespace MarketingBox.Affiliate.Service.Services
         {
             try
             {
+                request.ValidateEntity();
+
                 _logger.LogInformation("Updating a Affiliate {@context}", request);
                 await using var ctx = _databaseContextFactory.Create();
                 var affiliate = _mapper.Map<GrpcModels.Affiliate>(request);
@@ -294,11 +277,13 @@ namespace MarketingBox.Affiliate.Service.Services
             }
         }
 
-        public async Task<Response<GrpcModels.Affiliate>> GetAsync(AffiliateGetRequest request)
+        public async Task<Response<GrpcModels.Affiliate>> GetAsync(AffiliateByIdRequest request)
         {
-            await using var ctx = _databaseContextFactory.Create();
             try
             {
+                request.ValidateEntity();
+
+                await using var ctx = _databaseContextFactory.Create();
                 var affiliate = await ctx.Affiliates
                     .FirstOrDefaultAsync(x => x.Id == request.AffiliateId);
                 if (affiliate is null)
@@ -320,11 +305,14 @@ namespace MarketingBox.Affiliate.Service.Services
             }
         }
 
-        public async Task<Response<IReadOnlyCollection<AffiliateSubParam>>> GetSubParamsAsync(GetSubParamsRequest request)
+        public async Task<Response<IReadOnlyCollection<AffiliateSubParam>>> GetSubParamsAsync(
+            AffiliateByIdRequest request)
         {
-            await using var ctx = _databaseContextFactory.Create();
             try
             {
+                request.ValidateEntity();
+
+                await using var ctx = _databaseContextFactory.Create();
                 var paramList = ctx.AffiliateSubParams
                     .Where(x => x.AffiliateId == request.AffiliateId)
                     .ToList();
@@ -349,10 +337,12 @@ namespace MarketingBox.Affiliate.Service.Services
         public async Task<Response<IReadOnlyCollection<GrpcModels.Affiliate>>> SearchAsync(
             AffiliateSearchRequest request)
         {
-            await using var ctx = _databaseContextFactory.Create();
-
             try
             {
+                request.ValidateEntity();
+
+                await using var ctx = _databaseContextFactory.Create();
+
                 IQueryable<Domain.Models.Affiliates.Affiliate> query = ctx.Affiliates;
 
 
@@ -376,10 +366,9 @@ namespace MarketingBox.Affiliate.Service.Services
                     query = query.Where(x => x.Email.Contains(request.Email));
                 }
 
-                if (request.CreatedAt != default)
+                if (request.CreatedAt.HasValue)
                 {
-                    DateTimeOffset date = request.CreatedAt;
-                    query = query.Where(x => x.CreatedAt == date);
+                    query = query.Where(x => x.CreatedAt == request.CreatedAt.Value);
                 }
 
                 var limit = request.Take <= 0 ? 1000 : request.Take;

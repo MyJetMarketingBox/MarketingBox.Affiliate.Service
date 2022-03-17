@@ -11,6 +11,6 @@ namespace MarketingBox.Affiliate.Service.Domain.Models.Offers
         [DataMember(Order = 3)] public string Name { get; set; }
         [DataMember(Order = 4)] public string Link { get; set; }
         [DataMember(Order = 5)] public ICollection<OfferSubParameter> Parameters { get; set; }
-        [DataMember(Order = 6)] public ICollection<OfferAffiliates> OfferAffiliates { get; set; }
+        [DataMember(Order = 6)] public ICollection<OfferAffiliates.OfferAffiliate> OfferAffiliates { get; set; }
     }
 }

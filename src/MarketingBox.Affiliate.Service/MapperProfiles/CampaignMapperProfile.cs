@@ -10,9 +10,15 @@ namespace MarketingBox.Affiliate.Service.MapperProfiles
         public CampaignMapperProfile()
         {
             CreateMap<CampaignCreateRequest,Campaign>();
-            CreateMap<CampaignUpdateRequest,Campaign>();
-            CreateMap<Campaign,CampaignUpdated>();
-            CreateMap<Campaign,CampaignRemoved>();
+            CreateMap<CampaignUpdateRequest,Campaign>()
+                .ForMember(d => d.Id,
+                    s => s.MapFrom(x => x.CampaignId));
+            CreateMap<Campaign, CampaignUpdated>()
+                .ForMember(d => d.CampaignId,
+                    s => s.MapFrom(x => x.Id));
+            CreateMap<Campaign,CampaignRemoved>()
+                .ForMember(d => d.CampaignId,
+                    s => s.MapFrom(x => x.Id));;
         }
     }
 }

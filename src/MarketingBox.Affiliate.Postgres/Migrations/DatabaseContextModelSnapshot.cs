@@ -73,13 +73,13 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<long?>("CreatedBy")
+                        .HasColumnType("bigint");
+
                     b.Property<int>("Currency")
                         .HasColumnType("integer");
 
                     b.Property<string>("Email")
-                        .HasColumnType("text");
-
-                    b.Property<string>("LandingUrl")
                         .HasColumnType("text");
 
                     b.Property<string>("Password")
@@ -493,26 +493,7 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
                     b.ToTable("integrations", "affiliate-service");
                 });
 
-            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Offers.Offer", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<string>("Link")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("offers", "affiliate-service");
-                });
-
-            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Offers.OfferAffiliates", b =>
+            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.OfferAffiliates.OfferAffiliate", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -538,6 +519,25 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
                     b.HasIndex("OfferId");
 
                     b.ToTable("offer-affiliates", "affiliate-service");
+                });
+
+            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Offers.Offer", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Link")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("offers", "affiliate-service");
                 });
 
             modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Offers.OfferSubParameter", b =>
@@ -673,7 +673,7 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
                     b.Navigation("Geo");
                 });
 
-            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.Offers.OfferAffiliates", b =>
+            modelBuilder.Entity("MarketingBox.Affiliate.Service.Domain.Models.OfferAffiliates.OfferAffiliate", b =>
                 {
                     b.HasOne("MarketingBox.Affiliate.Service.Domain.Models.Affiliates.Affiliate", "Affiliate")
                         .WithMany("OfferAffiliates")

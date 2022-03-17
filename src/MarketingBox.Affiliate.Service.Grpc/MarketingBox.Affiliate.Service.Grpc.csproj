@@ -6,7 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="Destructurama.Attributed" Version="3.0.0" />
-    <PackageReference Include="MarketingBox.Sdk.Common" Version="1.0.7" />
+    <PackageReference Include="MarketingBox.Sdk.Common" Version="1.0.9" />
     <PackageReference Include="System.ServiceModel.Primitives" Version="4.9.0" />
   </ItemGroup>
 
@@ -18,31 +18,6 @@
     <Reference Include="MyJetWallet.Sdk.Common, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>C:\Users\mezol\.nuget\packages\myjetwallet.sdk.common\1.0.0\lib\net6.0\MyJetWallet.Sdk.Common.dll</HintPath>
     </Reference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Remove="Models\Integrations\Integration.cs" />
-    <Compile Remove="Models\CampaignRows\CampaignRow.cs" />
-    <Compile Remove="Models\Brands\Brand.cs" />
-    <Compile Remove="Models\Brands\Payout.cs" />
-    <Compile Remove="Models\Affiliates\AffiliateBank.cs" />
-    <Compile Remove="Models\CampaignRows\ActivityHours.cs" />
-    <Compile Remove="Models\Brands\Revenue.cs" />
-    <Compile Remove="Models\Affiliates\AffiliateCompany.cs" />
-    <Compile Remove="Models\Campaigns\Campaign.cs" />
-    <Compile Remove="Models\Affiliates\AffiliateSubParam.cs" />
-    <Compile Remove="Models\Affiliates\Affiliate.cs" />
-    <Compile Remove="Models\Affiliates\AffiliateGeneralInfo.cs" />
-    <Compile Remove="Models\Affiliates\Requests\GetSubParamsRequest.cs" />
-    <Compile Remove="Models\Brands\Requests\BrandUpdateRequest.cs" />
-    <Compile Remove="Models\Brands\Requests\BrandSearchRequest.cs" />
-    <Compile Remove="Models\Brands\Requests\BrandGetRequest.cs" />
-    <Compile Remove="Models\Brands\Requests\BrandDeleteRequest.cs" />
-    <Compile Remove="Models\Campaigns\Requests\CampaignSearchRequest.cs" />
-    <Compile Remove="Models\Campaigns\Requests\CampaignCreateRequest.cs" />
-    <Compile Remove="Models\Campaigns\Requests\CampaignDeleteRequest.cs" />
-    <Compile Remove="Models\Campaigns\Requests\CampaignUpdateRequest.cs" />
-    <Compile Remove="Models\Affiliates\Requests\AffiliateDeleteRequest.cs" />
   </ItemGroup>
 
   <PropertyGroup>

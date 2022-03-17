@@ -8,6 +8,7 @@ using MarketingBox.Affiliate.Service.Domain.Models.CampaignRows;
 using MarketingBox.Affiliate.Service.Domain.Models.Campaigns;
 using MarketingBox.Affiliate.Service.Domain.Models.Country;
 using MarketingBox.Affiliate.Service.Domain.Models.Integrations;
+using MarketingBox.Affiliate.Service.Domain.Models.OfferAffiliates;
 using MarketingBox.Affiliate.Service.Domain.Models.Offers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -59,7 +60,7 @@ public class DatabaseContext : MyDbContext
     public DbSet<Company> Companies { get; set; }
     public DbSet<AffiliatePayout> AffiliatePayouts { get; set; }
     public DbSet<BrandPayout> BrandPayouts { get; set; }
-    public DbSet<OfferAffiliates> OfferAffiliates { get; set; }
+    public DbSet<OfferAffiliate> OfferAffiliates { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -91,13 +92,13 @@ public class DatabaseContext : MyDbContext
 
     private static void SetOfferAffiliate(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<OfferAffiliates>().ToTable(OfferAffiliatesTableName);
-        modelBuilder.Entity<OfferAffiliates>().HasKey(x => x.Id);
-        modelBuilder.Entity<OfferAffiliates>()
+        modelBuilder.Entity<OfferAffiliate>().ToTable(OfferAffiliatesTableName);
+        modelBuilder.Entity<OfferAffiliate>().HasKey(x => x.Id);
+        modelBuilder.Entity<OfferAffiliate>()
             .HasOne(x => x.Affiliate)
             .WithMany(x => x.OfferAffiliates)
             .HasForeignKey(x => x.AffiliateId);
-        modelBuilder.Entity<OfferAffiliates>()
+        modelBuilder.Entity<OfferAffiliate>()
             .HasOne(x => x.Offer)
             .WithMany(x => x.OfferAffiliates)
             .HasForeignKey(x => x.OfferId);

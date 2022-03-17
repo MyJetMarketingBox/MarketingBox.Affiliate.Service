@@ -10,7 +10,6 @@ namespace MarketingBox.Affiliate.Service.MapperProfiles
         {
             CreateMap<CampaignRowUpdateRequest,CampaignRow>();
             CreateMap<CampaignRowCreateRequest,CampaignRow>();
-            CreateMap<ActivityHours,ActivityHours>();
         }
     }
 }

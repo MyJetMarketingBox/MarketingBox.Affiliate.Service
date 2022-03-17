@@ -1,10 +1,11 @@
 using System.Runtime.Serialization;
 using MarketingBox.Affiliate.Service.Domain.Models.Campaigns;
+using MarketingBox.Affiliate.Service.Domain.Models.Offers;
 
-namespace MarketingBox.Affiliate.Service.Domain.Models.Offers
+namespace MarketingBox.Affiliate.Service.Domain.Models.OfferAffiliates
 {
     [DataContract]
-    public class OfferAffiliates
+    public class OfferAffiliate
     {
         [DataMember(Order = 1)] public long Id { get; set; }
         [DataMember(Order = 2)] public long CampaignId { get; set; }

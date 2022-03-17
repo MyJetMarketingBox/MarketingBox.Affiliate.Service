@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 using FluentValidation;
 using MarketingBox.Affiliate.Service.Domain.Models.Country;
 using MarketingBox.Affiliate.Service.Grpc;
+using MarketingBox.Affiliate.Service.Grpc.Requests;
 using MarketingBox.Affiliate.Service.Grpc.Requests.Country;
-using MarketingBox.Affiliate.Service.Repositories;
 using MarketingBox.Affiliate.Service.Repositories.Interfaces;
 using MarketingBox.Sdk.Common.Extensions;
 using MarketingBox.Sdk.Common.Models.Grpc;
@@ -18,16 +18,13 @@ namespace MarketingBox.Affiliate.Service.Services
     {
         private readonly ILogger<GeoService> _logger;
         private readonly IGeoRepository _repository;
-        private readonly IValidator<Geo> _validator;
 
         public GeoService(
             ILogger<GeoService> logger,
-            IGeoRepository repository,
-            IValidator<Geo> validator)
+            IGeoRepository repository)
         {
             _logger = logger;
             _repository = repository;
-            _validator = validator;
         }
 
         public async Task<Response<IReadOnlyCollection<Geo>>> GetAllAsync(GetAllRequest request)
@@ -52,7 +49,9 @@ namespace MarketingBox.Affiliate.Service.Services
         {
             try
             {
-                await _repository.DeleteAsync(request.CountryBoxId);
+                request.ValidateEntity();
+                
+                await _repository.DeleteAsync(request.GeoId.Value);
                 return new Response<bool>
                 {
                     Status = ResponseStatus.Ok,
@@ -70,8 +69,7 @@ namespace MarketingBox.Affiliate.Service.Services
         {
             try
             {
-                await _validator.ValidateAndThrowAsync(new Geo
-                    {Name = request.Name, CountryIds = request.CountryIds});
+                request.ValidateEntity();
                 
                 request.CountryIds = request.CountryIds.Distinct().ToArray();
                 
@@ -94,8 +92,7 @@ namespace MarketingBox.Affiliate.Service.Services
         {
             try
             {
-                await _validator.ValidateAndThrowAsync(new Geo
-                    {Name = request.Name, CountryIds = request.CountryIds});
+                request.ValidateEntity();
                 
                 request.CountryIds = request.CountryIds.Distinct().ToArray();
                 

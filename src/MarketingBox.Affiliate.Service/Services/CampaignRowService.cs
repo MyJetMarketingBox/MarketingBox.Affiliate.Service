@@ -39,6 +39,8 @@ namespace MarketingBox.Affiliate.Service.Services
         {
             try
             {
+                request.ValidateEntity();
+                
                 _logger.LogInformation("Creating new CampaignRow {@Context}", request);
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
@@ -74,6 +76,8 @@ namespace MarketingBox.Affiliate.Service.Services
         {
             try
             {
+                request.ValidateEntity();
+                
                 _logger.LogInformation("Updating a CampaignRow {@Context}", request);
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
@@ -131,10 +135,12 @@ namespace MarketingBox.Affiliate.Service.Services
             }
         }
 
-        public async Task<Response<CampaignRow>> GetAsync(CampaignRowGetRequest request)
+        public async Task<Response<CampaignRow>> GetAsync(CampaignRowByIdRequest request)
         {
             try
             {
+                request.ValidateEntity();
+                
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
                 var campaignRow = await ctx.CampaignRows
@@ -159,10 +165,12 @@ namespace MarketingBox.Affiliate.Service.Services
             }
         }
 
-        public async Task<Response<bool>> DeleteAsync(CampaignRowDeleteRequest request)
+        public async Task<Response<bool>> DeleteAsync(CampaignRowByIdRequest request)
         {
             try
             {
+                request.ValidateEntity();
+                
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
                 var campaignRow =
@@ -196,6 +204,8 @@ namespace MarketingBox.Affiliate.Service.Services
         {
             try
             {
+                request.ValidateEntity();
+                
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
                 var query = ctx.CampaignRows

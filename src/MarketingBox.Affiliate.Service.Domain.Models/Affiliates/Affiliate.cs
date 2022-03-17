@@ -59,12 +59,14 @@ namespace MarketingBox.Affiliate.Service.Domain.Models.Affiliates
         public Bank Bank { get; set; }
         
         [DataMember(Order = 17)]
-        public string LandingUrl { get; set; }
-        
+        public long? CreatedBy { get; set; }
+
         [DataMember(Order = 18)]
         public ICollection<AffiliatePayout> Payouts { get; set; }
-        
+            = new List<AffiliatePayout>();
+
         [DataMember(Order = 19)]
-        public ICollection<OfferAffiliates> OfferAffiliates { get; set; }
+        public ICollection<OfferAffiliates.OfferAffiliate> OfferAffiliates { get; set; } =
+            new List<OfferAffiliates.OfferAffiliate>();
     }
 }

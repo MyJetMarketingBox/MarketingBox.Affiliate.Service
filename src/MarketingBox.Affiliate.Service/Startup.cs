@@ -61,6 +61,9 @@ namespace MarketingBox.Affiliate.Service
                 endpoints.MapGrpcSchema<OfferService, IOfferService>();
                 endpoints.MapGrpcSchema<CountryService, ICountryService>();
                 endpoints.MapGrpcSchema<GeoService, IGeoService>();
+                endpoints.MapGrpcSchema<AffiliatePayoutService, IAffiliatePayoutService>();
+                endpoints.MapGrpcSchema<BrandPayoutService, IBrandPayoutService>();
+                endpoints.MapGrpcSchema<OfferAffiliateService, IOfferAffiliateService>();
 
                 endpoints.MapGrpcSchemaRegistry();
 

@@ -10,11 +10,11 @@ namespace MarketingBox.Affiliate.Service.Grpc;
 public interface IOfferService
 {
     [OperationContract]
-    Task<Response<Offer>> CreateAsync(CreateOfferRequest request);
+    Task<Response<Offer>> CreateAsync(OfferCreateRequest request);
     
     [OperationContract]
-    Task<Response<Offer>> GetAsync(OfferRequestById requestById);
+    Task<Response<Offer>> GetAsync(OfferRequestById request);
     
     [OperationContract]
-    Task<Response<bool>> DeleteAsync(OfferRequestById requestById);
+    Task<Response<bool>> DeleteAsync(OfferRequestById request);
 }

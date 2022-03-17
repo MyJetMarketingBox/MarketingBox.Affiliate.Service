@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using MarketingBox.Affiliate.Postgres;
-using MarketingBox.Affiliate.Service.Domain.Models.Integrations;
 using MarketingBox.Affiliate.Service.Grpc;
 using MarketingBox.Affiliate.Service.Grpc.Requests.Integrations;
 using MarketingBox.Affiliate.Service.Messages.Integrations;
@@ -46,7 +45,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 integration.Name);
         }
 
-        private static async Task ValidateCreateIntegrationRequest(IntegrationCreateRequest request,
+        private static void ValidateCreateIntegrationRequest(IntegrationCreateRequest request,
             DatabaseContext ctx)
         {
             var validationErrors = new List<ValidationError>();
@@ -68,27 +67,6 @@ namespace MarketingBox.Affiliate.Service.Services
                 });
             }
 
-            if (request.IntegrationType == IntegrationType.S2S)
-            {
-                if (!request.AffiliateId.HasValue)
-                {
-                    validationErrors.Add(new ValidationError
-                    {
-                        ErrorMessage = "Should be specified for 'S2S' integration type.",
-                        ParameterName = nameof(request.AffiliateId)
-                    });
-                }
-
-                if (!request.OfferId.HasValue)
-                {
-                    validationErrors.Add(new ValidationError
-                    {
-                        ErrorMessage = "Should be specified for 'S2S' integration type.",
-                        ParameterName = nameof(request.OfferId)
-                    });
-                }
-            }
-
             if (validationErrors.Any())
             {
                 throw new BadRequestException(new Error
@@ -96,20 +74,6 @@ namespace MarketingBox.Affiliate.Service.Services
                     ErrorMessage = "Request responded with one or more validation errors.",
                     ValidationErrors = validationErrors
                 });
-            }
-
-            var affiliateExists = await ctx.Affiliates.AnyAsync(x => x.Id == request.AffiliateId);
-
-            if (!affiliateExists)
-            {
-                throw new NotFoundException(nameof(request.AffiliateId), request.AffiliateId);
-            }
-
-            var offerExists = await ctx.Offers.AnyAsync(x => x.Id == request.OfferId);
-
-            if (!offerExists)
-            {
-                throw new NotFoundException(nameof(request.OfferId), request.OfferId);
             }
         }
 
@@ -130,11 +94,13 @@ namespace MarketingBox.Affiliate.Service.Services
         {
             try
             {
+                request.ValidateEntity();
+                
                 _logger.LogInformation("Creating new Integration {@context}", request);
 
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
-                await ValidateCreateIntegrationRequest(request, ctx);
+                ValidateCreateIntegrationRequest(request, ctx);
 
                 var integration = new Integration()
                 {
@@ -170,6 +136,8 @@ namespace MarketingBox.Affiliate.Service.Services
         {
             try
             {
+                request.ValidateEntity();
+
                 _logger.LogInformation("Updating a Integration {@context}", request);
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
@@ -177,7 +145,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 {
                     TenantId = request.TenantId,
                     Name = request.Name,
-                    Id = request.IntegrationId
+                    Id = request.IntegrationId.Value
                 };
 
                 var affectedRows = ctx.Integrations
@@ -220,10 +188,12 @@ namespace MarketingBox.Affiliate.Service.Services
             }
         }
 
-        public async Task<Response<Integration>> GetAsync(IntegrationGetRequest request)
+        public async Task<Response<Integration>> GetAsync(IntegrationByIdRequest request)
         {
             try
             {
+                request.ValidateEntity();
+                
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
                 var integration = await ctx.Integrations.FirstOrDefaultAsync(x => x.Id == request.IntegrationId);
                 if (integration is null)
@@ -245,10 +215,12 @@ namespace MarketingBox.Affiliate.Service.Services
             }
         }
 
-        public async Task<Response<bool>> DeleteAsync(IntegrationDeleteRequest request)
+        public async Task<Response<bool>> DeleteAsync(IntegrationByIdRequest request)
         {
             try
             {
+                request.ValidateEntity();
+                
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
                 var integration = await ctx.Integrations.FirstOrDefaultAsync(x => x.Id == request.IntegrationId);

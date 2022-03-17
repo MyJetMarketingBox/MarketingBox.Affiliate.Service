@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Runtime.Serialization;
 using MarketingBox.Affiliate.Service.Domain.Models.CampaignRows;
-using MarketingBox.Affiliate.Service.Domain.Models.Offers;
+using MarketingBox.Affiliate.Service.Domain.Models.OfferAffiliates;
 
 namespace MarketingBox.Affiliate.Service.Domain.Models.Campaigns
 {
@@ -12,6 +12,6 @@ namespace MarketingBox.Affiliate.Service.Domain.Models.Campaigns
         [DataMember(Order = 2)] public string TenantId { get; set; }
         [DataMember(Order = 3)] public string Name { get; set; }
         [DataMember(Order = 4)] public ICollection<CampaignRow> CampaignRows { get; set; }
-        [DataMember(Order = 5)] public ICollection<OfferAffiliates> OfferAffiliates { get; set; }
+        [DataMember(Order = 5)] public ICollection<OfferAffiliate> OfferAffiliates { get; set; }
     }
 }

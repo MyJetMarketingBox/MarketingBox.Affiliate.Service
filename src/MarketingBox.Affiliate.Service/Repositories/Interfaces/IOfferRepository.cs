@@ -6,7 +6,7 @@ namespace MarketingBox.Affiliate.Service.Repositories.Interfaces
 {
     public interface IOfferRepository
     {
-        Task<Offer> CreateAsync(CreateOfferRequest request);
+        Task<Offer> CreateAsync(OfferCreateRequest request);
         Task<Offer> GetAsync(long id);
         Task DeleteAsync(long id);
     }

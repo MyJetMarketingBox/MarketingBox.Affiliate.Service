@@ -20,10 +20,10 @@ namespace MarketingBox.Affiliate.Service.Grpc
         Task<Response<Domain.Models.Affiliates.Affiliate>> UpdateAsync(AffiliateUpdateRequest request);
 
         [OperationContract]
-        Task<Response<Domain.Models.Affiliates.Affiliate>> GetAsync(AffiliateGetRequest request);
+        Task<Response<Domain.Models.Affiliates.Affiliate>> GetAsync(AffiliateByIdRequest request);
 
         [OperationContract]
-        Task<Response<IReadOnlyCollection<AffiliateSubParam>>> GetSubParamsAsync(GetSubParamsRequest request);
+        Task<Response<IReadOnlyCollection<AffiliateSubParam>>> GetSubParamsAsync(AffiliateByIdRequest request);
 
         [OperationContract]
         Task<Response<IReadOnlyCollection<Domain.Models.Affiliates.Affiliate>>> SearchAsync(AffiliateSearchRequest request);

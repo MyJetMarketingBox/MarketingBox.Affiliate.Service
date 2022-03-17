@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
-using MarketingBox.Affiliate.Service.Domain.Models.Campaigns;
 using MarketingBox.Affiliate.Service.Grpc.Requests.Campaigns;
 using MarketingBox.Affiliate.Service.Messages.Campaigns;
 using MarketingBox.Affiliate.Service.MyNoSql.Campaigns;
@@ -52,6 +51,8 @@ namespace MarketingBox.Affiliate.Service.Services
         {
             try
             {
+                request.ValidateEntity();
+                
                 _logger.LogInformation("Creating new Campaign {@context}", request);
 
                 if (string.IsNullOrWhiteSpace(request.Name))
@@ -94,6 +95,8 @@ namespace MarketingBox.Affiliate.Service.Services
         {
             try
             {
+                request.ValidateEntity();
+                
                 _logger.LogInformation("Updating a Campaign {@context}", request);
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
@@ -139,13 +142,18 @@ namespace MarketingBox.Affiliate.Service.Services
             }
         }
 
-        public async Task<Response<Campaign>> GetAsync(CampaignGetRequest request)
+        public async Task<Response<Campaign>> GetAsync(CampaignByIdRequest request)
         {
             try
             {
+                request.ValidateEntity();
+                
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
-                var campaign = await ctx.Campaigns.FirstOrDefaultAsync(x => x.Id == request.CampaignId);
+                var campaign = await ctx.Campaigns
+                    .Include(x=>x.CampaignRows)
+                    .Include(x=>x.OfferAffiliates)
+                    .FirstOrDefaultAsync(x => x.Id == request.CampaignId);
                 if (campaign is null)
                 {
                     throw new NotFoundException(nameof(request.CampaignId), request.CampaignId);
@@ -165,10 +173,12 @@ namespace MarketingBox.Affiliate.Service.Services
             }
         }
 
-        public async Task<Response<bool>> DeleteAsync(CampaignDeleteRequest request)
+        public async Task<Response<bool>> DeleteAsync(CampaignByIdRequest request)
         {
             try
             {
+                request.ValidateEntity();
+                
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
                 var campaign = await ctx.Campaigns.FirstOrDefaultAsync(x => x.Id == request.CampaignId);
@@ -182,7 +192,8 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 await _publisherCampaignRemoved.PublishAsync(_mapper.Map<CampaignRemoved>(campaign));
 
-                await ctx.Campaigns.Where(x => x.Id == campaign.Id).DeleteFromQueryAsync();
+                ctx.Campaigns.Remove(campaign);
+                await ctx.SaveChangesAsync();
 
                 return new Response<bool>
                 {
@@ -202,6 +213,8 @@ namespace MarketingBox.Affiliate.Service.Services
         {
             try
             {
+                request.ValidateEntity();
+                
                 _logger.LogInformation(
                     $"CampaignService.SearchAsync start with request : {JsonConvert.SerializeObject(request)}");
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);

@@ -13,9 +13,5 @@ namespace MarketingBox.Affiliate.Service.Messages.Integrations
 
         [DataMember(Order = 3)]
         public string TenantId { get; set; }
-
-        [DataMember(Order = 4)]
-        public long Sequence { get; set; }
-
     }
 }

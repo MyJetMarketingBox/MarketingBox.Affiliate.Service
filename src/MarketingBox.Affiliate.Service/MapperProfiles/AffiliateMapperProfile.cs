@@ -2,6 +2,7 @@ using System;
 using AutoMapper;
 using MarketingBox.Affiliate.Service.Domain.Models.Affiliates;
 using MarketingBox.Affiliate.Service.Grpc.Requests.Affiliates;
+using MarketingBox.Affiliate.Service.Messages.Affiliates;
 
 namespace MarketingBox.Affiliate.Service.MapperProfiles
 {
@@ -10,21 +11,28 @@ namespace MarketingBox.Affiliate.Service.MapperProfiles
         public AffiliateMapperProfile()
         {
             CreateMap<CreateSubRequest, AffiliateCreateRequest>()
-                .ForMember(d => d.IsSubAffiliate,
-                    s => s.MapFrom(_ => true));
-            CreateMap<CreateSubRequest, Domain.Models.Affiliates.Affiliate>()
+                .ForMember(d => d.CreatedBy,
+                    s => s.MapFrom(req => req.MasterAffiliateId));
+            CreateMap<AffiliateCreateRequest, Domain.Models.Affiliates.Affiliate>()
                 .ForMember(d => d.CreatedAt,
                     s => s.MapFrom(_ => DateTime.UtcNow))
                 .ForMember(d => d.ApiKey,
                     s => s.MapFrom(_ => Guid.NewGuid().ToString("N")))
                 .ForMember(d => d.State,
-                    s => s.MapFrom(_ => State.NotActive));
+                    s => s.MapFrom(_ => State.NotActive))
+                .IncludeMembers(x=>x.GeneralInfo);
 
-            CreateMap<AffiliateCreateRequest, Domain.Models.Affiliates.Affiliate>();
+            CreateMap<GeneralInfoRequest, Domain.Models.Affiliates.Affiliate>();
             CreateMap<AffiliateUpdateRequest, Domain.Models.Affiliates.Affiliate>();
-            CreateMap<Bank, Bank>();
-            CreateMap<Company, Company>();
-            CreateMap<GeneralInfo, GeneralInfo>()
+            CreateMap<Domain.Models.Affiliates.Affiliate, AffiliateUpdated>()
+                .ForMember(
+                    x => x.AffiliateId,
+                    x => x.MapFrom(x => x.Id))
+                .ForMember(x => x.GeneralInfo,
+                    x => x.MapFrom(x => x));
+            CreateMap<BankRequest, Bank>();
+            CreateMap<CompanyRequest, Company>();
+            CreateMap<GeneralInfoRequest, GeneralInfo>()
                 .ForMember(d => d.CreatedAt,
                     s => s.MapFrom(_ => DateTime.UtcNow));
             

@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using MarketingBox.Affiliate.Service.Domain.Models.Offers;
 using MarketingBox.Affiliate.Service.Grpc;
 using MarketingBox.Affiliate.Service.Grpc.Requests.Offers;
-using MarketingBox.Affiliate.Service.Repositories;
 using MarketingBox.Affiliate.Service.Repositories.Interfaces;
 using MarketingBox.Sdk.Common.Extensions;
 using MarketingBox.Sdk.Common.Models.Grpc;
@@ -22,10 +21,12 @@ namespace MarketingBox.Affiliate.Service.Services
             _offerRepository = offerRepository;
             _logger = logger;
         }
-        public async Task<Response<Offer>> CreateAsync(CreateOfferRequest request)
+        public async Task<Response<Offer>> CreateAsync(OfferCreateRequest request)
         {
             try
             {
+                request.ValidateEntity();
+                
                 var result = await _offerRepository.CreateAsync(request);
                 return new Response<Offer>
                 {
@@ -39,11 +40,13 @@ namespace MarketingBox.Affiliate.Service.Services
             }
         }
 
-        public async Task<Response<Offer>> GetAsync(OfferRequestById requestById)
+        public async Task<Response<Offer>> GetAsync(OfferRequestById request)
         {
             try
             {
-                var result = await _offerRepository.GetAsync(requestById.Id);
+                request.ValidateEntity();
+                
+                var result = await _offerRepository.GetAsync(request.Id.Value);
                 return new Response<Offer>
                 {
                     Status = ResponseStatus.Ok,
@@ -56,12 +59,13 @@ namespace MarketingBox.Affiliate.Service.Services
             }
         }
 
-
-        public async Task<Response<bool>> DeleteAsync(OfferRequestById requestById)
+        public async Task<Response<bool>> DeleteAsync(OfferRequestById request)
         {
             try
             {
-                await _offerRepository.DeleteAsync(requestById.Id);
+                request.ValidateEntity();
+                
+                await _offerRepository.DeleteAsync(request.Id.Value);
                 return new Response<bool>
                 {
                     Status = ResponseStatus.Ok,

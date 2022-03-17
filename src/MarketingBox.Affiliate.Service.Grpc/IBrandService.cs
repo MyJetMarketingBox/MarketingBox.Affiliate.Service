@@ -17,10 +17,10 @@ namespace MarketingBox.Affiliate.Service.Grpc
         Task<Response<Brand>> UpdateAsync(BrandUpdateRequest request);
 
         [OperationContract]
-        Task<Response<Brand>> GetAsync(BrandGetRequest request);
+        Task<Response<Brand>> GetAsync(BrandByIdRequest request);
 
         [OperationContract]
-        Task<Response<bool>> DeleteAsync(BrandDeleteRequest request);
+        Task<Response<bool>> DeleteAsync(BrandByIdRequest request);
 
         [OperationContract]
         Task<Response<IReadOnlyCollection<Brand>>> SearchAsync(BrandSearchRequest request);

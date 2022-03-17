@@ -17,6 +17,7 @@ namespace MarketingBox.Affiliate.Service.MyNoSql.Brands
             {
                 PartitionKey = GeneratePartitionKey(brandMessage.TenantId),
                 RowKey = GenerateRowKey(brandMessage.Id),
+                Brand = brandMessage
             };
     }
 }

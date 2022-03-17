@@ -33,7 +33,7 @@ namespace MarketingBox.Affiliate.Service.Services
             DbContextOptionsBuilder<DatabaseContext> dbContextOptionsBuilder,
             IServiceBusPublisher<BrandMessage> publisherBrandUpdated,
             IMyNoSqlServerDataWriter<BrandNoSql> myNoSqlServerDataWriter,
-            IServiceBusPublisher<BrandRemoved> publisherBrandRemoved, 
+            IServiceBusPublisher<BrandRemoved> publisherBrandRemoved,
             IMapper mapper)
         {
             _logger = logger;
@@ -46,12 +46,23 @@ namespace MarketingBox.Affiliate.Service.Services
 
         public async Task<Response<Brand>> CreateAsync(BrandCreateRequest request)
         {
-            _logger.LogInformation("Creating new Brand {@context}", request);
-            using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
-
             try
             {
+                request.ValidateEntity();
+                
+                _logger.LogInformation("Creating new Brand {@context}", request);
+                await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+
                 var brand = _mapper.Map<Brand>(request);
+                if (request.BrandPayoutId.HasValue)
+                {
+                    var brandPayout = await ctx.BrandPayouts.FirstOrDefaultAsync(x => x.Id == request.BrandPayoutId);
+                    if (brandPayout is null)
+                    {
+                        throw new NotFoundException($"BrandPayout with {nameof(request.BrandPayoutId)}", request.BrandPayoutId);
+                    }
+                    brand.Payouts.Add(brandPayout);
+                }
 
                 ctx.Brands.Add(brand);
                 await ctx.SaveChangesAsync();
@@ -79,16 +90,28 @@ namespace MarketingBox.Affiliate.Service.Services
 
         public async Task<Response<Brand>> UpdateAsync(BrandUpdateRequest request)
         {
-            _logger.LogInformation("Updating a Brand {@context}", request);
-            await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
-
             try
             {
-                var brand = await ctx.Brands.FirstOrDefaultAsync(x => x.Id == request.Id);
+                request.ValidateEntity();
                 
+                _logger.LogInformation("Updating a Brand {@context}", request);
+                await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+
+                var brand = await ctx.Brands.FirstOrDefaultAsync(x => x.Id == request.BrandId);
+
                 if (brand is null)
                 {
-                    throw new NotFoundException($"Brand with {nameof(request.Id)}", request.Id);
+                    throw new NotFoundException($"Brand with {nameof(request.BrandId)}", request.BrandId);
+                }
+                
+                if (request.BrandPayoutId.HasValue)
+                {
+                    var brandPayout = await ctx.BrandPayouts.FirstOrDefaultAsync(x => x.Id == request.BrandPayoutId);
+                    if (brandPayout is null)
+                    {
+                        throw new NotFoundException($"BrandPayout with {nameof(request.BrandPayoutId)}", request.BrandPayoutId);
+                    }
+                    brand.Payouts.Add(brandPayout);
                 }
 
                 await ctx.Brands.Upsert(brand).RunAsync();
@@ -116,19 +139,22 @@ namespace MarketingBox.Affiliate.Service.Services
             }
         }
 
-        public async Task<Response<Brand>> GetAsync(BrandGetRequest request)
+        public async Task<Response<Brand>> GetAsync(BrandByIdRequest request)
         {
-            await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
-
             try
             {
-                var brandEntity = await ctx.Brands.FirstOrDefaultAsync(x => x.Id == request.BrandId);
-                if (brandEntity is null) throw new NotFoundException(nameof(request.BrandId), request.BrandId);
+                request.ValidateEntity();
+                
+                await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+
+                var brand = await ctx.Brands
+                    .FirstOrDefaultAsync(x => x.Id == request.BrandId);
+                if (brand is null) throw new NotFoundException(nameof(request.BrandId), request.BrandId);
 
                 return new Response<Brand>
                 {
                     Status = ResponseStatus.Ok,
-                    Data = brandEntity
+                    Data = brand
                 };
             }
             catch (Exception e)
@@ -139,30 +165,36 @@ namespace MarketingBox.Affiliate.Service.Services
             }
         }
 
-        public async Task<Response<bool>> DeleteAsync(BrandDeleteRequest request)
+        public async Task<Response<bool>> DeleteAsync(BrandByIdRequest request)
         {
-            await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
-
             try
             {
-                var brandEntity = await ctx.Brands.FirstOrDefaultAsync(x => x.Id == request.BrandId);
+                request.ValidateEntity();
+                
+                await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
-                if (brandEntity == null)
+                var brand = await ctx.Brands.FirstOrDefaultAsync(x => x.Id == request.BrandId);
+
+                if (brand == null)
                     throw new NotFoundException(nameof(request.BrandId), request.BrandId);
 
                 await _myNoSqlServerDataWriter.DeleteAsync(
-                    BrandNoSql.GeneratePartitionKey(brandEntity.TenantId),
-                    BrandNoSql.GenerateRowKey(brandEntity.Id));
+                    BrandNoSql.GeneratePartitionKey(brand.TenantId),
+                    BrandNoSql.GenerateRowKey(brand.Id));
 
                 await _publisherBrandRemoved.PublishAsync(new BrandRemoved
                 {
-                    BrandId = brandEntity.Id,
-                    TenantId = brandEntity.TenantId
+                    BrandId = brand.Id,
+                    TenantId = brand.TenantId
                 });
 
-                await ctx.Brands.Where(x => x.Id == brandEntity.Id).DeleteFromQueryAsync();
+                await ctx.Brands.Where(x => x.Id == brand.Id).DeleteFromQueryAsync();
 
-                return new Response<bool>();
+                return new Response<bool>
+                {
+                    Status = ResponseStatus.Ok,
+                    Data = true
+                };
             }
             catch (Exception e)
             {
@@ -174,10 +206,12 @@ namespace MarketingBox.Affiliate.Service.Services
 
         public async Task<Response<IReadOnlyCollection<Brand>>> SearchAsync(BrandSearchRequest request)
         {
-            await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
-
             try
             {
+                request.ValidateEntity();
+                
+                await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+
                 var query = ctx.Brands.AsQueryable();
 
                 if (!string.IsNullOrEmpty(request.TenantId)) query = query.Where(x => x.TenantId == request.TenantId);
@@ -195,13 +229,15 @@ namespace MarketingBox.Affiliate.Service.Services
                 var limit = request.Take <= 0 ? 1000 : request.Take;
                 if (request.Asc)
                 {
-                    if (request.Cursor != null) query = query.Where(x => x.Id > request.Cursor);
+                    if (request.Cursor != null)
+                        query = query.Where(x => x.Id > request.Cursor);
 
                     query = query.OrderBy(x => x.Id);
                 }
                 else
                 {
-                    if (request.Cursor != null) query = query.Where(x => x.Id < request.Cursor);
+                    if (request.Cursor != null)
+                        query = query.Where(x => x.Id < request.Cursor);
 
                     query = query.OrderByDescending(x => x.Id);
                 }
