@@ -33,9 +33,8 @@ namespace MarketingBox.Affiliate.Service.Domain.Models.Affiliates
 
         [DataMember(Order = 8)] [LogMasked(PreserveLength = true, ShowFirst = 1, ShowLast = 1)]
         public string ZipCode { get; set; }
-        
-        [DataMember(Order = 9)]
-        public State State { get; set; }
+
+        [DataMember(Order = 9)] public State State { get; set; }
         
         [DataMember(Order = 10)]
         public Currency Currency { get; set; }
@@ -45,15 +44,11 @@ namespace MarketingBox.Affiliate.Service.Domain.Models.Affiliates
         
         [DataMember(Order = 12)]
         public DateTime CreatedAt { get; set; }
-        
-        [DataMember(Order = 13)]
-        public long CompanyId { get; set; }
+        public long? CompanyId { get; set; }
         
         [DataMember(Order = 14)]
         public Company Company { get; set; }
-        
-        [DataMember(Order = 15)]
-        public long BankId { get; set; }
+        public long? BankId { get; set; }
         
         [DataMember(Order = 16)]
         public Bank Bank { get; set; }
@@ -62,8 +57,8 @@ namespace MarketingBox.Affiliate.Service.Domain.Models.Affiliates
         public long? CreatedBy { get; set; }
 
         [DataMember(Order = 18)]
-        public ICollection<AffiliatePayout> Payouts { get; set; }
-            = new List<AffiliatePayout>();
+        public ICollection<AffiliatePayout> Payouts { get; set; } =
+            new List<AffiliatePayout>();
 
         [DataMember(Order = 19)]
         public ICollection<OfferAffiliate> OfferAffiliates { get; set; } =

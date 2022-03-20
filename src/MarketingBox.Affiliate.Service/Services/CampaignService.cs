@@ -213,7 +213,10 @@ namespace MarketingBox.Affiliate.Service.Services
                 _logger.LogInformation(
                     $"CampaignService.SearchAsync start with request : {JsonConvert.SerializeObject(request)}");
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
-                var query = ctx.Campaigns.AsQueryable();
+                var query = ctx.Campaigns
+                    .Include(x=>x.CampaignRows)
+                    .Include(x=>x.OfferAffiliates)
+                    .AsQueryable();
 
                 if (!string.IsNullOrWhiteSpace(request.TenantId))
                 {
@@ -258,6 +261,10 @@ namespace MarketingBox.Affiliate.Service.Services
                     .AsEnumerable()
                     .ToArray();
 
+                if (response.Length == 0)
+                {
+                    throw new NotFoundException(NotFoundException.DefaultMessage);
+                }
                 _logger.LogInformation(
                     $"CampaignService.SearchAsync return Boxes : {JsonConvert.SerializeObject(response)}");
 

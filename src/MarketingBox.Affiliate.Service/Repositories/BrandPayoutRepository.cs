@@ -35,9 +35,15 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 _logger.LogInformation("Creating BrandPayout by request {@CreateBrandPayoutRequest}", request);
 
                 var brandPayout = _mapper.Map<BrandPayout>(request);
-                brandPayout.CreatedAt = DateTime.UtcNow;
-                brandPayout.ModifiedAt = DateTime.UtcNow;
+                var date = DateTime.UtcNow;
+                brandPayout.CreatedAt = date;
+                brandPayout.ModifiedAt = date;
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+                var geo = await ctx.Geos.FirstOrDefaultAsync(x => x.Id == request.GeoId);
+                if (geo is null)
+                {
+                    throw new NotFoundException(nameof(request.GeoId), request.GeoId);
+                }
                 ctx.BrandPayouts.Add(brandPayout);
                 await ctx.SaveChangesAsync();
 
@@ -56,7 +62,9 @@ namespace MarketingBox.Affiliate.Service.Repositories
             {
                 _logger.LogInformation("Getting BrandPayout by id {@PayoutId}", request.PayoutId);
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
-                var brandPayout = await ctx.BrandPayouts.FirstOrDefaultAsync(x => x.Id == request.PayoutId);
+                var brandPayout = await ctx.BrandPayouts
+                    .Include(x=>x.Geo)
+                    .FirstOrDefaultAsync(x => x.Id == request.PayoutId);
                 if (brandPayout is null)
                 {
                     throw new NotFoundException(nameof(request.PayoutId), request.PayoutId);
@@ -100,7 +108,9 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 _logger.LogInformation("Updating BrandPayout by request {@UpdateBrandPayoutRequest}", request);
 
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
-                var brandPayout = await ctx.BrandPayouts.FirstOrDefaultAsync(x => x.Id == request.Id);
+                var brandPayout = await ctx.BrandPayouts
+                    .Include(x=>x.Geo)
+                    .FirstOrDefaultAsync(x => x.Id == request.Id);
                 if (brandPayout is null)
                 {
                     throw new NotFoundException(nameof(request.Id), request.Id);

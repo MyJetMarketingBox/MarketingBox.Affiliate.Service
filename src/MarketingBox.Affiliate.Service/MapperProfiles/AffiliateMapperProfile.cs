@@ -11,18 +11,23 @@ namespace MarketingBox.Affiliate.Service.MapperProfiles
         {
             CreateMap<CreateSubRequest, AffiliateCreateRequest>()
                 .ForMember(d => d.CreatedBy,
-                    s => s.MapFrom(x => x.MasterAffiliateId));
+                    s => s.MapFrom(x => x.MasterAffiliateId))
+                .ForMember(x => x.GeneralInfo,
+                    x => x.MapFrom(z => z));
             CreateMap<AffiliateCreateRequest, Domain.Models.Affiliates.Affiliate>()
                 .ForMember(d => d.CreatedAt,
                     s => s.MapFrom(_ => DateTime.UtcNow))
                 .ForMember(d => d.ApiKey,
                     s => s.MapFrom(_ => Guid.NewGuid().ToString("N")))
-                .ForMember(d => d.State,
-                    s => s.MapFrom(_ => State.NotActive))
+                .IncludeMembers(x=>x.GeneralInfo);
+            
+            CreateMap<AffiliateUpdateRequest, Domain.Models.Affiliates.Affiliate>()
                 .IncludeMembers(x=>x.GeneralInfo);
 
             CreateMap<GeneralInfoRequest, Domain.Models.Affiliates.Affiliate>();
-            CreateMap<AffiliateUpdateRequest, Domain.Models.Affiliates.Affiliate>();
+            CreateMap<CreateSubRequest, GeneralInfoRequest>()
+                .ForMember(x => x.State,
+                    x => x.MapFrom(x => State.NotActive));
             CreateMap<Domain.Models.Affiliates.Affiliate, AffiliateMessage>()
                 .ForMember(x => x.GeneralInfo,
                     x => x.MapFrom(z => z));

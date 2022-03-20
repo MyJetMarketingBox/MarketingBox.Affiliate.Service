@@ -10,10 +10,10 @@ namespace MarketingBox.Affiliate.Service.MyNoSql.CampaignRows
         public static string GenerateRowKey(long campaignRowId) =>
             $"{campaignRowId}";
 
-        public CampaignRow CampaignRow { get; set; }
+        public CampaignRowMessage CampaignRow { get; set; }
 
         public static CampaignRowNoSql Create(
-            CampaignRow campaignRow) =>
+            CampaignRowMessage campaignRow) =>
             new()
             {
                 PartitionKey = GeneratePartitionKey(campaignRow.CampaignId),

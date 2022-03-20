@@ -11,13 +11,18 @@ namespace MarketingBox.Affiliate.Service.Grpc.Requests.Affiliates
         public long? MasterAffiliateId { get; set; }
 
         [DataMember(Order = 2)] public string MasterAffiliateApiKey { get; set; }
-        [DataMember(Order = 3)] public string Username { get; set; }
+
+        [DataMember(Order = 3), Required, StringLength(128, MinimumLength = 1)]
+        public string Username { get; set; }
+
         [DataMember(Order = 4)] public string Password { get; set; }
 
-        [DataMember(Order = 5), Required, EmailAddress]
+        [DataMember(Order = 5), Required, Phone]
+        public string Phone { get; set; }
+
+        [DataMember(Order = 6), Required, EmailAddress]
         public string Email { get; set; }
 
-        [DataMember(Order = 6)] public string LandingUrl { get; set; }
         [DataMember(Order = 7)] public SubEntity[] Sub { get; set; }
     }
 

@@ -46,7 +46,7 @@ namespace MarketingBox.Affiliate.Service.Services
             response.Process();
         }
 
-        private AffiliateUpdated MapToMessage(AffiliateMessage affiliate,
+        private static AffiliateUpdated MapToMessage(AffiliateMessage affiliate,
             AffiliateUpdatedEventType type)
         {
             var message = new AffiliateUpdated
@@ -56,6 +56,49 @@ namespace MarketingBox.Affiliate.Service.Services
             };
             return message;
         }
+        
+
+        private static async Task UpdateCompany(GrpcModels.Affiliate affiliate, DatabaseContext ctx)
+        {
+            if (affiliate.Company is not null)
+            {
+                var company = await ctx.Companies.FirstOrDefaultAsync(x => x.Name == affiliate.Company.Name);
+                if (company is null)
+                {
+                    ctx.Companies.Add(affiliate.Company);
+                }
+                else
+                {
+                    company.Address = affiliate.Company.Address;
+                    company.RegNumber = affiliate.Company.RegNumber;
+                    company.VatId = affiliate.Company.VatId;
+                    affiliate.Company = company;
+                }
+            }
+        }
+
+        private static async Task UpdateBank(GrpcModels.Affiliate affiliate, DatabaseContext ctx)
+        {
+            if (affiliate.Bank is not null)
+            {
+                var bank = await ctx.Banks.FirstOrDefaultAsync(x => x.Name == affiliate.Bank.Name);
+                if (bank is null)
+                {
+                    ctx.Banks.Add(affiliate.Bank);
+                }
+                else
+                {
+                    bank.Address = affiliate.Bank.Address;
+                    bank.Iban = affiliate.Bank.Iban;
+                    bank.Swift = affiliate.Bank.Swift;
+                    bank.AccountNumber = affiliate.Bank.AccountNumber;
+                    bank.BeneficiaryAddress = affiliate.Bank.BeneficiaryAddress;
+                    bank.BeneficiaryName = affiliate.Bank.BeneficiaryName;
+                    affiliate.Bank = bank;
+                }
+            }
+        }
+
 
         public AffiliateService(ILogger<AffiliateService> logger,
             IServiceBusPublisher<AffiliateUpdated> publisherPartnerUpdated,
@@ -143,7 +186,8 @@ namespace MarketingBox.Affiliate.Service.Services
                     request.Password = GeneratePassword();
 
                 var createRequest = _mapper.Map<AffiliateCreateRequest>(request);
-
+                createRequest.TenantId = masterAffiliate.TenantId;
+                
                 var createResponse = await CreateAsync(createRequest);
 
                 if (createResponse.Status != ResponseStatus.Ok)
@@ -189,7 +233,11 @@ namespace MarketingBox.Affiliate.Service.Services
                     throw new AlreadyExistsException("Affiliate already exists.");
                 }
 
+                await UpdateBank(affiliate, ctx);
+                await UpdateCompany(affiliate, ctx);
+
                 ctx.Affiliates.Add(affiliate);
+
                 await ctx.SaveChangesAsync();
 
                 await CreateOrUpdateUser(affiliate);
@@ -204,8 +252,8 @@ namespace MarketingBox.Affiliate.Service.Services
                 await _publisherPartnerUpdated.PublishAsync(
                     MapToMessage(affiliateMassage,
                         request.CreatedBy.HasValue
-                        ? AffiliateUpdatedEventType.CreatedSub
-                        : AffiliateUpdatedEventType.CreatedManual));
+                            ? AffiliateUpdatedEventType.CreatedSub
+                            : AffiliateUpdatedEventType.CreatedManual));
 
                 _logger.LogInformation("Sent partner update to service bus {@context}", request);
 
@@ -221,7 +269,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 return e.FailedResponse<GrpcModels.Affiliate>();
             }
         }
-
+        
         public async Task<Response<GrpcModels.Affiliate>> UpdateAsync(AffiliateUpdateRequest request)
         {
             try
@@ -232,14 +280,25 @@ namespace MarketingBox.Affiliate.Service.Services
                 await using var ctx = _databaseContextFactory.Create();
                 var affiliate = _mapper.Map<GrpcModels.Affiliate>(request);
                 var affiliateExisting = await ctx.Affiliates
-                    .FirstOrDefaultAsync(x => x.Id == affiliate.Id);
+                    .FirstOrDefaultAsync(x => x.Id == request.AffiliateId);
 
                 if (affiliateExisting is null)
                 {
                     throw new NotFoundException(nameof(request.AffiliateId), request.AffiliateId);
                 }
 
-                await ctx.Affiliates.Upsert(affiliate).RunAsync();
+                await UpdateBank(affiliate, ctx);
+                await UpdateCompany(affiliate, ctx);
+                affiliateExisting.Username = affiliate.Username;
+                affiliateExisting.Password = affiliate.Password;
+                affiliateExisting.Email = affiliate.Email;
+                affiliateExisting.Phone = affiliate.Phone;
+                affiliateExisting.Skype = affiliate.Skype;
+                affiliateExisting.ZipCode = affiliate.ZipCode;
+                affiliateExisting.State = affiliate.State;
+                affiliateExisting.Currency = affiliate.Currency;
+                affiliateExisting.TenantId = affiliate.TenantId;
+
                 await ctx.SaveChangesAsync();
 
                 await CreateOrUpdateUser(affiliate);
@@ -256,7 +315,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 return new Response<GrpcModels.Affiliate>
                 {
                     Status = ResponseStatus.Ok,
-                    Data = affiliate
+                    Data = affiliateExisting
                 };
             }
             catch (Exception e)
@@ -275,6 +334,8 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 await using var ctx = _databaseContextFactory.Create();
                 var affiliate = await ctx.Affiliates
+                    .Include(x => x.Bank)
+                    .Include(x => x.Company)
                     .FirstOrDefaultAsync(x => x.Id == request.AffiliateId);
                 if (affiliate is null)
                 {
@@ -306,15 +367,15 @@ namespace MarketingBox.Affiliate.Service.Services
                 var paramList = ctx.AffiliateSubParams
                     .Where(x => x.AffiliateId == request.AffiliateId)
                     .ToList();
+                if (paramList.Count==0)
+                {
+                    throw new NotFoundException(NotFoundException.DefaultMessage);
+                }
 
                 return new Response<IReadOnlyCollection<AffiliateSubParam>>()
                 {
                     Status = ResponseStatus.Ok,
-                    Data = paramList.Select(e => new AffiliateSubParam()
-                    {
-                        ParamName = e.ParamName,
-                        ParamValue = e.ParamValue
-                    }).ToList()
+                    Data = paramList
                 };
             }
             catch (Exception e)
@@ -333,7 +394,9 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 await using var ctx = _databaseContextFactory.Create();
 
-                IQueryable<Domain.Models.Affiliates.Affiliate> query = ctx.Affiliates;
+                IQueryable<Domain.Models.Affiliates.Affiliate> query = ctx.Affiliates
+                    .Include(x=>x.Bank)
+                    .Include(x=>x.Company);
 
 
                 if (!string.IsNullOrEmpty(request.TenantId))
@@ -389,6 +452,11 @@ namespace MarketingBox.Affiliate.Service.Services
                     .AsEnumerable()
                     .ToArray();
 
+                if (response.Length==0)
+                {
+                    throw new NotFoundException(NotFoundException.DefaultMessage);
+                }
+                
                 return new Response<IReadOnlyCollection<GrpcModels.Affiliate>>()
                 {
                     Status = ResponseStatus.Ok,

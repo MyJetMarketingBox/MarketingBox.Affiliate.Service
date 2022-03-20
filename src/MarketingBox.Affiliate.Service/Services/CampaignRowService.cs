@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using MarketingBox.Affiliate.Service.Domain.Models.CampaignRows;
 using MarketingBox.Affiliate.Service.Grpc.Requests.CampaignRows;
 using MarketingBox.Affiliate.Service.MyNoSql.CampaignRows;
 using MarketingBox.Sdk.Common.Exceptions;
@@ -48,13 +49,23 @@ namespace MarketingBox.Affiliate.Service.Services
                 if (geo is null)
                 {
                     throw new NotFoundException(nameof(request.GeoId), request.GeoId);
+                }               
+                var campaign = ctx.Campaigns.FirstOrDefault(x => x.Id == request.CampaignId);
+                if (campaign is null)
+                {
+                    throw new NotFoundException(nameof(request.CampaignId), request.CampaignId);
+                }               
+                var brand = ctx.Brands.FirstOrDefault(x => x.Id == request.BrandId);
+                if (brand is null)
+                {
+                    throw new NotFoundException(nameof(request.BrandId), request.BrandId);
                 }
 
                 var campaignRow = _mapper.Map<CampaignRow>(request);
                 ctx.CampaignRows.Add(campaignRow);
                 await ctx.SaveChangesAsync();
 
-                var nosql = CampaignRowNoSql.Create(campaignRow);
+                var nosql = CampaignRowNoSql.Create(_mapper.Map<CampaignRowMessage>(campaignRow));
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 _logger.LogInformation("Sent campaignRow update to MyNoSql {@Context}", request);
 
@@ -85,6 +96,16 @@ namespace MarketingBox.Affiliate.Service.Services
                 if (geo is null)
                 {
                     throw new NotFoundException(nameof(request.GeoId), request.GeoId);
+                }               
+                var campaign = ctx.Campaigns.FirstOrDefault(x => x.Id == request.CampaignId);
+                if (campaign is null)
+                {
+                    throw new NotFoundException(nameof(request.CampaignId), request.CampaignId);
+                }               
+                var brand = ctx.Brands.FirstOrDefault(x => x.Id == request.BrandId);
+                if (brand is null)
+                {
+                    throw new NotFoundException(nameof(request.BrandId), request.BrandId);
                 }
 
                 var campaignRow = await ctx.CampaignRows
@@ -108,7 +129,7 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 await ctx.SaveChangesAsync();
 
-                var nosql = CampaignRowNoSql.Create(campaignRow);
+                var nosql = CampaignRowNoSql.Create(_mapper.Map<CampaignRowMessage>(campaignRow));
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 _logger.LogInformation("Sent campaignRow update to MyNoSql {@Context}", request);
 

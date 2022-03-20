@@ -98,7 +98,11 @@ namespace MarketingBox.Affiliate.Service.Services
                 _logger.LogInformation("Updating a Brand {@context}", request);
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
-                var brand = await ctx.Brands.FirstOrDefaultAsync(x => x.Id == request.BrandId);
+                var brand = await ctx.Brands
+                    .Include(x=>x.Payouts)
+                    .Include(x=>x.Integration)
+                    .Include(x=>x.CampaignRows)
+                    .FirstOrDefaultAsync(x => x.Id == request.BrandId);
 
                 if (brand is null)
                 {
@@ -150,6 +154,8 @@ namespace MarketingBox.Affiliate.Service.Services
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
                 var brand = await ctx.Brands
+                    .Include(x=>x.Payouts)
+                    .Include(x=>x.CampaignRows)
                     .FirstOrDefaultAsync(x => x.Id == request.BrandId);
                 if (brand is null) throw new NotFoundException(nameof(request.BrandId), request.BrandId);
 
@@ -214,7 +220,10 @@ namespace MarketingBox.Affiliate.Service.Services
                 
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
-                var query = ctx.Brands.AsQueryable();
+                var query = ctx.Brands
+                    .Include(x=>x.Payouts)
+                    .Include(x=>x.CampaignRows)
+                    .AsQueryable();
 
                 if (!string.IsNullOrEmpty(request.TenantId)) query = query.Where(x => x.TenantId == request.TenantId);
 

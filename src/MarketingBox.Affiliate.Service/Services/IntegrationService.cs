@@ -10,6 +10,7 @@ using MarketingBox.Affiliate.Service.Messages.Integrations;
 using MarketingBox.Affiliate.Service.MyNoSql.Integrations;
 using MarketingBox.Sdk.Common.Exceptions;
 using MarketingBox.Sdk.Common.Extensions;
+using MarketingBox.Sdk.Common.Models;
 using MarketingBox.Sdk.Common.Models.Grpc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -102,6 +103,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
                 var existingIntegration = await ctx.Integrations
+                    .Include(x=>x.Brands)
                     .FirstOrDefaultAsync(x => x.Id == request.IntegrationId);
 
                 if (existingIntegration is null)
@@ -143,7 +145,9 @@ namespace MarketingBox.Affiliate.Service.Services
                 request.ValidateEntity();
                 
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
-                var integration = await ctx.Integrations.FirstOrDefaultAsync(x => x.Id == request.IntegrationId);
+                var integration = await ctx.Integrations
+                    .Include(x=>x.Brands)
+                    .FirstOrDefaultAsync(x => x.Id == request.IntegrationId);
                 if (integration is null)
                 {
                     throw new NotFoundException(nameof(request.IntegrationId), request.IntegrationId);
@@ -175,7 +179,18 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 if (integration == null)
                     throw new NotFoundException(nameof(request.IntegrationId), request.IntegrationId);
-
+                var brands =  await ctx.Brands
+                    .Where(x => x.IntegrationId == request.IntegrationId)
+                    .Select(x => x.Id)
+                    .ToListAsync();
+                if (brands.Any())
+                {
+                    throw new BadRequestException(new Error
+                    {
+                        ErrorMessage = $"There are brands that use this integration. Brand's ids:{string.Join(',',brands)}"
+                    });
+                }
+                
                 try
                 {
                     await _myNoSqlServerDataWriter.DeleteAsync(
@@ -216,7 +231,9 @@ namespace MarketingBox.Affiliate.Service.Services
             {
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
-                var query = ctx.Integrations.AsQueryable();
+                var query = ctx.Integrations
+                    .Include(x=>x.Brands)
+                    .AsQueryable();
 
                 if (!string.IsNullOrEmpty(request.TenantId))
                 {
@@ -257,9 +274,7 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 await query.LoadAsync();
 
-                var response = query
-                    .AsEnumerable()
-                    .ToArray();
+                var response = query.ToArray();
 
                 if (response.Length==0)
                 {

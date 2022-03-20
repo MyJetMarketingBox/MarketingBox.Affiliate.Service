@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Runtime.Serialization;
-using MarketingBox.Affiliate.Service.Domain.Models.Integrations;
 
 namespace MarketingBox.Affiliate.Service.Domain.Models.Offers
 {

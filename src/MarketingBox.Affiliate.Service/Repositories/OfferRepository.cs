@@ -63,6 +63,7 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 await using var context = new DatabaseContext(_dbContextOptionsBuilder.Options);
                 var offerEntity = await context.Offers
                     .Include(x => x.Parameters)
+                    .Include(x=>x.OfferAffiliates)
                     .FirstOrDefaultAsync(x => x.Id == id);
                 
                 if (offerEntity is null)

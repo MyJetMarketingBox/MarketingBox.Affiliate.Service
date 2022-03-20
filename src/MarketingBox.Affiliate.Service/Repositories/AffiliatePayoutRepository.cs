@@ -35,10 +35,16 @@ namespace MarketingBox.Affiliate.Service.Repositories
 
                 var affiliatePayout = _mapper.Map<AffiliatePayout>(request);
 
-                affiliatePayout.CreatedAt = DateTime.UtcNow;
-                affiliatePayout.ModifiedAt = DateTime.UtcNow;
-                
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+                var geo = await ctx.Geos.FirstOrDefaultAsync(x => x.Id == request.GeoId);
+                if (geo is null)
+                {
+                    throw new NotFoundException(nameof(request.GeoId), request.GeoId);
+                }
+                
+                var date = DateTime.UtcNow;
+                affiliatePayout.CreatedAt = date;
+                affiliatePayout.ModifiedAt = date;
                 
                 ctx.AffiliatePayouts.Add(affiliatePayout);
                 await ctx.SaveChangesAsync();
@@ -59,7 +65,9 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 _logger.LogInformation("Getting AffiliatePayout by id {@PayoutId}", request.PayoutId);
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
                 var affiliatePayout =
-                    await ctx.AffiliatePayouts.FirstOrDefaultAsync(x => x.Id == request.PayoutId);
+                    await ctx.AffiliatePayouts
+                        .Include(x => x.Geo)
+                        .FirstOrDefaultAsync(x => x.Id == request.PayoutId);
                 if (affiliatePayout is null)
                 {
                     throw new NotFoundException(nameof(request.PayoutId), request.PayoutId);
@@ -106,7 +114,9 @@ namespace MarketingBox.Affiliate.Service.Repositories
 
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
                 var affiliatePayout =
-                    await ctx.AffiliatePayouts.FirstOrDefaultAsync(x => x.Id == request.Id);
+                    await ctx.AffiliatePayouts
+                        .Include(c => c.Geo)
+                        .FirstOrDefaultAsync(x => x.Id == request.Id);
                 if (affiliatePayout is null)
                 {
                     throw new NotFoundException(nameof(request.Id), request.Id);

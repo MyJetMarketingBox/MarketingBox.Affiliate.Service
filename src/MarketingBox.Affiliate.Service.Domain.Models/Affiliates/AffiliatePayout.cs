@@ -6,6 +6,7 @@ using MarketingBox.Affiliate.Service.Domain.Models.Country;
 
 namespace MarketingBox.Affiliate.Service.Domain.Models.Affiliates
 {
+    [DataContract]
     public class AffiliatePayout
     {
         [DataMember(Order = 1)] public long Id { get; set; }
