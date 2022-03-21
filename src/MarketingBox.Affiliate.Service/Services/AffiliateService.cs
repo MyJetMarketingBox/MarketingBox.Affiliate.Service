@@ -280,6 +280,8 @@ namespace MarketingBox.Affiliate.Service.Services
                 await using var ctx = _databaseContextFactory.Create();
                 var affiliate = _mapper.Map<GrpcModels.Affiliate>(request);
                 var affiliateExisting = await ctx.Affiliates
+                    .Include(x=>x.Bank)
+                    .Include(x=>x.Company)
                     .FirstOrDefaultAsync(x => x.Id == request.AffiliateId);
 
                 if (affiliateExisting is null)
@@ -303,7 +305,7 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 await CreateOrUpdateUser(affiliate);
 
-                var affiliateMessage = _mapper.Map<AffiliateMessage>(affiliate);
+                var affiliateMessage = _mapper.Map<AffiliateMessage>(affiliateExisting);
                 var nosql = AffiliateNoSql.Create(affiliateMessage);
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 _logger.LogInformation("Sent partner update to MyNoSql {@context}", request);
