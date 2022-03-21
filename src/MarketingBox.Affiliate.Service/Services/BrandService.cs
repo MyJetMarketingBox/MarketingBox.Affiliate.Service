@@ -260,6 +260,10 @@ namespace MarketingBox.Affiliate.Service.Services
                 var response = query
                     .AsEnumerable()
                     .ToArray();
+                if (!response.Any())
+                {
+                    throw new NotFoundException(NotFoundException.DefaultMessage);
+                }
 
                 return new Response<IReadOnlyCollection<Brand>>
                 {

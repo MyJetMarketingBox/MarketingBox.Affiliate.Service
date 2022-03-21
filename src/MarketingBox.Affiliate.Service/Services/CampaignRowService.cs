@@ -266,6 +266,10 @@ namespace MarketingBox.Affiliate.Service.Services
                 var response = query
                     .AsEnumerable()
                     .ToArray();
+                if (response.Length==0)
+                {
+                    throw new NotFoundException(NotFoundException.DefaultMessage);
+                }
 
                 return new Response<IReadOnlyCollection<CampaignRow>>()
                 {
