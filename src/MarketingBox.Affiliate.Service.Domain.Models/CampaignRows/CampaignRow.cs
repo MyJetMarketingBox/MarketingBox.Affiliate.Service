@@ -20,7 +20,7 @@ namespace MarketingBox.Affiliate.Service.Domain.Models.CampaignRows
         [DataMember(Order = 9)] public int Weight { get; set; }
         [DataMember(Order = 10)] public CapType CapType { get; set; }
         [DataMember(Order = 11)] public long DailyCapValue { get; set; }
-        [DataMember(Order = 12)] public ActivityHours[] ActivityHours { get; set; }
+        [DataMember(Order = 12)] public List<ActivityHours> ActivityHours { get; set; }
         [DataMember(Order = 13)] public string Information { get; set; }
         [DataMember(Order = 14)] public bool EnableTraffic { get; set; }
     }

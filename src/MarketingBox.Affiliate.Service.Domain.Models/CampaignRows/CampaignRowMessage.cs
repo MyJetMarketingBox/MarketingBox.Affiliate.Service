@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Runtime.Serialization;
 using MarketingBox.Affiliate.Service.Domain.Models.Country;
 
@@ -14,7 +15,7 @@ public class CampaignRowMessage
     [DataMember(Order = 6)] public int Weight { get; set; }
     [DataMember(Order = 7)] public CapType CapType { get; set; }
     [DataMember(Order = 8)] public long DailyCapValue { get; set; }
-    [DataMember(Order = 9)] public ActivityHours[] ActivityHours { get; set; }
+    [DataMember(Order = 9)] public List<ActivityHours> ActivityHours { get; set; }
     [DataMember(Order = 10)] public string Information { get; set; }
     [DataMember(Order = 11)] public bool EnableTraffic { get; set; }
 }

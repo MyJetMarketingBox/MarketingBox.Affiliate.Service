@@ -267,7 +267,7 @@ public class DatabaseContext : MyDbContext
                 v => JsonConvert.SerializeObject(v,
                     JsonSerializingSettings),
                 v =>
-                    JsonConvert.DeserializeObject<ActivityHours[]>(v,
+                    JsonConvert.DeserializeObject<List<ActivityHours>>(v,
                         JsonSerializingSettings));
 
         modelBuilder.Entity<CampaignRow>().HasIndex(e => new {e.CampaignId});
