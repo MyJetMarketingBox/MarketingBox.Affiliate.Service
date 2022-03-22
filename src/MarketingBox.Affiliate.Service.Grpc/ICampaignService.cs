@@ -1,7 +1,9 @@
-﻿using System.ServiceModel;
+﻿using System.Collections.Generic;
+using System.ServiceModel;
 using System.Threading.Tasks;
-using MarketingBox.Affiliate.Service.Grpc.Models.Campaigns;
-using MarketingBox.Affiliate.Service.Grpc.Models.Campaigns.Requests;
+using MarketingBox.Affiliate.Service.Domain.Models.Campaigns;
+using MarketingBox.Affiliate.Service.Grpc.Requests.Campaigns;
+using MarketingBox.Sdk.Common.Models.Grpc;
 
 namespace MarketingBox.Affiliate.Service.Grpc
 {
@@ -9,18 +11,18 @@ namespace MarketingBox.Affiliate.Service.Grpc
     public interface ICampaignService
     {
         [OperationContract]
-        Task<CampaignResponse> CreateAsync(CampaignCreateRequest request);
+        Task<Response<Campaign>> CreateAsync(CampaignCreateRequest request);
 
         [OperationContract]
-        Task<CampaignResponse> UpdateAsync(CampaignUpdateRequest request);
+        Task<Response<Campaign>> UpdateAsync(CampaignUpdateRequest request);
 
         [OperationContract]
-        Task<CampaignResponse> GetAsync(CampaignGetRequest request);
+        Task<Response<Campaign>> GetAsync(CampaignByIdRequest request);
 
         [OperationContract]
-        Task<CampaignResponse> DeleteAsync(CampaignDeleteRequest request);
+        Task<Response<bool>> DeleteAsync(CampaignByIdRequest request);
 
         [OperationContract]
-        Task<CampaignSearchResponse> SearchAsync(CampaignSearchRequest request);
+        Task<Response<IReadOnlyCollection<Campaign>>> SearchAsync(CampaignSearchRequest request);
     }
 }

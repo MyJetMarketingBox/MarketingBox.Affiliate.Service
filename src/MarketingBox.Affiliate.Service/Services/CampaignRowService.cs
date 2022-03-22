@@ -1,22 +1,20 @@
 ﻿using MarketingBox.Affiliate.Postgres;
-using MarketingBox.Affiliate.Service.Domain.Extensions;
 using MarketingBox.Affiliate.Service.Grpc;
-using MarketingBox.Affiliate.Service.Grpc.Models.Common;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MyNoSqlServer.Abstractions;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using MarketingBox.Affiliate.Postgres.Entities.CampaignRows;
-using MarketingBox.Affiliate.Service.Grpc.Models.CampaignRows;
-using MarketingBox.Affiliate.Service.Grpc.Models.CampaignRows.Requests;
-using MarketingBox.Affiliate.Service.Messages.CampaignRows;
+using AutoMapper;
+using MarketingBox.Affiliate.Service.Domain.Models.CampaignRows;
+using MarketingBox.Affiliate.Service.Grpc.Requests.CampaignRows;
 using MarketingBox.Affiliate.Service.MyNoSql.CampaignRows;
-using MyJetWallet.Sdk.ServiceBus;
-using Z.EntityFramework.Plus;
-using ActivityHours = MarketingBox.Affiliate.Postgres.Entities.CampaignRows.ActivityHours;
-using CapType = MarketingBox.Affiliate.Service.Domain.CampaignRows.CapType;
+using MarketingBox.Sdk.Common.Exceptions;
+using MarketingBox.Sdk.Common.Extensions;
+using MarketingBox.Sdk.Common.Models.Grpc;
+using CampaignRow = MarketingBox.Affiliate.Service.Domain.Models.CampaignRows.CampaignRow;
 
 namespace MarketingBox.Affiliate.Service.Services
 {
@@ -24,204 +22,207 @@ namespace MarketingBox.Affiliate.Service.Services
     {
         private readonly ILogger<CampaignRowService> _logger;
         private readonly DbContextOptionsBuilder<DatabaseContext> _dbContextOptionsBuilder;
-        private readonly IServiceBusPublisher<CampaignRowUpdated> _publisherCampaignBoxUpdated;
         private readonly IMyNoSqlServerDataWriter<CampaignRowNoSql> _myNoSqlServerDataWriter;
-        private readonly IServiceBusPublisher<CampaignRowRemoved> _publisherCampaignBoxRemoved;
+        private readonly IMapper _mapper;
 
         public CampaignRowService(ILogger<CampaignRowService> logger,
             DbContextOptionsBuilder<DatabaseContext> dbContextOptionsBuilder,
-            IServiceBusPublisher<CampaignRowUpdated> publisherCampaignBoxUpdated,
             IMyNoSqlServerDataWriter<CampaignRowNoSql> myNoSqlServerDataWriter,
-            IServiceBusPublisher<CampaignRowRemoved> publisherCampaignBoxRemoved)
+            IMapper mapper)
         {
             _logger = logger;
             _dbContextOptionsBuilder = dbContextOptionsBuilder;
-            _publisherCampaignBoxUpdated = publisherCampaignBoxUpdated;
             _myNoSqlServerDataWriter = myNoSqlServerDataWriter;
-            _publisherCampaignBoxRemoved = publisherCampaignBoxRemoved;
+            _mapper = mapper;
         }
 
-        public async Task<CampaignRowResponse> CreateAsync(CampaignRowCreateRequest request)
+        public async Task<Response<CampaignRow>> CreateAsync(CampaignRowCreateRequest request)
         {
-            _logger.LogInformation("Creating new CampaignRow {@Context}", request);
-            await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
-
             try
             {
-                var campaignRowEntity = new CampaignRowEntity()
-                {
-                    ActivityHours = request.ActivityHours.Select(x => new ActivityHours()
-                    {
-                        Day = x.Day,
-                        From = x.From,
-                        IsActive = x.IsActive,
-                        To = x.To
-                    }).ToArray(),
-                    CampaignId = request.CampaignId,
-                    BrandId = request.BrandId,
-                    CapType = request.CapType.MapEnum<CapType>(),
-                    CountryCode = request.CountryCode,
-                    DailyCapValue = request.DailyCapValue,
-                    EnableTraffic = request.EnableTraffic,
-                    Information = request.Information,
-                    Priority = request.Priority,
-                    Sequence = request.Sequence,
-                    Weight = request.Weight
-                };
+                request.ValidateEntity();
+                
+                _logger.LogInformation("Creating new CampaignRow {@Context}", request);
+                await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
-                ctx.CampaignRows.Add(campaignRowEntity);
+                var geo = ctx.Geos.FirstOrDefault(x => x.Id == request.GeoId);
+                if (geo is null)
+                {
+                    throw new NotFoundException(nameof(request.GeoId), request.GeoId);
+                }               
+                var campaign = ctx.Campaigns.FirstOrDefault(x => x.Id == request.CampaignId);
+                if (campaign is null)
+                {
+                    throw new NotFoundException(nameof(request.CampaignId), request.CampaignId);
+                }               
+                var brand = ctx.Brands.FirstOrDefault(x => x.Id == request.BrandId);
+                if (brand is null)
+                {
+                    throw new NotFoundException(nameof(request.BrandId), request.BrandId);
+                }
+
+                var campaignRow = _mapper.Map<CampaignRow>(request);
+                ctx.CampaignRows.Add(campaignRow);
                 await ctx.SaveChangesAsync();
 
-                var nosql = MapToNoSql(campaignRowEntity);
+                var nosql = CampaignRowNoSql.Create(_mapper.Map<CampaignRowMessage>(campaignRow));
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 _logger.LogInformation("Sent campaignRow update to MyNoSql {@Context}", request);
 
-                await _publisherCampaignBoxUpdated.PublishAsync(MapToMessage(campaignRowEntity));
-                _logger.LogInformation("Sent campaignRow update to service bus {@Context}", request);
-
-                return MapToGrpc(campaignRowEntity);
+                return new Response<CampaignRow>()
+                {
+                    Status = ResponseStatus.Ok,
+                    Data = campaignRow
+                };
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Error creating campaign box {@Context}", request);
 
-                return new CampaignRowResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+                return e.FailedResponse<CampaignRow>();
             }
         }
 
-        public async Task<CampaignRowResponse> UpdateAsync(CampaignRowUpdateRequest request)
+        public async Task<Response<CampaignRow>> UpdateAsync(CampaignRowUpdateRequest request)
         {
-            _logger.LogInformation("Updating a CampaignRow {@Context}", request);
-            await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
-
             try
             {
-                var campaignRowEntity = new CampaignRowEntity()
-                {
-                    CampaignBoxId = request.CampaignRowId,
-                    ActivityHours = request.ActivityHours.Select(x => new ActivityHours()
-                    {
-                        Day = x.Day,
-                        From = x.From,
-                        IsActive = x.IsActive,
-                        To = x.To
-                    }).ToArray(),
-                    CampaignId = request.CampaignId,
-                    BrandId = request.BrandId,
-                    CapType = request.CapType.MapEnum<CapType>(),
-                    CountryCode = request.CountryCode,
-                    DailyCapValue = request.DailyCapValue,
-                    EnableTraffic = request.EnableTraffic,
-                    Information = request.Information,
-                    Priority = request.Priority,
-                    Sequence = request.Sequence + 1,
-                    Weight = request.Weight
-                };
+                request.ValidateEntity();
                 
-                var campaignRows = ctx.CampaignRows
-                    .Where(x => x.CampaignBoxId == request.CampaignRowId 
-                                && x.Sequence < campaignRowEntity.Sequence)
-                    .ToList();
+                _logger.LogInformation("Updating a CampaignRow {@Context}", request);
+                await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
-                if (campaignRows.Any())
+                var geo = ctx.Geos.FirstOrDefault(x => x.Id == request.GeoId);
+                if (geo is null)
                 {
-                    foreach (var campaignRow in campaignRows)
-                    {
-                        campaignRow.CampaignBoxId = campaignRowEntity.CampaignBoxId;
-                        campaignRow.ActivityHours = campaignRowEntity.ActivityHours;
-                        campaignRow.CampaignId = campaignRowEntity.CampaignId;
-                        campaignRow.BrandId = campaignRowEntity.BrandId;
-                        campaignRow.CapType = campaignRowEntity.CapType;
-                        campaignRow.CountryCode = campaignRowEntity.CountryCode;
-                        campaignRow.DailyCapValue = campaignRowEntity.DailyCapValue;
-                        campaignRow.EnableTraffic = campaignRowEntity.EnableTraffic;
-                        campaignRow.Information = campaignRowEntity.Information;
-                        campaignRow.Priority = campaignRowEntity.Priority;
-                        campaignRow.Sequence = campaignRowEntity.Sequence;
-                        campaignRow.Weight = campaignRowEntity.Weight;
-                    }
-                }
-                else
+                    throw new NotFoundException(nameof(request.GeoId), request.GeoId);
+                }               
+                var campaign = ctx.Campaigns.FirstOrDefault(x => x.Id == request.CampaignId);
+                if (campaign is null)
                 {
-                    await ctx.CampaignRows.AddAsync(campaignRowEntity);
+                    throw new NotFoundException(nameof(request.CampaignId), request.CampaignId);
+                }               
+                var brand = ctx.Brands.FirstOrDefault(x => x.Id == request.BrandId);
+                if (brand is null)
+                {
+                    throw new NotFoundException(nameof(request.BrandId), request.BrandId);
                 }
+
+                var campaignRow = await ctx.CampaignRows
+                    .FirstOrDefaultAsync(x => x.Id == request.CampaignRowId);
+
+                if (campaignRow is null)
+                {
+                    throw new NotFoundException(nameof(request.CampaignRowId), request.CampaignRowId);
+                }
+
+                campaignRow.ActivityHours = request.ActivityHours;
+                campaignRow.CampaignId = request.CampaignId.Value;
+                campaignRow.BrandId = request.BrandId.Value;
+                campaignRow.CapType = request.CapType.Value;
+                campaignRow.GeoId = request.GeoId.Value;
+                campaignRow.DailyCapValue = request.DailyCapValue.Value;
+                campaignRow.EnableTraffic = request.EnableTraffic.Value;
+                campaignRow.Information = request.Information;
+                campaignRow.Priority = request.Priority.Value;
+                campaignRow.Weight = request.Weight.Value;
+
                 await ctx.SaveChangesAsync();
 
-                var nosql = MapToNoSql(campaignRowEntity);
+                var nosql = CampaignRowNoSql.Create(_mapper.Map<CampaignRowMessage>(campaignRow));
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 _logger.LogInformation("Sent campaignRow update to MyNoSql {@Context}", request);
 
-                await _publisherCampaignBoxUpdated.PublishAsync(MapToMessage(campaignRowEntity));
-                _logger.LogInformation("Sent campaignRow update to service bus {@Context}", request);
-
-                return MapToGrpc(campaignRowEntity);
+                return new Response<CampaignRow>()
+                {
+                    Status = ResponseStatus.Ok,
+                    Data = campaignRow
+                };
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Error updating campaign box {@Context}", request);
 
-                return new CampaignRowResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+                return e.FailedResponse<CampaignRow>();
             }
         }
 
-        public async Task<CampaignRowResponse> GetAsync(CampaignRowGetRequest request)
+        public async Task<Response<CampaignRow>> GetAsync(CampaignRowByIdRequest request)
         {
-            await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
-
             try
             {
-                var campaignRowEntity = await ctx.CampaignRows.FirstOrDefaultAsync(x => x.CampaignBoxId == request.CampaignRowId);
+                request.ValidateEntity();
+                
+                await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
-                return campaignRowEntity != null ? MapToGrpc(campaignRowEntity) : new CampaignRowResponse();
+                var campaignRow = await ctx.CampaignRows
+                    .Include(x => x.Geo)
+                    .FirstOrDefaultAsync(x => x.Id == request.CampaignRowId);
+                if (campaignRow is null)
+                {
+                    throw new NotFoundException(nameof(request.CampaignRowId), request.CampaignRowId);
+                }
+
+                return new Response<CampaignRow>()
+                {
+                    Status = ResponseStatus.Ok,
+                    Data = campaignRow
+                };
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Error getting campaign box {@Context}", request);
 
-                return new CampaignRowResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+                return e.FailedResponse<CampaignRow>();
             }
         }
 
-        public async Task<CampaignRowResponse> DeleteAsync(CampaignRowDeleteRequest request)
+        public async Task<Response<bool>> DeleteAsync(CampaignRowByIdRequest request)
         {
-            using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
-
             try
             {
-                var campaignRowEntity = await ctx.CampaignRows.FirstOrDefaultAsync(x => x.CampaignBoxId == request.CampaignRowId);
+                request.ValidateEntity();
+                
+                await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
-                if (campaignRowEntity == null)
-                    return new CampaignRowResponse();
+                var campaignRow =
+                    await ctx.CampaignRows.FirstOrDefaultAsync(x => x.Id == request.CampaignRowId);
+
+                if (campaignRow == null)
+                    throw new NotFoundException(nameof(request.CampaignRowId), request.CampaignRowId);
 
                 await _myNoSqlServerDataWriter.DeleteAsync(
-                    CampaignRowNoSql.GeneratePartitionKey(campaignRowEntity.CampaignId),
-                    CampaignRowNoSql.GenerateRowKey(campaignRowEntity.CampaignBoxId));
+                    CampaignRowNoSql.GeneratePartitionKey(campaignRow.CampaignId),
+                    CampaignRowNoSql.GenerateRowKey(campaignRow.Id));
 
-                await _publisherCampaignBoxRemoved.PublishAsync(new CampaignRowRemoved()
+                await ctx.CampaignRows.Where(x => x.Id == campaignRow.Id)
+                    .DeleteFromQueryAsync();
+
+                return new Response<bool>
                 {
-                    CampaignRowId = campaignRowEntity.CampaignBoxId,
-                    Sequence = campaignRowEntity.Sequence,
-                });
-
-                await ctx.CampaignRows.Where(x => x.CampaignBoxId == campaignRowEntity.CampaignBoxId).DeleteAsync();
-
-                return new CampaignRowResponse();
+                    Status = ResponseStatus.Ok,
+                    Data = true
+                };
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Error deleting campaign box {@Context}", request);
 
-                return new CampaignRowResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+                return e.FailedResponse<bool>();
             }
         }
 
-        public async Task<CampaignRowSearchResponse> SearchAsync(CampaignRowSearchRequest request)
+        public async Task<Response<IReadOnlyCollection<CampaignRow>>> SearchAsync(CampaignRowSearchRequest request)
         {
-            await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
-
             try
             {
-                var query = ctx.CampaignRows.AsQueryable();
+                request.ValidateEntity();
+                
+                await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+
+                var query = ctx.CampaignRows
+                    .Include(x => x.Geo)
+                    .AsQueryable();
 
                 if (request.BrandId.HasValue)
                 {
@@ -232,10 +233,10 @@ namespace MarketingBox.Affiliate.Service.Services
                 {
                     query = query.Where(x => x.CampaignId == request.CampaignId);
                 }
-                
+
                 if (request.CampaignRowId.HasValue)
                 {
-                    query = query.Where(x => x.CampaignBoxId == request.CampaignRowId);
+                    query = query.Where(x => x.Id == request.CampaignRowId);
                 }
 
                 var limit = request.Take <= 0 ? 1000 : request.Take;
@@ -243,19 +244,19 @@ namespace MarketingBox.Affiliate.Service.Services
                 {
                     if (request.Cursor != null)
                     {
-                        query = query.Where(x => x.CampaignBoxId > request.Cursor);
+                        query = query.Where(x => x.Id > request.Cursor);
                     }
 
-                    query = query.OrderBy(x => x.CampaignBoxId);
+                    query = query.OrderBy(x => x.Id);
                 }
                 else
                 {
                     if (request.Cursor != null)
                     {
-                        query = query.Where(x => x.CampaignBoxId < request.Cursor);
+                        query = query.Where(x => x.Id < request.Cursor);
                     }
 
-                    query = query.OrderByDescending(x => x.CampaignBoxId);
+                    query = query.OrderByDescending(x => x.Id);
                 }
 
                 query = query.Take(limit);
@@ -264,103 +265,24 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 var response = query
                     .AsEnumerable()
-                    .Select(MapToGrpcInner)
                     .ToArray();
-
-                return new CampaignRowSearchResponse()
+                if (response.Length==0)
                 {
-                    CampaignBoxes = response
+                    throw new NotFoundException(NotFoundException.DefaultMessage);
+                }
+
+                return new Response<IReadOnlyCollection<CampaignRow>>()
+                {
+                    Status = ResponseStatus.Ok,
+                    Data = response
                 };
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Error searching for boxes {@Context}", request);
 
-                return new CampaignRowSearchResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+                return e.FailedResponse<IReadOnlyCollection<CampaignRow>>();
             }
-        }
-
-        private static CampaignRowResponse MapToGrpc(CampaignRowEntity campaignRowEntity)
-        {
-            return new CampaignRowResponse()
-            {
-                CampaignRow = MapToGrpcInner(campaignRowEntity)
-            };
-        }
-
-        private static CampaignRow MapToGrpcInner(CampaignRowEntity campaignRowEntity)
-        {
-            return new CampaignRow()
-                {
-                    Sequence = campaignRowEntity.Sequence,
-                    CampaignId = campaignRowEntity.CampaignId,
-                    BrandId = campaignRowEntity.BrandId,
-                    ActivityHours = campaignRowEntity.ActivityHours.Select(x =>
-                        new Grpc.Models.CampaignRows.ActivityHours()
-                        {
-                            To = x.To,
-                            Day = x.Day,
-                            From = x.From,
-                            IsActive = x.IsActive
-                        }).ToList(),
-                    CampaignRowId = campaignRowEntity.CampaignBoxId,
-                    CapType = campaignRowEntity.CapType.MapEnum<Domain.Models.CampaignRows.CapType>(),
-                    CountryCode = campaignRowEntity.CountryCode,
-                    DailyCapValue = campaignRowEntity.DailyCapValue,
-                    EnableTraffic = campaignRowEntity.EnableTraffic,
-                    Information = campaignRowEntity.Information,
-                    Priority = campaignRowEntity.Priority,
-                    Weight = campaignRowEntity.Weight
-                };
-        }
-
-        private static CampaignRowUpdated MapToMessage(CampaignRowEntity campaignRowEntity)
-        {
-            return new CampaignRowUpdated()
-            {
-                Sequence = campaignRowEntity.Sequence,
-                CampaignId = campaignRowEntity.CampaignId,
-                BrandId = campaignRowEntity.BrandId,
-                ActivityHours = campaignRowEntity.ActivityHours.Select(x =>
-                    new Messages.CampaignRows.ActivityHours()
-                    {
-                        To = x.To,
-                        Day = x.Day,
-                        From = x.From,
-                        IsActive = x.IsActive
-                    }).ToArray(),
-                CampaignRowId = campaignRowEntity.CampaignBoxId,
-                CapType = campaignRowEntity.CapType.MapEnum< Domain.Models.CampaignRows.CapType>(),
-                CountryCode = campaignRowEntity.CountryCode,
-                DailyCapValue = campaignRowEntity.DailyCapValue,
-                EnableTraffic = campaignRowEntity.EnableTraffic,
-                Information = campaignRowEntity.Information,
-                Priority = campaignRowEntity.Priority,
-                Weight = campaignRowEntity.Weight
-            };
-        }
-
-        private static CampaignRowNoSql MapToNoSql(CampaignRowEntity campaignRowEntity)
-        {
-            return CampaignRowNoSql.Create(
-                campaignRowEntity.CampaignId,
-                campaignRowEntity.CampaignBoxId,
-                campaignRowEntity.BrandId,
-                campaignRowEntity.CountryCode,
-                campaignRowEntity.Priority,
-                campaignRowEntity.Weight,
-                campaignRowEntity.CapType.MapEnum< Domain.Models.CampaignRows.CapType >(),
-                campaignRowEntity.DailyCapValue,
-                campaignRowEntity.ActivityHours.Select(x => new MyNoSql.CampaignRows.ActivityHours()
-                {
-                    To = x.To,
-                    Day = x.Day,
-                    From = x.From,
-                    IsActive = x.IsActive
-                }).ToArray(),
-                campaignRowEntity.Information,
-                campaignRowEntity.EnableTraffic,
-                campaignRowEntity.Sequence);
         }
     }
 }

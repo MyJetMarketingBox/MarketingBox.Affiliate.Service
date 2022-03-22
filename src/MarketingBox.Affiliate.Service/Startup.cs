@@ -9,15 +9,11 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using MyJetWallet.Sdk.GrpcMetrics;
 using MyJetWallet.Sdk.GrpcSchema;
 using MyJetWallet.Sdk.Postgres;
 using MyJetWallet.Sdk.Service;
 using Prometheus;
-using ProtoBuf.Grpc.Server;
-using SimpleTrading.BaseMetrics;
 using SimpleTrading.ServiceStatusReporterConnector;
-using SimpleTrading.Telemetry;
 
 namespace MarketingBox.Affiliate.Service
 {
@@ -36,6 +32,8 @@ namespace MarketingBox.Affiliate.Service
             //DatabaseContext.LoggerFactory = null;
 
             services.AddMyTelemetry("MB-", Program.Settings.JaegerUrl);
+
+            services.AddAutoMapper(typeof(Startup));
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -56,11 +54,16 @@ namespace MarketingBox.Affiliate.Service
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapGrpcSchema<AffiliateService, IAffiliateService>();
-                endpoints.MapGrpcSchema<AffiliateAccessService, IAffiliateAccessService>();
                 endpoints.MapGrpcSchema<CampaignService, ICampaignService>();
                 endpoints.MapGrpcSchema<IntegrationService, IIntegrationService>();
                 endpoints.MapGrpcSchema<BrandService, IBrandService>();
                 endpoints.MapGrpcSchema<CampaignRowService, ICampaignRowService>();
+                endpoints.MapGrpcSchema<OfferService, IOfferService>();
+                endpoints.MapGrpcSchema<CountryService, ICountryService>();
+                endpoints.MapGrpcSchema<GeoService, IGeoService>();
+                endpoints.MapGrpcSchema<AffiliatePayoutService, IAffiliatePayoutService>();
+                endpoints.MapGrpcSchema<BrandPayoutService, IBrandPayoutService>();
+                endpoints.MapGrpcSchema<OfferAffiliateService, IOfferAffiliateService>();
 
                 endpoints.MapGrpcSchemaRegistry();
 

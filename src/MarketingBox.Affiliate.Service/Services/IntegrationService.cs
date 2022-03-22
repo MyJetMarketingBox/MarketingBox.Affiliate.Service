@@ -1,20 +1,22 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using DotNetCoreDecorators;
 using MarketingBox.Affiliate.Postgres;
-using MarketingBox.Affiliate.Postgres.Entities.Integrations;
+using MarketingBox.Affiliate.Service.Domain.Models.Integrations;
 using MarketingBox.Affiliate.Service.Grpc;
-using MarketingBox.Affiliate.Service.Grpc.Models.Common;
-using MarketingBox.Affiliate.Service.Grpc.Models.Integrations;
-using MarketingBox.Affiliate.Service.Grpc.Models.Integrations.Requests;
+using MarketingBox.Affiliate.Service.Grpc.Requests.Integrations;
 using MarketingBox.Affiliate.Service.Messages.Integrations;
 using MarketingBox.Affiliate.Service.MyNoSql.Integrations;
+using MarketingBox.Sdk.Common.Exceptions;
+using MarketingBox.Sdk.Common.Extensions;
+using MarketingBox.Sdk.Common.Models;
+using MarketingBox.Sdk.Common.Models.Grpc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MyJetWallet.Sdk.ServiceBus;
 using MyNoSqlServer.Abstractions;
-using Z.EntityFramework.Plus;
+using Integration = MarketingBox.Affiliate.Service.Domain.Models.Integrations.Integration;
 
 namespace MarketingBox.Affiliate.Service.Services
 {
@@ -22,13 +24,13 @@ namespace MarketingBox.Affiliate.Service.Services
     {
         private readonly ILogger<IntegrationService> _logger;
         private readonly DbContextOptionsBuilder<DatabaseContext> _dbContextOptionsBuilder;
-        private readonly IServiceBusPublisher<IntegrationUpdated> _publisherIntegrationUpdated;
+        private readonly IServiceBusPublisher<IntegrationMessage> _publisherIntegrationUpdated;
         private readonly IMyNoSqlServerDataWriter<IntegrationNoSql> _myNoSqlServerDataWriter;
         private readonly IServiceBusPublisher<IntegrationRemoved> _publisherIntegrationRemoved;
 
         public IntegrationService(ILogger<IntegrationService> logger,
             DbContextOptionsBuilder<DatabaseContext> dbContextOptionsBuilder,
-            IServiceBusPublisher<IntegrationUpdated> publisherIntegrationUpdated,
+            IServiceBusPublisher<IntegrationMessage> publisherIntegrationUpdated,
             IMyNoSqlServerDataWriter<IntegrationNoSql> myNoSqlServerDataWriter,
             IServiceBusPublisher<IntegrationRemoved> publisherIntegrationRemoved)
         {
@@ -37,159 +39,201 @@ namespace MarketingBox.Affiliate.Service.Services
             _publisherIntegrationUpdated = publisherIntegrationUpdated;
             _myNoSqlServerDataWriter = myNoSqlServerDataWriter;
             _publisherIntegrationRemoved = publisherIntegrationRemoved;
+            
+        }
+        
+        private static IntegrationMessage MapToMessage(Integration integration)
+        {
+            return new IntegrationMessage()
+            {
+                TenantId = integration.TenantId,
+                Name = integration.Name,
+                Id = integration.Id
+            };
         }
 
-        public async Task<IntegrationResponse> CreateAsync(IntegrationCreateRequest request)
+        public async Task<Response<Integration>> CreateAsync(IntegrationCreateRequest request)
         {
-            _logger.LogInformation("Creating new Integration {@context}", request);
-            using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
-
-            var integrationEntity = new IntegrationEntity()
-            {
-                TenantId = request.TenantId,
-                Name = request.Name,
-                Sequence = 0
-            };
-
             try
             {
-                ctx.Integrations.Add(integrationEntity);
-                await ctx.SaveChangesAsync();
+                request.ValidateEntity();
+                
+                _logger.LogInformation("Creating new Integration {@context}", request);
 
-                var nosql = MapToNoSql(integrationEntity);
+                await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+
+                var integration = new Integration()
+                {
+                    TenantId = request.TenantId,
+                    Name = request.Name,
+                };
+
+                ctx.Integrations.Add(integration);
+
+                var integrationMessage = MapToMessage(integration);
+                var nosql = IntegrationNoSql.Create(integrationMessage);
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 _logger.LogInformation("Sent Integration update to MyNoSql {@context}", request);
 
-                await _publisherIntegrationUpdated.PublishAsync(MapToMessage(integrationEntity));
+                await _publisherIntegrationUpdated.PublishAsync(integrationMessage);
                 _logger.LogInformation("Sent Integration update to service bus {@context}", request);
+                await ctx.SaveChangesAsync();
 
-                return MapToGrpc(integrationEntity);
+                return new Response<Integration>()
+                {
+                    Status = ResponseStatus.Ok,
+                    Data = integration
+                };
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Error creating integration {@context}", request);
 
-                return new IntegrationResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+                return e.FailedResponse<Integration>();
             }
         }
 
-        public async Task<IntegrationResponse> UpdateAsync(IntegrationUpdateRequest request)
+        public async Task<Response<Integration>> UpdateAsync(IntegrationUpdateRequest request)
         {
-            _logger.LogInformation("Updating a Integration {@context}", request);
-            using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
-
-            var integrationEntity = new IntegrationEntity()
-            {
-                TenantId = request.TenantId,
-                Name = request.Name,
-                Sequence = request.Sequence + 1,
-                Id = request.IntegrationId
-            };
-
             try
             {
-                var affectedRows = ctx.Integrations
-                    .Where(x => x.Id == integrationEntity.Id &&
-                            x.Sequence < integrationEntity.Sequence)
-                    .ToList();
+                request.ValidateEntity();
 
-                if (affectedRows.Any())
+                _logger.LogInformation("Updating a Integration {@context}", request);
+                await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+
+                var existingIntegration = await ctx.Integrations
+                    .Include(x=>x.Brands)
+                    .FirstOrDefaultAsync(x => x.Id == request.IntegrationId);
+
+                if (existingIntegration is null)
                 {
-                    foreach (var affectedRow in affectedRows)
-                    {
-                        affectedRow.TenantId = integrationEntity.TenantId;
-                        affectedRow.Name = integrationEntity.Name;
-                        affectedRow.Sequence = integrationEntity.Sequence;
-                    }
+                    throw new NotFoundException(nameof(request.IntegrationId), request.IntegrationId);
                 }
-                else
-                {
-                    await ctx.Integrations.AddAsync(integrationEntity);
-                }
+
+                existingIntegration.TenantId = request.TenantId;
+                existingIntegration.Name = request.Name;
+                
                 await ctx.SaveChangesAsync();
 
-                var nosql = MapToNoSql(integrationEntity);
+                var integrationMessage = MapToMessage(existingIntegration);
+                var nosql = IntegrationNoSql.Create(integrationMessage);
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 _logger.LogInformation("Sent integration update to MyNoSql {@context}", request);
 
-                await _publisherIntegrationUpdated.PublishAsync(MapToMessage(integrationEntity));
+                await _publisherIntegrationUpdated.PublishAsync(integrationMessage);
                 _logger.LogInformation("Sent integration update to service bus {@context}", request);
 
-                return MapToGrpc(integrationEntity);
+                return new Response<Integration>()
+                {
+                    Status = ResponseStatus.Ok,
+                    Data = existingIntegration
+                };
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Error updating integration {@context}", request);
 
-                return new IntegrationResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+                return e.FailedResponse<Integration>();
             }
         }
 
-        public async Task<IntegrationResponse> GetAsync(IntegrationGetRequest request)
+        public async Task<Response<Integration>> GetAsync(IntegrationByIdRequest request)
         {
-            await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
             try
             {
-                var integrationEntity = await ctx.Integrations.FirstOrDefaultAsync(x => x.Id == request.IntegrationId);
+                request.ValidateEntity();
+                
+                await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+                var integration = await ctx.Integrations
+                    .Include(x=>x.Brands)
+                    .FirstOrDefaultAsync(x => x.Id == request.IntegrationId);
+                if (integration is null)
+                {
+                    throw new NotFoundException(nameof(request.IntegrationId), request.IntegrationId);
+                }
 
-                return integrationEntity != null ? MapToGrpc(integrationEntity) : new IntegrationResponse();
+                return new Response<Integration>()
+                {
+                    Status = ResponseStatus.Ok,
+                    Data = integration
+                };
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Error getting integration {@context}", request);
 
-                return new IntegrationResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+                return e.FailedResponse<Integration>();
             }
         }
 
-        public async Task<IntegrationResponse> DeleteAsync(IntegrationDeleteRequest request)
+        public async Task<Response<bool>> DeleteAsync(IntegrationByIdRequest request)
         {
-            await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
-
             try
             {
-                var integrationEntity = await ctx.Integrations.FirstOrDefaultAsync(x => x.Id == request.IntegrationId);
+                request.ValidateEntity();
+                
+                await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
-                if (integrationEntity == null)
-                    return new IntegrationResponse();
+                var integration = await ctx.Integrations.FirstOrDefaultAsync(x => x.Id == request.IntegrationId);
 
+                if (integration == null)
+                    throw new NotFoundException(nameof(request.IntegrationId), request.IntegrationId);
+                var brands =  await ctx.Brands
+                    .Where(x => x.IntegrationId == request.IntegrationId)
+                    .Select(x => x.Id)
+                    .ToListAsync();
+                if (brands.Any())
+                {
+                    throw new BadRequestException(new Error
+                    {
+                        ErrorMessage = $"There are brands that use this integration. Brand's ids:{string.Join(',',brands)}"
+                    });
+                }
+                
                 try
                 {
                     await _myNoSqlServerDataWriter.DeleteAsync(
-                        IntegrationNoSql.GeneratePartitionKey(integrationEntity.TenantId),
-                        IntegrationNoSql.GenerateRowKey(integrationEntity.Id));
+                        IntegrationNoSql.GeneratePartitionKey(integration.TenantId),
+                        IntegrationNoSql.GenerateRowKey(integration.Id));
                 }
                 catch (Exception serializationException)
                 {
-                    _logger.LogInformation(serializationException, $"NoSql table {IntegrationNoSql.TableName} is empty");
+                    _logger.LogInformation(serializationException,
+                        $"NoSql table {IntegrationNoSql.TableName} is empty");
                 }
 
                 await _publisherIntegrationRemoved.PublishAsync(new IntegrationRemoved()
                 {
-                    IntegrationId = integrationEntity.Id,
-                    Sequence = integrationEntity.Sequence,
-                    TenantId = integrationEntity.TenantId
+                    IntegrationId = integration.Id,
+                    TenantId = integration.TenantId
                 });
 
-                await ctx.Integrations.Where(x => x.Id == integrationEntity.Id).DeleteAsync();
+                await ctx.Integrations.Where(x => x.Id == integration.Id).DeleteFromQueryAsync();
 
-                return new IntegrationResponse();
+                return new Response<bool>
+                {
+                    Status = ResponseStatus.Ok,
+                    Data = true
+                };
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Error delete integration {@context}", request);
 
-                return new IntegrationResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+                return e.FailedResponse<bool>();
             }
         }
 
-        public async Task<IntegrationSearchResponse> SearchAsync(IntegrationSearchRequest request)
+        public async Task<Response<IReadOnlyCollection<Integration>>> SearchAsync(IntegrationSearchRequest request)
         {
-            using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
-
             try
             {
-                var query = ctx.Integrations.AsQueryable();
+                await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+
+                var query = ctx.Integrations
+                    .Include(x=>x.Brands)
+                    .AsQueryable();
 
                 if (!string.IsNullOrEmpty(request.TenantId))
                 {
@@ -230,61 +274,25 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 await query.LoadAsync();
 
-                var response = query
-                    .AsEnumerable()
-                    .Select(MapToGrpcInner)
-                    .ToArray();
+                var response = query.ToArray();
 
-                return new IntegrationSearchResponse()
+                if (response.Length==0)
                 {
-                    Integrations = response
+                    throw new NotFoundException(NotFoundException.DefaultMessage);
+                }
+                
+                return new Response<IReadOnlyCollection<Integration>>()
+                {
+                    Status = ResponseStatus.Ok,
+                    Data = response
                 };
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Error searching Integrations {@context}", request);
 
-                return new IntegrationSearchResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+                return e.FailedResponse<IReadOnlyCollection<Integration>>();
             }
-        }
-
-        private static IntegrationResponse MapToGrpc(IntegrationEntity integrationEntity)
-        {
-            return new IntegrationResponse()
-            {
-                Integration = MapToGrpcInner(integrationEntity)
-            };
-        }
-
-        private static Integration MapToGrpcInner(IntegrationEntity integrationEntity)
-        {
-            return new Integration()
-            {
-                TenantId = integrationEntity.TenantId,
-                Sequence = integrationEntity.Sequence,
-                Name = integrationEntity.Name,
-                Id = integrationEntity.Id
-            };
-        }
-
-        private static IntegrationUpdated MapToMessage(IntegrationEntity integrationEntity)
-        {
-            return new IntegrationUpdated()
-            {
-                TenantId = integrationEntity.TenantId,
-                Sequence = integrationEntity.Sequence,
-                Name = integrationEntity.Name,
-                IntegrationId = integrationEntity.Id
-            };
-        }
-
-        private static IntegrationNoSql MapToNoSql(IntegrationEntity integrationEntity)
-        {
-            return IntegrationNoSql.Create(
-                integrationEntity.TenantId,
-                integrationEntity.Id,
-                integrationEntity.Name,
-                integrationEntity.Sequence);
         }
     }
 }

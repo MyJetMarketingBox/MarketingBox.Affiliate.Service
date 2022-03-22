@@ -1,7 +1,9 @@
-﻿using System.ServiceModel;
+﻿using System.Collections.Generic;
+using System.ServiceModel;
 using System.Threading.Tasks;
-using MarketingBox.Affiliate.Service.Grpc.Models.Brands;
-using MarketingBox.Affiliate.Service.Grpc.Models.Brands.Requests;
+using MarketingBox.Affiliate.Service.Domain.Models.Brands;
+using MarketingBox.Affiliate.Service.Grpc.Requests.Brands;
+using MarketingBox.Sdk.Common.Models.Grpc;
 
 namespace MarketingBox.Affiliate.Service.Grpc
 {
@@ -9,18 +11,18 @@ namespace MarketingBox.Affiliate.Service.Grpc
     public interface IBrandService
     {
         [OperationContract]
-        Task<BrandResponse> CreateAsync(BrandCreateRequest request);
+        Task<Response<Brand>> CreateAsync(BrandCreateRequest request);
 
         [OperationContract]
-        Task<BrandResponse> UpdateAsync(BrandUpdateRequest request);
+        Task<Response<Brand>> UpdateAsync(BrandUpdateRequest request);
 
         [OperationContract]
-        Task<BrandResponse> GetAsync(BrandGetRequest request);
+        Task<Response<Brand>> GetAsync(BrandByIdRequest request);
 
         [OperationContract]
-        Task<BrandResponse> DeleteAsync(BrandDeleteRequest request);
+        Task<Response<bool>> DeleteAsync(BrandByIdRequest request);
 
         [OperationContract]
-        Task<BrandSearchResponse> SearchAsync(BrandSearchRequest request);
+        Task<Response<IReadOnlyCollection<Brand>>> SearchAsync(BrandSearchRequest request);
     }
 }
