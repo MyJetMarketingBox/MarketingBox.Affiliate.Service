@@ -22,14 +22,14 @@ namespace TestApp
             var affiliateCreateRequestMaster = new AffiliateCreateRequest()
             {
                 TenantId = testTenant,
-                Company = new CompanyRequest()
+                Company = new Company()
                 {
                     Address = "a1",
                     Name = "a2",
                     RegNumber = "a3",
                     VatId = "a4"
                 },
-                Bank = new BankRequest()
+                Bank = new Bank()
                 {
                     AccountNumber = "a1",
                     Address = "a1",
@@ -56,14 +56,14 @@ namespace TestApp
             var affiliateCreateRequest = new AffiliateCreateRequest()
             {
                 TenantId = testTenant,
-                Company = new CompanyRequest()
+                Company = new Company()
                 {
                     Address = "a1",
                     Name = "a2",
                     RegNumber = "a3",
                     VatId = "a4"
                 },
-                Bank = new BankRequest()
+                Bank = new Bank()
                 {
                     AccountNumber = "a1",
                     Address = "a1",
@@ -176,14 +176,14 @@ namespace TestApp
             var request = new AffiliateCreateRequest()
             {
                 TenantId = testTenant,
-                Company = new CompanyRequest()
+                Company = new Company()
                 {
                     Address = "a1",
                     Name = "a2",
                     RegNumber = "a3",
                     VatId = "a4"
                 },
-                Bank = new BankRequest()
+                Bank = new Bank()
                 {
                     AccountNumber = "a1",
                     Address = "a1",

@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using MarketingBox.Affiliate.Service.Domain.Models.Affiliates;
 using MarketingBox.Affiliate.Service.Domain.Models.Brands;
@@ -11,8 +9,6 @@ using MarketingBox.Affiliate.Service.Domain.Models.Integrations;
 using MarketingBox.Affiliate.Service.Domain.Models.OfferAffiliates;
 using MarketingBox.Affiliate.Service.Domain.Models.Offers;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using MyJetWallet.Sdk.Postgres;
 using Newtonsoft.Json;
 
@@ -32,8 +28,6 @@ public class DatabaseContext : MyDbContext
     private const string OfferSubParamsTableName = "offer-subparams";
     private const string GeoTableName = "geos";
     private const string CountryTableName = "countries";
-    private const string BankTableName = "banks";
-    private const string CompanyTableName = "companies";
     private const string AffiliatePayoutTableName = "affiliate-payouts";
     private const string BrandPayoutTableName = "brand-payouts";
     private const string OfferAffiliatesTableName = "offer-affiliates";
@@ -56,8 +50,6 @@ public class DatabaseContext : MyDbContext
     public DbSet<Country> Countries { get; set; }
     public DbSet<Geo> Geos { get; set; }
     public DbSet<OfferSubParameter> SubParameters { get; set; }
-    public DbSet<Bank> Banks { get; set; }
-    public DbSet<Company> Companies { get; set; }
     public DbSet<AffiliatePayout> AffiliatePayouts { get; set; }
     public DbSet<BrandPayout> BrandPayouts { get; set; }
     public DbSet<OfferAffiliate> OfferAffiliates { get; set; }
@@ -71,8 +63,6 @@ public class DatabaseContext : MyDbContext
     {
         modelBuilder.HasDefaultSchema(Schema);
 
-        SetBank(modelBuilder);
-        SetCompany(modelBuilder);
         SetAffiliate(modelBuilder);
         SetCampaign(modelBuilder);
         SetIntegration(modelBuilder);
@@ -132,22 +122,6 @@ public class DatabaseContext : MyDbContext
             .HasOne(x => x.Geo)
             .WithMany()
             .HasForeignKey(x => x.GeoId);
-    }
-
-    private static void SetBank(ModelBuilder modelBuilder)
-    {
-        modelBuilder.Entity<Bank>().ToTable(BankTableName);
-        modelBuilder.Entity<Bank>().HasKey(x => x.Id);
-        modelBuilder.Entity<Bank>().HasIndex(x => x.Name).IsUnique();
-        modelBuilder.Entity<Bank>().Property(x => x.Name).IsRequired();
-    }
-
-    private static void SetCompany(ModelBuilder modelBuilder)
-    {
-        modelBuilder.Entity<Company>().ToTable(CompanyTableName);
-        modelBuilder.Entity<Company>().HasKey(x => x.Id);
-        modelBuilder.Entity<Company>().HasIndex(x => x.Name).IsUnique();
-        modelBuilder.Entity<Company>().Property(x => x.Name).IsRequired();
     }
 
     private static void SetGeo(ModelBuilder modelBuilder)
@@ -210,15 +184,10 @@ public class DatabaseContext : MyDbContext
     {
         modelBuilder.Entity<Service.Domain.Models.Affiliates.Affiliate>().ToTable(AffiliateTableName);
         modelBuilder.Entity<Service.Domain.Models.Affiliates.Affiliate>().HasKey(e => e.Id);
-
         modelBuilder.Entity<Service.Domain.Models.Affiliates.Affiliate>()
-            .HasOne(x => x.Company)
-            .WithMany()
-            .HasForeignKey(x => x.CompanyId);
+            .OwnsOne(e=>e.Bank);
         modelBuilder.Entity<Service.Domain.Models.Affiliates.Affiliate>()
-            .HasOne(x => x.Bank)
-            .WithMany()
-            .HasForeignKey(x => x.BankId);
+            .OwnsOne(e=>e.Company);
 
         modelBuilder.Entity<Service.Domain.Models.Affiliates.Affiliate>()
             .HasIndex(e => new {e.TenantId, e.Id});

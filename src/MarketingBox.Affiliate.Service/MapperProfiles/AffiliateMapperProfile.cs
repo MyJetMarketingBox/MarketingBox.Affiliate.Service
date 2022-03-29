@@ -32,8 +32,6 @@ namespace MarketingBox.Affiliate.Service.MapperProfiles
                 .ForMember(x => x.GeneralInfo,
                     x => x.MapFrom(z => z));
             CreateMap<Domain.Models.Affiliates.Affiliate, GeneralInfo>();
-            CreateMap<BankRequest, Bank>();
-            CreateMap<CompanyRequest, Company>();
         }
     }
 }

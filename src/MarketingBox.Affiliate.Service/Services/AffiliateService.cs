@@ -57,49 +57,6 @@ namespace MarketingBox.Affiliate.Service.Services
             return message;
         }
         
-
-        private static async Task UpdateCompany(GrpcModels.Affiliate affiliate, DatabaseContext ctx)
-        {
-            if (affiliate.Company is not null)
-            {
-                var company = await ctx.Companies.FirstOrDefaultAsync(x => x.Name == affiliate.Company.Name);
-                if (company is null)
-                {
-                    ctx.Companies.Add(affiliate.Company);
-                }
-                else
-                {
-                    company.Address = affiliate.Company.Address;
-                    company.RegNumber = affiliate.Company.RegNumber;
-                    company.VatId = affiliate.Company.VatId;
-                    affiliate.Company = company;
-                }
-            }
-        }
-
-        private static async Task UpdateBank(GrpcModels.Affiliate affiliate, DatabaseContext ctx)
-        {
-            if (affiliate.Bank is not null)
-            {
-                var bank = await ctx.Banks.FirstOrDefaultAsync(x => x.Name == affiliate.Bank.Name);
-                if (bank is null)
-                {
-                    ctx.Banks.Add(affiliate.Bank);
-                }
-                else
-                {
-                    bank.Address = affiliate.Bank.Address;
-                    bank.Iban = affiliate.Bank.Iban;
-                    bank.Swift = affiliate.Bank.Swift;
-                    bank.AccountNumber = affiliate.Bank.AccountNumber;
-                    bank.BeneficiaryAddress = affiliate.Bank.BeneficiaryAddress;
-                    bank.BeneficiaryName = affiliate.Bank.BeneficiaryName;
-                    affiliate.Bank = bank;
-                }
-            }
-        }
-
-
         public AffiliateService(ILogger<AffiliateService> logger,
             IServiceBusPublisher<AffiliateUpdated> publisherPartnerUpdated,
             IMyNoSqlServerDataWriter<AffiliateNoSql> myNoSqlServerDataWriter,
@@ -230,11 +187,9 @@ namespace MarketingBox.Affiliate.Service.Services
                                                x.Username == request.GeneralInfo.Username));
                 if (existingEntity != null)
                 {
-                    throw new AlreadyExistsException("Affiliate already exists.");
+                    throw new AlreadyExistsException(
+                        $"Affiliate with user name '{request.GeneralInfo.Username}' or with email '{request.GeneralInfo.Email}' already exists.");
                 }
-
-                await UpdateBank(affiliate, ctx);
-                await UpdateCompany(affiliate, ctx);
 
                 ctx.Affiliates.Add(affiliate);
 
@@ -280,17 +235,21 @@ namespace MarketingBox.Affiliate.Service.Services
                 await using var ctx = _databaseContextFactory.Create();
                 var affiliate = _mapper.Map<GrpcModels.Affiliate>(request);
                 var affiliateExisting = await ctx.Affiliates
-                    .Include(x=>x.Bank)
-                    .Include(x=>x.Company)
                     .FirstOrDefaultAsync(x => x.Id == request.AffiliateId);
-
+                var affiliateWithNameEmail = await ctx.Affiliates
+                    .FirstOrDefaultAsync(x => x.TenantId == request.TenantId &&
+                                              (x.Email == request.GeneralInfo.Email ||
+                                               x.Username == request.GeneralInfo.Username));
                 if (affiliateExisting is null)
                 {
                     throw new NotFoundException(nameof(request.AffiliateId), request.AffiliateId);
                 }
+                if (affiliateWithNameEmail is not null && affiliateWithNameEmail.Id != affiliateExisting.Id)
+                {
+                    throw new AlreadyExistsException(
+                        $"Affiliate with user name '{request.GeneralInfo.Username}' or with email '{request.GeneralInfo.Email}' already exists.");
+                }
 
-                await UpdateBank(affiliate, ctx);
-                await UpdateCompany(affiliate, ctx);
                 affiliateExisting.Username = affiliate.Username;
                 affiliateExisting.Password = affiliate.Password;
                 affiliateExisting.Email = affiliate.Email;
@@ -300,7 +259,9 @@ namespace MarketingBox.Affiliate.Service.Services
                 affiliateExisting.State = affiliate.State;
                 affiliateExisting.Currency = affiliate.Currency;
                 affiliateExisting.TenantId = affiliate.TenantId;
-
+                affiliateExisting.Bank = affiliate.Bank;
+                affiliateExisting.Company = affiliate.Company;
+                
                 await ctx.SaveChangesAsync();
 
                 await CreateOrUpdateUser(affiliate);
@@ -309,7 +270,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 var nosql = AffiliateNoSql.Create(affiliateMessage);
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 _logger.LogInformation("Sent partner update to MyNoSql {@context}", request);
-
+                
                 await _publisherPartnerUpdated.PublishAsync(MapToMessage(affiliateMessage,
                     AffiliateUpdatedEventType.Updated));
                 _logger.LogInformation("Sent partner update to service bus {@context}", request);
@@ -336,8 +297,6 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 await using var ctx = _databaseContextFactory.Create();
                 var affiliate = await ctx.Affiliates
-                    .Include(x => x.Bank)
-                    .Include(x => x.Company)
                     .FirstOrDefaultAsync(x => x.Id == request.AffiliateId);
                 if (affiliate is null)
                 {
@@ -396,10 +355,7 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 await using var ctx = _databaseContextFactory.Create();
 
-                IQueryable<Domain.Models.Affiliates.Affiliate> query = ctx.Affiliates
-                    .Include(x=>x.Bank)
-                    .Include(x=>x.Company);
-
+                IQueryable<Domain.Models.Affiliates.Affiliate> query = ctx.Affiliates.AsQueryable();
 
                 if (!string.IsNullOrEmpty(request.TenantId))
                 {

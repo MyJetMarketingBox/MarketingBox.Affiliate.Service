@@ -44,11 +44,9 @@ namespace MarketingBox.Affiliate.Service.Domain.Models.Affiliates
         
         [DataMember(Order = 12)]
         public DateTime CreatedAt { get; set; }
-        public long? CompanyId { get; set; }
         
         [DataMember(Order = 14)]
         public Company Company { get; set; }
-        public long? BankId { get; set; }
         
         [DataMember(Order = 16)]
         public Bank Bank { get; set; }

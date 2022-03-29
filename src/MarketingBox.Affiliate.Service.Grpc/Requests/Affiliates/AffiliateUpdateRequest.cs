@@ -13,9 +13,9 @@ namespace MarketingBox.Affiliate.Service.Grpc.Requests.Affiliates
 
         [DataMember(Order = 2), Required] public GeneralInfoRequest GeneralInfo { get; set; }
 
-        [DataMember(Order = 3)] public CompanyRequest Company { get; set; }
+        [DataMember(Order = 3)] public Company Company { get; set; }
 
-        [DataMember(Order = 4)] public BankRequest Bank { get; set; }
+        [DataMember(Order = 4)] public Bank Bank { get; set; }
 
         [DataMember(Order = 5)] public string TenantId { get; set; }
 
