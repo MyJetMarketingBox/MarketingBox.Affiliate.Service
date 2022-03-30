@@ -32,7 +32,7 @@ public class GeneralInfoRequest : ValidatableEntity
     [LogMasked(PreserveLength = true, ShowFirst = 1, ShowLast = 1)]
     public string ZipCode { get; set; }
 
-    [DataMember(Order = 7)] public State State { get; set; }
+    [DataMember(Order = 7)] public State? State { get; set; }
 
-    [DataMember(Order = 8)] public Currency Currency { get; set; }
+    [DataMember(Order = 8)] public Currency? Currency { get; set; }
 }

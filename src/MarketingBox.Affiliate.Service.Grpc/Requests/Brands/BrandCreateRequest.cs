@@ -18,8 +18,7 @@ namespace MarketingBox.Affiliate.Service.Grpc.Requests.Brands
 
         [DataMember(Order = 3), Required] public IntegrationType? IntegrationType { get; set; }
 
-        [DataMember(Order = 4)]
-        public ICollection<long> BrandPayoutIds { get; set; }
+        [DataMember(Order = 4)] public List<long> BrandPayoutIds { get; set; } = new();
 
         [DataMember(Order = 5)] public BrandStatus Status { get; set; } = BrandStatus.Active;
 

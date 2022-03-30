@@ -34,10 +34,9 @@ namespace MarketingBox.Affiliate.Service.Domain.Models.Affiliates
         [DataMember(Order = 8)] [LogMasked(PreserveLength = true, ShowFirst = 1, ShowLast = 1)]
         public string ZipCode { get; set; }
 
-        [DataMember(Order = 9)] public State State { get; set; }
+        [DataMember(Order = 9)] public State? State { get; set; }
         
-        [DataMember(Order = 10)]
-        public Currency Currency { get; set; }
+        [DataMember(Order = 10)] public Currency? Currency { get; set; }
         
         [DataMember(Order = 11)]
         public string ApiKey { get; set; }

@@ -14,8 +14,7 @@ namespace MarketingBox.Affiliate.Service.Grpc.Requests.Affiliates
         [DataMember(Order = 3)] public Bank Bank { get; set; }
         [DataMember(Order = 4), Required, StringLength(128,MinimumLength = 1)] public string TenantId { get; set; }
         [DataMember(Order = 5)] public long? CreatedBy { get; set; }
-        
-        [DataMember(Order = 6)]
-        public List<long> AffiliatePayoutIds { get; set; }
+
+        [DataMember(Order = 6)] public List<long> AffiliatePayoutIds { get; set; } = new();
     }
 }

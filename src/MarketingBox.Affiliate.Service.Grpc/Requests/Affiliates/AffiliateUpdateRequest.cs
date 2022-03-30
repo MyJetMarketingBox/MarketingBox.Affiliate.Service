@@ -23,8 +23,7 @@ namespace MarketingBox.Affiliate.Service.Grpc.Requests.Affiliates
 
         [DataMember(Order = 6), Range(1, long.MaxValue)]
         public long? CreatedBy { get; set; }
-        
-        [DataMember(Order = 7)]
-        public List<long> AffiliatePayoutIds { get; set; }
+
+        [DataMember(Order = 7)] public List<long> AffiliatePayoutIds { get; set; } = new();
     }
 }

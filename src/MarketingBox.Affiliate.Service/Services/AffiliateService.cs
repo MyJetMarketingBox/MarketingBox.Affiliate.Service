@@ -56,6 +56,7 @@ namespace MarketingBox.Affiliate.Service.Services
             };
             return message;
         }
+        
         private static async Task EnsureAndDoAffiliatePayout(
             ICollection<long> affiliatePayoutIds,
             DatabaseContext ctx,
@@ -73,6 +74,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 action.Invoke(affiliatePayouts);
             }
         }
+        
         public AffiliateService(ILogger<AffiliateService> logger,
             IServiceBusPublisher<AffiliateUpdated> publisherPartnerUpdated,
             IMyNoSqlServerDataWriter<AffiliateNoSql> myNoSqlServerDataWriter,
@@ -207,7 +209,7 @@ namespace MarketingBox.Affiliate.Service.Services
                         $"Affiliate with user name '{request.GeneralInfo.Username}' or with email '{request.GeneralInfo.Email}' already exists.");
                 }
                 await EnsureAndDoAffiliatePayout(
-                    request.AffiliatePayoutIds.Distinct().ToList(),
+                    request.AffiliatePayoutIds?.Distinct().ToList(),
                     ctx,
                     affiliatePayouts => affiliate.Payouts.AddRange(affiliatePayouts));
 
