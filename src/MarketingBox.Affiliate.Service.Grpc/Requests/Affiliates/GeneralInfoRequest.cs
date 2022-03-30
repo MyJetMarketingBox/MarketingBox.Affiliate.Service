@@ -10,17 +10,17 @@ namespace MarketingBox.Affiliate.Service.Grpc.Requests.Affiliates;
 [DataContract]
 public class GeneralInfoRequest : ValidatableEntity
 {
-    [DataMember(Order = 1), Required] public string Username { get; set; }
+    [DataMember(Order = 1), Required, StringLength(128,MinimumLength = 1)] public string Username { get; set; }
 
-    [DataMember(Order = 2), Required]
+    [DataMember(Order = 2), Required, StringLength(128,MinimumLength = 1)]
     [LogMasked(PreserveLength = false)]
     public string Password { get; set; }
 
-    [DataMember(Order = 3), Required, EmailAddress]
+    [DataMember(Order = 3), Required, EmailAddress, StringLength(128,MinimumLength = 1)]
     [LogMasked(PreserveLength = true, ShowFirst = 1, ShowLast = 1)]
     public string Email { get; set; }
 
-    [DataMember(Order = 4), Required, Phone]
+    [DataMember(Order = 4), Required, Phone, StringLength(20,MinimumLength = 7)]
     [LogMasked(PreserveLength = true, ShowFirst = 1, ShowLast = 1)]
     public string Phone { get; set; }
 
