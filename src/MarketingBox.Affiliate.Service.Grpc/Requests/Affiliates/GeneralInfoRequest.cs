@@ -25,11 +25,11 @@ public class GeneralInfoRequest : ValidatableEntity
     [LogMasked(PreserveLength = true, ShowFirst = 1, ShowLast = 1)]
     public string Phone { get; set; }
 
-    [DataMember(Order = 5)]
+    [DataMember(Order = 5), StringLength(128,MinimumLength = 1)]
     [LogMasked(PreserveLength = true, ShowFirst = 1, ShowLast = 1)]
     public string Skype { get; set; }
 
-    [DataMember(Order = 6)]
+    [DataMember(Order = 6), StringLength(128,MinimumLength = 1)]
     [LogMasked(PreserveLength = true, ShowFirst = 1, ShowLast = 1)]
     public string ZipCode { get; set; }
 
