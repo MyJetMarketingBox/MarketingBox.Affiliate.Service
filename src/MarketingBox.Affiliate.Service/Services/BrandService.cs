@@ -33,19 +33,17 @@ namespace MarketingBox.Affiliate.Service.Services
             DatabaseContext ctx,
             Action<List<BrandPayout>> action)
         {
-            if (brandPayoutIds.Any())
+            var brandPayouts = await ctx.BrandPayouts.Where(x => brandPayoutIds.Contains(x.Id)).ToListAsync();
+            var notFoundIds = brandPayoutIds.Except(brandPayouts.Select(x => x.Id)).ToList();
+            if (notFoundIds.Any())
             {
-                var brandPayouts = await ctx.BrandPayouts.Where(x => brandPayoutIds.Contains(x.Id)).ToListAsync();
-                var notFoundIds = brandPayoutIds.Except(brandPayouts.Select(x => x.Id)).ToList();
-                if (notFoundIds.Any())
-                {
-                    throw new NotFoundException(
-                        $"The following brand payout ids were not found:{string.Join(',', notFoundIds)}");
-                }
-                action.Invoke(brandPayouts);
+                throw new NotFoundException(
+                    $"The following brand payout ids were not found:{string.Join(',', notFoundIds)}");
             }
+
+            action.Invoke(brandPayouts);
         }
-        
+
         private static async Task EnsureIntegration(long? integrationId, DatabaseContext ctx, Brand brand)
         {
             if (integrationId.HasValue)
@@ -59,8 +57,12 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 brand.Integration = integration;
             }
+            else
+            {
+                brand.Integration = null;
+            }
         }
-        
+
         public BrandService(
             ILogger<BrandService> logger,
             DbContextOptionsBuilder<DatabaseContext> dbContextOptionsBuilder,
@@ -87,10 +89,15 @@ namespace MarketingBox.Affiliate.Service.Services
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
                 var brand = _mapper.Map<Brand>(request);
-                await EnsureAndDoBrandPayout(
-                    request.BrandPayoutIds.Distinct().ToList(),
-                    ctx,
-                    brandPayouts => brand.Payouts.AddRange(brandPayouts));
+                var brandPayoutIds = request.BrandPayoutIds.Distinct().ToList();
+                if (brandPayoutIds.Any())
+                {
+                    await EnsureAndDoBrandPayout(
+                        brandPayoutIds,
+                        ctx,
+                        brandPayouts => brand.Payouts.AddRange(brandPayouts));
+                }
+
                 await EnsureIntegration(request.IntegrationId, ctx, brand);
 
                 ctx.Brands.Add(brand);
@@ -128,22 +135,33 @@ namespace MarketingBox.Affiliate.Service.Services
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
                 var brand = await ctx.Brands
-                    .Include(x=>x.Payouts)
-                    .Include(x=>x.CampaignRows)
+                    .Include(x => x.Payouts)
+                    .ThenInclude(x=>x.Geo)
+                    .Include(x => x.CampaignRows)
+                    .ThenInclude(x=>x.Geo)
                     .FirstOrDefaultAsync(x => x.Id == request.BrandId);
 
                 if (brand is null)
                 {
                     throw new NotFoundException($"Brand with {nameof(request.BrandId)}", request.BrandId);
                 }
-                await EnsureAndDoBrandPayout(
-                    request.BrandPayoutIds.Distinct().ToList(),
-                    ctx,
-                    brandPayouts =>
-                    {
-                        brandPayouts ??= new List<BrandPayout>();
-                        brand.Payouts = brandPayouts;
-                    });
+                var brandPayoutIds = request.BrandPayoutIds.Distinct().ToList();
+                if (brandPayoutIds.Any())
+                {
+                    await EnsureAndDoBrandPayout(
+                        request.BrandPayoutIds.Distinct().ToList(),
+                        ctx,
+                        brandPayouts =>
+                        {
+                            brandPayouts ??= new List<BrandPayout>();
+                            brand.Payouts = brandPayouts;
+                        });
+                }
+                else
+                {
+                    brand.Payouts.Clear();
+                }
+
                 await EnsureIntegration(request.IntegrationId, ctx, brand);
 
                 brand.Name = request.Name;
@@ -151,7 +169,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 brand.Privacy = request.Privacy;
                 brand.Status = request.Status;
                 await ctx.SaveChangesAsync();
-                
+
                 var brandMessage = _mapper.Map<BrandMessage>(brand);
                 var nosql = BrandNoSql.Create(brandMessage);
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
@@ -184,7 +202,9 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 var brand = await ctx.Brands
                     .Include(x => x.Payouts)
+                    .ThenInclude(x=>x.Geo)
                     .Include(x => x.CampaignRows)
+                    .ThenInclude(x=>x.Geo)
                     .FirstOrDefaultAsync(x => x.Id == request.BrandId);
                 if (brand is null) throw new NotFoundException(nameof(request.BrandId), request.BrandId);
 
@@ -252,7 +272,9 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 var query = ctx.Brands
                     .Include(x => x.Payouts)
+                    .ThenInclude(x=>x.Geo)
                     .Include(x => x.CampaignRows)
+                    .ThenInclude(x=>x.Geo)
                     .AsQueryable();
 
                 if (!string.IsNullOrEmpty(request.TenantId)) query = query.Where(x => x.TenantId == request.TenantId);
@@ -288,7 +310,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 await query.LoadAsync();
 
                 var response = query.ToArray();
-                
+
                 if (!response.Any())
                 {
                     throw new NotFoundException(NotFoundException.DefaultMessage);

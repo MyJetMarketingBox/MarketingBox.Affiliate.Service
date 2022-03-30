@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.Runtime.Serialization;
+using MarketingBox.Affiliate.Service.Domain.Models.Attributes;
 using MarketingBox.Sdk.Common.Models;
 
 namespace MarketingBox.Affiliate.Service.Grpc.Requests.Affiliates
@@ -13,7 +14,7 @@ namespace MarketingBox.Affiliate.Service.Grpc.Requests.Affiliates
         [DataMember(Order = 2), Range(1, long.MaxValue)]
         public long? AffiliateId { get; set; }
 
-        [DataMember(Order = 4)] public string Email { get; set; }
+        [DataMember(Order = 4), IsValidEmail, StringLength(128,MinimumLength = 5)] public string Email { get; set; }
 
         [DataMember(Order = 5)] public DateTime? CreatedAt { get; set; }
 

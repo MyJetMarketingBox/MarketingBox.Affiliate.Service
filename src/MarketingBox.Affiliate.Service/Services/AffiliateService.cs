@@ -56,25 +56,24 @@ namespace MarketingBox.Affiliate.Service.Services
             };
             return message;
         }
-        
+
         private static async Task EnsureAndDoAffiliatePayout(
             ICollection<long> affiliatePayoutIds,
             DatabaseContext ctx,
             Action<List<AffiliatePayout>> action)
         {
-            if (affiliatePayoutIds.Any())
+            var affiliatePayouts =
+                await ctx.AffiliatePayouts.Where(x => affiliatePayoutIds.Contains(x.Id)).ToListAsync();
+            var notFoundIds = affiliatePayoutIds.Except(affiliatePayouts.Select(x => x.Id)).ToList();
+            if (notFoundIds.Any())
             {
-                var affiliatePayouts = await ctx.AffiliatePayouts.Where(x => affiliatePayoutIds.Contains(x.Id)).ToListAsync();
-                var notFoundIds = affiliatePayoutIds.Except(affiliatePayouts.Select(x => x.Id)).ToList();
-                if (notFoundIds.Any())
-                {
-                    throw new NotFoundException(
-                        $"The following affiliate payout ids were not found:{string.Join(',', notFoundIds)}");
-                }
-                action.Invoke(affiliatePayouts);
+                throw new NotFoundException(
+                    $"The following affiliate payout ids were not found:{string.Join(',', notFoundIds)}");
             }
+
+            action.Invoke(affiliatePayouts);
         }
-        
+
         public AffiliateService(ILogger<AffiliateService> logger,
             IServiceBusPublisher<AffiliateUpdated> publisherPartnerUpdated,
             IMyNoSqlServerDataWriter<AffiliateNoSql> myNoSqlServerDataWriter,
@@ -162,7 +161,7 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 var createRequest = _mapper.Map<AffiliateCreateRequest>(request);
                 createRequest.TenantId = masterAffiliate.TenantId;
-                
+
                 var createResponse = await CreateAsync(createRequest);
 
                 if (createResponse.Status != ResponseStatus.Ok)
@@ -208,10 +207,15 @@ namespace MarketingBox.Affiliate.Service.Services
                     throw new AlreadyExistsException(
                         $"Affiliate with user name '{request.GeneralInfo.Username}' or with email '{request.GeneralInfo.Email}' already exists.");
                 }
-                await EnsureAndDoAffiliatePayout(
-                    request.AffiliatePayoutIds?.Distinct().ToList(),
-                    ctx,
-                    affiliatePayouts => affiliate.Payouts.AddRange(affiliatePayouts));
+
+                var affiliatePayoutIds = request.AffiliatePayoutIds.Distinct().ToList();
+                if (affiliatePayoutIds.Any())
+                {
+                    await EnsureAndDoAffiliatePayout(
+                        affiliatePayoutIds,
+                        ctx,
+                        affiliatePayouts => affiliate.Payouts.AddRange(affiliatePayouts));
+                }
 
                 ctx.Affiliates.Add(affiliate);
 
@@ -246,7 +250,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 return e.FailedResponse<GrpcModels.Affiliate>();
             }
         }
-        
+
         public async Task<Response<GrpcModels.Affiliate>> UpdateAsync(AffiliateUpdateRequest request)
         {
             try
@@ -257,8 +261,9 @@ namespace MarketingBox.Affiliate.Service.Services
                 await using var ctx = _databaseContextFactory.Create();
                 var affiliate = _mapper.Map<GrpcModels.Affiliate>(request);
                 var affiliateExisting = await ctx.Affiliates
-                    .Include(x=>x.Payouts)
-                    .Include(x=>x.OfferAffiliates)
+                    .Include(x => x.Payouts)
+                    .ThenInclude(x=>x.Geo)
+                    .Include(x => x.OfferAffiliates)
                     .FirstOrDefaultAsync(x => x.Id == request.AffiliateId);
                 var affiliateWithNameEmail = await ctx.Affiliates
                     .FirstOrDefaultAsync(x => x.TenantId == request.TenantId &&
@@ -268,19 +273,28 @@ namespace MarketingBox.Affiliate.Service.Services
                 {
                     throw new NotFoundException(nameof(request.AffiliateId), request.AffiliateId);
                 }
+
                 if (affiliateWithNameEmail is not null && affiliateWithNameEmail.Id != affiliateExisting.Id)
                 {
                     throw new AlreadyExistsException(
                         $"Affiliate with user name '{request.GeneralInfo.Username}' or with email '{request.GeneralInfo.Email}' already exists.");
-                }                
-                await EnsureAndDoAffiliatePayout(
-                    request.AffiliatePayoutIds.Distinct().ToList(),
-                    ctx,
-                    affiliatePayouts =>
-                    {
-                        affiliatePayouts ??= new List<AffiliatePayout>();
-                        affiliateExisting.Payouts = affiliatePayouts;
-                    });
+                }
+                var affiliatePayoutIds = request.AffiliatePayoutIds.Distinct().ToList();
+                if (affiliatePayoutIds.Any())
+                {
+                    await EnsureAndDoAffiliatePayout(
+                        affiliatePayoutIds,
+                        ctx,
+                        affiliatePayouts =>
+                        {
+                            affiliatePayouts ??= new List<AffiliatePayout>();
+                            affiliateExisting.Payouts = affiliatePayouts;
+                        });
+                }
+                else
+                {
+                    affiliateExisting.Payouts.Clear();
+                }
 
                 affiliateExisting.Username = affiliate.Username;
                 affiliateExisting.Password = affiliate.Password;
@@ -293,7 +307,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 affiliateExisting.TenantId = affiliate.TenantId;
                 affiliateExisting.Bank = affiliate.Bank;
                 affiliateExisting.Company = affiliate.Company;
-                
+
                 await ctx.SaveChangesAsync();
 
                 await CreateOrUpdateUser(affiliate);
@@ -329,8 +343,9 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 await using var ctx = _databaseContextFactory.Create();
                 var affiliate = await ctx.Affiliates
-                    .Include(x=>x.Payouts)
-                    .Include(x=>x.OfferAffiliates)
+                    .Include(x => x.Payouts)
+                    .ThenInclude(x=>x.Geo)
+                    .Include(x => x.OfferAffiliates)
                     .FirstOrDefaultAsync(x => x.Id == request.AffiliateId);
                 if (affiliate is null)
                 {
@@ -362,7 +377,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 var paramList = ctx.AffiliateSubParams
                     .Where(x => x.AffiliateId == request.AffiliateId)
                     .ToList();
-                if (paramList.Count==0)
+                if (paramList.Count == 0)
                 {
                     throw new NotFoundException(NotFoundException.DefaultMessage);
                 }
@@ -390,8 +405,9 @@ namespace MarketingBox.Affiliate.Service.Services
                 await using var ctx = _databaseContextFactory.Create();
 
                 IQueryable<Domain.Models.Affiliates.Affiliate> query = ctx.Affiliates
-                    .Include(x=>x.Payouts)
-                    .Include(x=>x.OfferAffiliates)
+                    .Include(x => x.Payouts)
+                    .ThenInclude(x=>x.Geo)
+                    .Include(x => x.OfferAffiliates)
                     .AsQueryable();
 
                 if (!string.IsNullOrEmpty(request.TenantId))
@@ -445,11 +461,11 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 var response = query.ToArray();
 
-                if (response.Length==0)
+                if (response.Length == 0)
                 {
                     throw new NotFoundException(NotFoundException.DefaultMessage);
                 }
-                
+
                 return new Response<IReadOnlyCollection<GrpcModels.Affiliate>>()
                 {
                     Status = ResponseStatus.Ok,

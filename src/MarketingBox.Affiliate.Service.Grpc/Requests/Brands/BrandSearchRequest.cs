@@ -1,4 +1,5 @@
 ﻿using System.Runtime.Serialization;
+using MarketingBox.Affiliate.Service.Domain.Models.Attributes;
 using MarketingBox.Affiliate.Service.Domain.Models.Brands;
 using MarketingBox.Sdk.Common.Models;
 
@@ -13,7 +14,7 @@ namespace MarketingBox.Affiliate.Service.Grpc.Requests.Brands
 
         [DataMember(Order = 3)] public long? IntegrationId { get; set; }
 
-        [DataMember(Order = 4)] public BrandStatus? Status { get; set; }
+        [DataMember(Order = 4), IsEnum] public BrandStatus? Status { get; set; }
 
         [DataMember(Order = 5)] public long? Cursor { get; set; }
 

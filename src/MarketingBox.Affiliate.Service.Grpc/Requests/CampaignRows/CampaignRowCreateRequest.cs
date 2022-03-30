@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Runtime.Serialization;
+using MarketingBox.Affiliate.Service.Domain.Models.Attributes;
 using MarketingBox.Affiliate.Service.Domain.Models.CampaignRows;
 using MarketingBox.Sdk.Common.Models;
 
@@ -26,7 +27,7 @@ namespace MarketingBox.Affiliate.Service.Grpc.Requests.CampaignRows
         [DataMember(Order = 5), Required, Range(1, int.MaxValue)]
         public int? Weight { get; set; }
 
-        [DataMember(Order = 6), Required] public CapType? CapType { get; set; }
+        [DataMember(Order = 6), Required, IsEnum] public CapType? CapType { get; set; }
 
         [DataMember(Order = 7), Required, Range(1, long.MaxValue)]
         public long? DailyCapValue { get; set; }
