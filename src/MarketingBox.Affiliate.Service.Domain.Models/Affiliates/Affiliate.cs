@@ -55,11 +55,9 @@ namespace MarketingBox.Affiliate.Service.Domain.Models.Affiliates
         public long? CreatedBy { get; set; }
 
         [DataMember(Order = 18)]
-        public ICollection<AffiliatePayout> Payouts { get; set; } =
-            new List<AffiliatePayout>();
+        public List<AffiliatePayout> Payouts { get; set; } = new ();
 
         [DataMember(Order = 19)]
-        public ICollection<OfferAffiliate> OfferAffiliates { get; set; } =
-            new List<OfferAffiliate>();
+        public List<OfferAffiliate> OfferAffiliates { get; set; } = new ();
     }
 }

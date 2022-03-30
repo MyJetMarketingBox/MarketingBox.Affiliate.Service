@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using MarketingBox.Affiliate.Postgres;
@@ -87,14 +88,14 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 _logger.LogInformation("Deleting offer with {OfferId}", id);
                 
                 await using var context = new DatabaseContext(_dbContextOptionsBuilder.Options);
-                var offerEntity = await context.Offers.FirstOrDefaultAsync(x => x.Id == id);
+                var rows = await context.Offers
+                    .Where(x => x.Id == id)
+                    .DeleteFromQueryAsync();
                 
-                if (offerEntity is null)
+                if (rows==0)
                 {
                     throw new NotFoundException(nameof(Offer.Id), id);
                 }
-                context.Remove(offerEntity);
-                await context.SaveChangesAsync();
             }
             catch (Exception e)
             {

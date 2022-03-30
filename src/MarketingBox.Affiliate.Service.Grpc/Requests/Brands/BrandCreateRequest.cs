@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Runtime.Serialization;
 using MarketingBox.Affiliate.Service.Domain.Models.Brands;
 using MarketingBox.Affiliate.Service.Domain.Models.Integrations;
@@ -17,8 +18,8 @@ namespace MarketingBox.Affiliate.Service.Grpc.Requests.Brands
 
         [DataMember(Order = 3), Required] public IntegrationType? IntegrationType { get; set; }
 
-        [DataMember(Order = 4), Range(1, long.MaxValue)]
-        public long? BrandPayoutId { get; set; }
+        [DataMember(Order = 4)]
+        public ICollection<long> BrandPayoutIds { get; set; }
 
         [DataMember(Order = 5)] public BrandStatus Status { get; set; } = BrandStatus.Active;
 

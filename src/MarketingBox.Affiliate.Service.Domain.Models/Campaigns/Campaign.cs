@@ -11,7 +11,7 @@ namespace MarketingBox.Affiliate.Service.Domain.Models.Campaigns
         [DataMember(Order = 1)] public long Id { get; set; }
         [DataMember(Order = 2)] public string TenantId { get; set; }
         [DataMember(Order = 3)] public string Name { get; set; }
-        [DataMember(Order = 4)] public ICollection<CampaignRow> CampaignRows { get; set; }
-        [DataMember(Order = 5)] public ICollection<OfferAffiliate> OfferAffiliates { get; set; }
+        public List<CampaignRow> CampaignRows { get; set; } = new();
+        public List<OfferAffiliate> OfferAffiliates { get; set; } = new();
     }
 }

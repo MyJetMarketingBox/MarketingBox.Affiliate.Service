@@ -16,7 +16,7 @@ namespace MarketingBox.Affiliate.Service.Domain.Models.Brands
         [DataMember(Order = 6)] public IntegrationType IntegrationType { get; set; }
         [DataMember(Order = 7)] public BrandStatus Status { get; set; }
         [DataMember(Order = 8)] public BrandPrivacy Privacy { get; set; }
-        [DataMember(Order = 9)] public ICollection<CampaignRow> CampaignRows { get; set; } = new List<CampaignRow>();
-        [DataMember(Order = 10)] public ICollection<BrandPayout> Payouts { get; set; } = new List<BrandPayout>();
+        [DataMember(Order = 9)] public List<CampaignRow> CampaignRows { get; set; } = new ();
+        [DataMember(Order = 10)] public List<BrandPayout> Payouts { get; set; } = new ();
     }
 }

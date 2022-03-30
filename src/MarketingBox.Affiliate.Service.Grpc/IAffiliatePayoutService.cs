@@ -1,6 +1,8 @@
+using System.Collections.Generic;
 using System.ServiceModel;
 using System.Threading.Tasks;
 using MarketingBox.Affiliate.Service.Domain.Models.Affiliates;
+using MarketingBox.Affiliate.Service.Grpc.Requests;
 using MarketingBox.Affiliate.Service.Grpc.Requests.Payout;
 using MarketingBox.Sdk.Common.Models.Grpc;
 
@@ -20,4 +22,7 @@ public interface IAffiliatePayoutService
     
     [OperationContract]
     Task<Response<AffiliatePayout>> UpdateAsync(PayoutUpdateRequest request);
+    
+    [OperationContract]
+    Task<Response<IReadOnlyCollection<AffiliatePayout>>> GetAllAsync(GetAllRequest request);
 }

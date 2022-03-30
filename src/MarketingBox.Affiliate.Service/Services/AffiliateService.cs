@@ -56,7 +56,23 @@ namespace MarketingBox.Affiliate.Service.Services
             };
             return message;
         }
-        
+        private static async Task EnsureAndDoAffiliatePayout(
+            ICollection<long> affiliatePayoutIds,
+            DatabaseContext ctx,
+            Action<List<AffiliatePayout>> action)
+        {
+            if (affiliatePayoutIds.Any())
+            {
+                var affiliatePayouts = await ctx.AffiliatePayouts.Where(x => affiliatePayoutIds.Contains(x.Id)).ToListAsync();
+                var notFoundIds = affiliatePayoutIds.Except(affiliatePayouts.Select(x => x.Id)).ToList();
+                if (notFoundIds.Any())
+                {
+                    throw new NotFoundException(
+                        $"The following affiliate payout ids were not found:{string.Join(',', notFoundIds)}");
+                }
+                action.Invoke(affiliatePayouts);
+            }
+        }
         public AffiliateService(ILogger<AffiliateService> logger,
             IServiceBusPublisher<AffiliateUpdated> publisherPartnerUpdated,
             IMyNoSqlServerDataWriter<AffiliateNoSql> myNoSqlServerDataWriter,
@@ -190,6 +206,10 @@ namespace MarketingBox.Affiliate.Service.Services
                     throw new AlreadyExistsException(
                         $"Affiliate with user name '{request.GeneralInfo.Username}' or with email '{request.GeneralInfo.Email}' already exists.");
                 }
+                await EnsureAndDoAffiliatePayout(
+                    request.AffiliatePayoutIds.Distinct().ToList(),
+                    ctx,
+                    affiliatePayouts => affiliate.Payouts.AddRange(affiliatePayouts));
 
                 ctx.Affiliates.Add(affiliate);
 
@@ -235,6 +255,8 @@ namespace MarketingBox.Affiliate.Service.Services
                 await using var ctx = _databaseContextFactory.Create();
                 var affiliate = _mapper.Map<GrpcModels.Affiliate>(request);
                 var affiliateExisting = await ctx.Affiliates
+                    .Include(x=>x.Payouts)
+                    .Include(x=>x.OfferAffiliates)
                     .FirstOrDefaultAsync(x => x.Id == request.AffiliateId);
                 var affiliateWithNameEmail = await ctx.Affiliates
                     .FirstOrDefaultAsync(x => x.TenantId == request.TenantId &&
@@ -248,7 +270,15 @@ namespace MarketingBox.Affiliate.Service.Services
                 {
                     throw new AlreadyExistsException(
                         $"Affiliate with user name '{request.GeneralInfo.Username}' or with email '{request.GeneralInfo.Email}' already exists.");
-                }
+                }                
+                await EnsureAndDoAffiliatePayout(
+                    request.AffiliatePayoutIds.Distinct().ToList(),
+                    ctx,
+                    affiliatePayouts =>
+                    {
+                        affiliatePayouts ??= new List<AffiliatePayout>();
+                        affiliateExisting.Payouts = affiliatePayouts;
+                    });
 
                 affiliateExisting.Username = affiliate.Username;
                 affiliateExisting.Password = affiliate.Password;
@@ -297,6 +327,8 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 await using var ctx = _databaseContextFactory.Create();
                 var affiliate = await ctx.Affiliates
+                    .Include(x=>x.Payouts)
+                    .Include(x=>x.OfferAffiliates)
                     .FirstOrDefaultAsync(x => x.Id == request.AffiliateId);
                 if (affiliate is null)
                 {
@@ -355,7 +387,10 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 await using var ctx = _databaseContextFactory.Create();
 
-                IQueryable<Domain.Models.Affiliates.Affiliate> query = ctx.Affiliates.AsQueryable();
+                IQueryable<Domain.Models.Affiliates.Affiliate> query = ctx.Affiliates
+                    .Include(x=>x.Payouts)
+                    .Include(x=>x.OfferAffiliates)
+                    .AsQueryable();
 
                 if (!string.IsNullOrEmpty(request.TenantId))
                 {
@@ -406,9 +441,7 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 await query.LoadAsync();
 
-                var response = query
-                    .AsEnumerable()
-                    .ToArray();
+                var response = query.ToArray();
 
                 if (response.Length==0)
                 {

@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using MarketingBox.Affiliate.Service.Domain.Models.Affiliates;
 using MarketingBox.Affiliate.Service.Grpc;
+using MarketingBox.Affiliate.Service.Grpc.Requests;
 using MarketingBox.Affiliate.Service.Grpc.Requests.Payout;
 using MarketingBox.Affiliate.Service.Repositories.Interfaces;
 using MarketingBox.Sdk.Common.Extensions;
@@ -91,6 +93,23 @@ namespace MarketingBox.Affiliate.Service.Services
             catch (Exception e)
             {
                 return e.FailedResponse<AffiliatePayout>();
+            }
+        }
+
+        public async Task<Response<IReadOnlyCollection<AffiliatePayout>>> GetAllAsync(GetAllRequest request)
+        {
+            try
+            {
+                var response = await _repository.GetAllAsync(request);
+                return new Response<IReadOnlyCollection<AffiliatePayout>>
+                {
+                    Status = ResponseStatus.Ok,
+                    Data = response
+                };
+            }
+            catch (Exception e)
+            {
+                return e.FailedResponse<IReadOnlyCollection<AffiliatePayout>>();
             }
         }
     }

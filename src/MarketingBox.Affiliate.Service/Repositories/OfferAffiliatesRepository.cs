@@ -30,27 +30,30 @@ public class OfferAffiliatesRepository : IOfferAffiliatesRepository
         _dbContextOptionsBuilder = dbContextOptionsBuilder;
         _mapper = mapper;
     }
+
     public async Task<OfferAffiliate> CreateAsync(OfferAffiliateCreateRequest request)
     {
         try
         {
             _logger.LogInformation("Creating OfferAffiliate by request {@CreateOfferAffiliateRequest}", request);
-                
+
             await using var context = new DatabaseContext(_dbContextOptionsBuilder.Options);
             var existingCampaign = await context.Campaigns.AnyAsync(x => x.Id == request.CampaignId);
-                
+
             if (!existingCampaign)
             {
                 throw new NotFoundException(nameof(request.CampaignId), request.CampaignId);
             }
+
             var existingOffer = await context.Offers.AnyAsync(x => x.Id == request.OfferId);
-                
+
             if (!existingOffer)
             {
                 throw new NotFoundException(nameof(request.OfferId), request.OfferId);
             }
+
             var existingAffiliate = await context.Affiliates.AnyAsync(x => x.Id == request.AffiliateId);
-                
+
             if (!existingAffiliate)
             {
                 throw new NotFoundException(nameof(request.AffiliateId), request.AffiliateId);
@@ -59,12 +62,12 @@ public class OfferAffiliatesRepository : IOfferAffiliatesRepository
             var offerAffiliate = _mapper.Map<OfferAffiliate>(request);
             await context.AddAsync(offerAffiliate);
             await context.SaveChangesAsync();
-                
+
             return offerAffiliate;
         }
         catch (Exception e)
         {
-            _logger.LogError(e,e.Message);
+            _logger.LogError(e, e.Message);
             throw;
         }
     }
@@ -74,16 +77,16 @@ public class OfferAffiliatesRepository : IOfferAffiliatesRepository
         try
         {
             _logger.LogInformation("Getting OfferAffiliate with {OfferAffililateId}", id);
-                
+
             await using var context = new DatabaseContext(_dbContextOptionsBuilder.Options);
             var offerAffiliate = await context.OfferAffiliates
                 .FirstOrDefaultAsync(x => x.Id == id);
-                
+
             if (offerAffiliate is null)
             {
                 throw new NotFoundException(nameof(OfferAffiliate.Id), id);
             }
-                
+
             return offerAffiliate;
         }
         catch (Exception e)
@@ -98,20 +101,20 @@ public class OfferAffiliatesRepository : IOfferAffiliatesRepository
         try
         {
             _logger.LogInformation("Deleting OfferAffiliate with {OfferAffiliateId}", id);
-                
+
             await using var context = new DatabaseContext(_dbContextOptionsBuilder.Options);
-            var offerAffiliate = await context.OfferAffiliates.FirstOrDefaultAsync(x => x.Id == id);
-                
-            if (offerAffiliate is null)
+            var rows = await context.OfferAffiliates
+                .Where(x => x.Id == id)
+                .DeleteFromQueryAsync();
+
+            if (rows == 0)
             {
-                throw new NotFoundException(nameof(Offer.Id), id);
+                throw new NotFoundException($"OfferAffiliate with {nameof(Offer.Id)}", id);
             }
-            context.Remove(offerAffiliate);
-            await context.SaveChangesAsync();
         }
         catch (Exception e)
         {
-            _logger.LogError(e,e.Message);
+            _logger.LogError(e, e.Message);
             throw;
         }
     }
@@ -122,7 +125,7 @@ public class OfferAffiliatesRepository : IOfferAffiliatesRepository
         {
             await using var context = new DatabaseContext(_dbContextOptionsBuilder.Options);
             var query = context.OfferAffiliates.AsQueryable();
-                
+
             var limit = request.Take <= 0 ? 1000 : request.Take;
             if (request.Asc)
             {
@@ -146,7 +149,7 @@ public class OfferAffiliatesRepository : IOfferAffiliatesRepository
             query = query.Take(limit);
 
             await query.LoadAsync();
-                
+
             var result = query.ToList();
             if (!result.Any())
             {

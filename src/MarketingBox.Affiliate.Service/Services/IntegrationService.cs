@@ -185,10 +185,7 @@ namespace MarketingBox.Affiliate.Service.Services
                     .ToListAsync();
                 if (brands.Any())
                 {
-                    throw new BadRequestException(new Error
-                    {
-                        ErrorMessage = $"There are brands that use this integration. Brand's ids:{string.Join(',',brands)}"
-                    });
+                    throw new BadRequestException($"There are brands that use this integration. Brand's ids:{string.Join(',',brands)}");
                 }
                 
                 try

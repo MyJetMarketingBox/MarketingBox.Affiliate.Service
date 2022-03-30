@@ -16,7 +16,7 @@ namespace MarketingBox.Affiliate.Service.Domain.Models.Brands
         public ICollection<Brand> Brands { get; set; }
         [DataMember(Order = 6)] public DateTime CreatedAt { get; set; }
         [DataMember(Order = 7)] public DateTime ModifiedAt { get; set; }
-        [DataMember(Order = 8)] public int GeoId { get; set; }
+        public int GeoId { get; set; }
         [DataMember(Order = 9)] public Geo Geo { get; set; }
     }
 }

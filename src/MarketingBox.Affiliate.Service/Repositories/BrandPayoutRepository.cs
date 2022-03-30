@@ -1,14 +1,17 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using MarketingBox.Affiliate.Postgres;
 using MarketingBox.Affiliate.Service.Domain.Models.Brands;
-using MarketingBox.Affiliate.Service.Domain.Models.Common;
+using MarketingBox.Affiliate.Service.Grpc.Requests;
 using MarketingBox.Affiliate.Service.Grpc.Requests.Payout;
 using MarketingBox.Affiliate.Service.Repositories.Interfaces;
 using MarketingBox.Sdk.Common.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Z.EntityFramework.Plus;
 
 namespace MarketingBox.Affiliate.Service.Repositories
 {
@@ -64,6 +67,7 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
                 var brandPayout = await ctx.BrandPayouts
                     .Include(x=>x.Geo)
+                    .Include(x=>x.Brands)
                     .FirstOrDefaultAsync(x => x.Id == request.PayoutId);
                 if (brandPayout is null)
                 {
@@ -85,14 +89,14 @@ namespace MarketingBox.Affiliate.Service.Repositories
             {
                 _logger.LogInformation("Deleting BrandPayout by id {@PayoutId}", request.PayoutId);
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
-                var brandPayout = await ctx.BrandPayouts.FirstOrDefaultAsync(x => x.Id == request.PayoutId);
-                if (brandPayout is null)
+                
+                var rows = await ctx.BrandPayouts
+                    .Where(x=>x.Id==request.PayoutId)
+                    .DeleteAsync();
+                if (rows == 0)
                 {
                     throw new NotFoundException(nameof(request.PayoutId), request.PayoutId);
                 }
-
-                ctx.Remove(brandPayout);
-                await ctx.SaveChangesAsync();
             }
             catch (Exception e)
             {
@@ -128,6 +132,53 @@ namespace MarketingBox.Affiliate.Service.Repositories
             catch (Exception e)
             {
                 _logger.LogError(e, e.Message);
+                throw;
+            }
+        }
+
+        public async Task<IReadOnlyCollection<BrandPayout>> GetAllAsync(GetAllRequest request)
+        {
+            
+            try
+            {
+                await using var context = new DatabaseContext(_dbContextOptionsBuilder.Options);
+                var query = context.BrandPayouts.AsQueryable();
+                
+                var limit = request.Take <= 0 ? 1000 : request.Take;
+                if (request.Asc)
+                {
+                    if (request.Cursor != null)
+                    {
+                        query = query.Where(x => x.Id > request.Cursor);
+                    }
+
+                    query = query.OrderBy(x => x.Id);
+                }
+                else
+                {
+                    if (request.Cursor != null)
+                    {
+                        query = query.Where(x => x.Id < request.Cursor);
+                    }
+
+                    query = query.OrderByDescending(x => x.Id);
+                }
+
+                query = query.Take(limit);
+
+                await query.LoadAsync();
+                
+                var result = query.ToList();
+                if (!result.Any())
+                {
+                    throw new NotFoundException(NotFoundException.DefaultMessage);
+                }
+
+                return result;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e,e.Message);
                 throw;
             }
         }
