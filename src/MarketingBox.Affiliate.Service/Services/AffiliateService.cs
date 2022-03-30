@@ -414,7 +414,7 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 if (request.CreatedAt.HasValue)
                 {
-                    query = query.Where(x => x.CreatedAt == request.CreatedAt.Value);
+                    query = query.Where(x => x.CreatedAt.Date == request.CreatedAt.Value.Date);
                 }
 
                 var limit = request.Take <= 0 ? 1000 : request.Take;
