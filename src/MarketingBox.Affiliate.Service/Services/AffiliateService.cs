@@ -225,8 +225,8 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 var affiliateMassage = _mapper.Map<AffiliateMessage>(affiliate);
                 var nosql = AffiliateNoSql.Create(affiliateMassage);
-                await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
-                _logger.LogInformation("Sent partner update to MyNoSql {@context}", request);
+                // await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
+                // _logger.LogInformation("Sent partner update to MyNoSql {@context}", request);
 
                 // TODO: change logic
 
@@ -261,7 +261,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 await using var ctx = _databaseContextFactory.Create();
                 var affiliateExisting = await ctx.Affiliates
                     .Include(x => x.Payouts)
-                    .ThenInclude(x=>x.Geo)
+                    .ThenInclude(x => x.Geo)
                     .Include(x => x.OfferAffiliates)
                     .FirstOrDefaultAsync(x => x.Id == request.AffiliateId);
                 var affiliateWithNameEmail = await ctx.Affiliates
@@ -278,6 +278,7 @@ namespace MarketingBox.Affiliate.Service.Services
                     throw new AlreadyExistsException(
                         $"Affiliate with user name '{request.GeneralInfo.Username}' or with email '{request.GeneralInfo.Email}' already exists.");
                 }
+
                 var affiliatePayoutIds = request.AffiliatePayoutIds.Distinct().ToList();
                 if (affiliatePayoutIds.Any())
                 {
@@ -313,8 +314,8 @@ namespace MarketingBox.Affiliate.Service.Services
                 //
                 var affiliateMessage = _mapper.Map<AffiliateMessage>(affiliateExisting);
                 var nosql = AffiliateNoSql.Create(affiliateMessage);
-                await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
-                _logger.LogInformation("Sent partner update to MyNoSql {@context}", request);
+                // await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
+                // _logger.LogInformation("Sent partner update to MyNoSql {@context}", request);
                 
                 await _publisherPartnerUpdated.PublishAsync(MapToMessage(affiliateMessage,
                     AffiliateUpdatedEventType.Updated));
@@ -343,7 +344,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 await using var ctx = _databaseContextFactory.Create();
                 var affiliate = await ctx.Affiliates
                     .Include(x => x.Payouts)
-                    .ThenInclude(x=>x.Geo)
+                    .ThenInclude(x => x.Geo)
                     .Include(x => x.OfferAffiliates)
                     .FirstOrDefaultAsync(x => x.Id == request.AffiliateId);
                 if (affiliate is null)
@@ -405,7 +406,7 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 IQueryable<Domain.Models.Affiliates.Affiliate> query = ctx.Affiliates
                     .Include(x => x.Payouts)
-                    .ThenInclude(x=>x.Geo)
+                    .ThenInclude(x => x.Geo)
                     .Include(x => x.OfferAffiliates)
                     .AsQueryable();
 

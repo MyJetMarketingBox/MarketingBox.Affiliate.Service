@@ -105,9 +105,9 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 var brandMessage = _mapper.Map<BrandMessage>(brand);
                 var nosql = BrandNoSql.Create(brandMessage);
-                await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
-                _logger.LogInformation("Sent brand update to MyNoSql {@context}", request);
-                
+                // await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
+                // _logger.LogInformation("Sent brand update to MyNoSql {@context}", request);
+
                 await _publisherBrandUpdated.PublishAsync(brandMessage);
                 _logger.LogInformation("Sent brand update to service bus {@context}", request);
 
@@ -136,15 +136,16 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 var brand = await ctx.Brands
                     .Include(x => x.Payouts)
-                    .ThenInclude(x=>x.Geo)
+                    .ThenInclude(x => x.Geo)
                     .Include(x => x.CampaignRows)
-                    .ThenInclude(x=>x.Geo)
+                    .ThenInclude(x => x.Geo)
                     .FirstOrDefaultAsync(x => x.Id == request.BrandId);
 
                 if (brand is null)
                 {
                     throw new NotFoundException($"Brand with {nameof(request.BrandId)}", request.BrandId);
                 }
+
                 var brandPayoutIds = request.BrandPayoutIds.Distinct().ToList();
                 if (brandPayoutIds.Any())
                 {
@@ -172,9 +173,9 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 var brandMessage = _mapper.Map<BrandMessage>(brand);
                 var nosql = BrandNoSql.Create(brandMessage);
-                await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
-                _logger.LogInformation("Sent brand update to MyNoSql {@context}", request);
-                
+                // await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
+                // _logger.LogInformation("Sent brand update to MyNoSql {@context}", request);
+
                 await _publisherBrandUpdated.PublishAsync(brandMessage);
                 _logger.LogInformation("Sent brand update to service bus {@context}", request);
 
@@ -202,9 +203,9 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 var brand = await ctx.Brands
                     .Include(x => x.Payouts)
-                    .ThenInclude(x=>x.Geo)
+                    .ThenInclude(x => x.Geo)
                     .Include(x => x.CampaignRows)
-                    .ThenInclude(x=>x.Geo)
+                    .ThenInclude(x => x.Geo)
                     .FirstOrDefaultAsync(x => x.Id == request.BrandId);
                 if (brand is null) throw new NotFoundException(nameof(request.BrandId), request.BrandId);
 
@@ -236,10 +237,10 @@ namespace MarketingBox.Affiliate.Service.Services
                     throw new NotFoundException(nameof(request.BrandId), request.BrandId);
                 ctx.Brands.Remove(brand);
                 await ctx.SaveChangesAsync();
-                
-                await _myNoSqlServerDataWriter.DeleteAsync(
-                    BrandNoSql.GeneratePartitionKey(brand.TenantId),
-                    BrandNoSql.GenerateRowKey(brand.Id));
+
+                // await _myNoSqlServerDataWriter.DeleteAsync(
+                //     BrandNoSql.GeneratePartitionKey(brand.TenantId),
+                //     BrandNoSql.GenerateRowKey(brand.Id));
 
                 await _publisherBrandRemoved.PublishAsync(new BrandRemoved
                 {
@@ -272,9 +273,9 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 var query = ctx.Brands
                     .Include(x => x.Payouts)
-                    .ThenInclude(x=>x.Geo)
+                    .ThenInclude(x => x.Geo)
                     .Include(x => x.CampaignRows)
-                    .ThenInclude(x=>x.Geo)
+                    .ThenInclude(x => x.Geo)
                     .AsQueryable();
 
                 if (!string.IsNullOrEmpty(request.TenantId)) query = query.Where(x => x.TenantId == request.TenantId);

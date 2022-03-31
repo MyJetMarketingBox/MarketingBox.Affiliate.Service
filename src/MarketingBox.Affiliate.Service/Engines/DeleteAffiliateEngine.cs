@@ -41,16 +41,16 @@ namespace MarketingBox.Affiliate.Service.Engines
                 var partnerEntity = await ctx.Affiliates.FirstOrDefaultAsync(x => x.Id == affiliateId);
                 if (partnerEntity == null)
                     return;
-                try
-                {
-                    await _myNoSqlServerDataWriter.DeleteAsync(
-                        AffiliateNoSql.GeneratePartitionKey(partnerEntity.TenantId),
-                        AffiliateNoSql.GenerateRowKey(partnerEntity.Id));
-                }
-                catch (Exception serializationException)
-                {
-                    _logger.LogInformation(serializationException, $"NoSql table {AffiliateNoSql.TableName} is empty");
-                }
+                // try
+                // {
+                //     await _myNoSqlServerDataWriter.DeleteAsync(
+                //         AffiliateNoSql.GeneratePartitionKey(partnerEntity.TenantId),
+                //         AffiliateNoSql.GenerateRowKey(partnerEntity.Id));
+                // }
+                // catch (Exception serializationException)
+                // {
+                //     _logger.LogInformation(serializationException, $"NoSql table {AffiliateNoSql.TableName} is empty");
+                // }
                 await _publisherPartnerRemoved.PublishAsync(new AffiliateRemoved()
                 {
                     AffiliateId = partnerEntity.Id,

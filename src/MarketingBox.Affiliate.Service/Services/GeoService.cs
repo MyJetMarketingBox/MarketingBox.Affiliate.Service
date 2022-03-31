@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using FluentValidation;
 using MarketingBox.Affiliate.Service.Domain.Models.Country;
 using MarketingBox.Affiliate.Service.Grpc;
 using MarketingBox.Affiliate.Service.Grpc.Requests;
@@ -50,7 +49,7 @@ namespace MarketingBox.Affiliate.Service.Services
             try
             {
                 request.ValidateEntity();
-                
+
                 await _repository.DeleteAsync(request.GeoId.Value);
                 return new Response<bool>
                 {
@@ -70,9 +69,9 @@ namespace MarketingBox.Affiliate.Service.Services
             try
             {
                 request.ValidateEntity();
-                
+
                 request.CountryIds = request.CountryIds.Distinct().ToArray();
-                
+
                 var result = await _repository.CreateAsync(request);
 
                 return new Response<Geo>
@@ -93,11 +92,11 @@ namespace MarketingBox.Affiliate.Service.Services
             try
             {
                 request.ValidateEntity();
-                
+
                 request.CountryIds = request.CountryIds.Distinct().ToArray();
-                
+
                 var result = await _repository.UpdateAsync(request);
-                
+
                 return new Response<Geo>
                 {
                     Status = ResponseStatus.Ok,

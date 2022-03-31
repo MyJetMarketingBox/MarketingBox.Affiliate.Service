@@ -10,7 +10,6 @@ using MarketingBox.Affiliate.Service.Messages.Integrations;
 using MarketingBox.Affiliate.Service.MyNoSql.Integrations;
 using MarketingBox.Sdk.Common.Exceptions;
 using MarketingBox.Sdk.Common.Extensions;
-using MarketingBox.Sdk.Common.Models;
 using MarketingBox.Sdk.Common.Models.Grpc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -39,9 +38,8 @@ namespace MarketingBox.Affiliate.Service.Services
             _publisherIntegrationUpdated = publisherIntegrationUpdated;
             _myNoSqlServerDataWriter = myNoSqlServerDataWriter;
             _publisherIntegrationRemoved = publisherIntegrationRemoved;
-            
         }
-        
+
         private static IntegrationMessage MapToMessage(Integration integration)
         {
             return new IntegrationMessage()
@@ -57,7 +55,7 @@ namespace MarketingBox.Affiliate.Service.Services
             try
             {
                 request.ValidateEntity();
-                
+
                 _logger.LogInformation("Creating new Integration {@context}", request);
 
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
@@ -72,8 +70,8 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 var integrationMessage = MapToMessage(integration);
                 var nosql = IntegrationNoSql.Create(integrationMessage);
-                await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
-                _logger.LogInformation("Sent Integration update to MyNoSql {@context}", request);
+                // await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
+                // _logger.LogInformation("Sent Integration update to MyNoSql {@context}", request);
 
                 await _publisherIntegrationUpdated.PublishAsync(integrationMessage);
                 _logger.LogInformation("Sent Integration update to service bus {@context}", request);
@@ -103,7 +101,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
                 var existingIntegration = await ctx.Integrations
-                    .Include(x=>x.Brands)
+                    .Include(x => x.Brands)
                     .FirstOrDefaultAsync(x => x.Id == request.IntegrationId);
 
                 if (existingIntegration is null)
@@ -113,13 +111,13 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 existingIntegration.TenantId = request.TenantId;
                 existingIntegration.Name = request.Name;
-                
+
                 await ctx.SaveChangesAsync();
 
                 var integrationMessage = MapToMessage(existingIntegration);
                 var nosql = IntegrationNoSql.Create(integrationMessage);
-                await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
-                _logger.LogInformation("Sent integration update to MyNoSql {@context}", request);
+                // await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
+                // _logger.LogInformation("Sent integration update to MyNoSql {@context}", request);
 
                 await _publisherIntegrationUpdated.PublishAsync(integrationMessage);
                 _logger.LogInformation("Sent integration update to service bus {@context}", request);
@@ -143,10 +141,10 @@ namespace MarketingBox.Affiliate.Service.Services
             try
             {
                 request.ValidateEntity();
-                
+
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
                 var integration = await ctx.Integrations
-                    .Include(x=>x.Brands)
+                    .Include(x => x.Brands)
                     .FirstOrDefaultAsync(x => x.Id == request.IntegrationId);
                 if (integration is null)
                 {
@@ -172,33 +170,34 @@ namespace MarketingBox.Affiliate.Service.Services
             try
             {
                 request.ValidateEntity();
-                
+
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
                 var integration = await ctx.Integrations.FirstOrDefaultAsync(x => x.Id == request.IntegrationId);
 
                 if (integration == null)
                     throw new NotFoundException(nameof(request.IntegrationId), request.IntegrationId);
-                var brands =  await ctx.Brands
+                var brands = await ctx.Brands
                     .Where(x => x.IntegrationId == request.IntegrationId)
                     .Select(x => x.Id)
                     .ToListAsync();
                 if (brands.Any())
                 {
-                    throw new BadRequestException($"There are brands that use this integration. Brand's ids:{string.Join(',',brands)}");
+                    throw new BadRequestException(
+                        $"There are brands that use this integration. Brand's ids:{string.Join(',', brands)}");
                 }
-                
-                try
-                {
-                    await _myNoSqlServerDataWriter.DeleteAsync(
-                        IntegrationNoSql.GeneratePartitionKey(integration.TenantId),
-                        IntegrationNoSql.GenerateRowKey(integration.Id));
-                }
-                catch (Exception serializationException)
-                {
-                    _logger.LogInformation(serializationException,
-                        $"NoSql table {IntegrationNoSql.TableName} is empty");
-                }
+
+                // try
+                // {
+                //     await _myNoSqlServerDataWriter.DeleteAsync(
+                //         IntegrationNoSql.GeneratePartitionKey(integration.TenantId),
+                //         IntegrationNoSql.GenerateRowKey(integration.Id));
+                // }
+                // catch (Exception serializationException)
+                // {
+                //     _logger.LogInformation(serializationException,
+                //         $"NoSql table {IntegrationNoSql.TableName} is empty");
+                // }
 
                 await _publisherIntegrationRemoved.PublishAsync(new IntegrationRemoved()
                 {
@@ -229,7 +228,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
                 var query = ctx.Integrations
-                    .Include(x=>x.Brands)
+                    .Include(x => x.Brands)
                     .AsQueryable();
 
                 if (!string.IsNullOrEmpty(request.TenantId))
@@ -273,11 +272,11 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 var response = query.ToArray();
 
-                if (response.Length==0)
+                if (response.Length == 0)
                 {
                     throw new NotFoundException(NotFoundException.DefaultMessage);
                 }
-                
+
                 return new Response<IReadOnlyCollection<Integration>>()
                 {
                     Status = ResponseStatus.Ok,

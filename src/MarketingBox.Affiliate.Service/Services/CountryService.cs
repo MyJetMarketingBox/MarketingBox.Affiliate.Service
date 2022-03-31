@@ -35,7 +35,7 @@ namespace MarketingBox.Affiliate.Service.Services
             try
             {
                 var result = await _repository.GetAllAsync(request);
-                await _noSqlServerDataWriter.InsertOrReplaceAsync(CountriesNoSql.Create(result));
+                // await _noSqlServerDataWriter.InsertOrReplaceAsync(CountriesNoSql.Create(result));
                 return new Response<IReadOnlyCollection<Country>>
                 {
                     Data = result,
