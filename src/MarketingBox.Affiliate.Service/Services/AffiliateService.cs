@@ -259,7 +259,6 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 _logger.LogInformation("Updating a Affiliate {@context}", request);
                 await using var ctx = _databaseContextFactory.Create();
-                var affiliate = _mapper.Map<GrpcModels.Affiliate>(request);
                 var affiliateExisting = await ctx.Affiliates
                     .Include(x => x.Payouts)
                     .ThenInclude(x=>x.Geo)
@@ -296,17 +295,17 @@ namespace MarketingBox.Affiliate.Service.Services
                     affiliateExisting.Payouts.Clear();
                 }
 
-                affiliateExisting.Username = affiliate.Username;
-                affiliateExisting.Password = affiliate.Password;
-                affiliateExisting.Email = affiliate.Email;
-                affiliateExisting.Phone = affiliate.Phone;
-                affiliateExisting.Skype = affiliate.Skype;
-                affiliateExisting.ZipCode = affiliate.ZipCode;
-                affiliateExisting.State = affiliate.State;
-                affiliateExisting.Currency = affiliate.Currency;
-                affiliateExisting.TenantId = affiliate.TenantId;
-                affiliateExisting.Bank = affiliate.Bank;
-                affiliateExisting.Company = affiliate.Company;
+                affiliateExisting.Username = request.GeneralInfo.Username;
+                affiliateExisting.Password = request.GeneralInfo.Password;
+                affiliateExisting.Email = request.GeneralInfo.Email;
+                affiliateExisting.Phone = request.GeneralInfo.Phone;
+                affiliateExisting.Skype = request.GeneralInfo.Skype;
+                affiliateExisting.ZipCode = request.GeneralInfo.ZipCode;
+                affiliateExisting.State = request.GeneralInfo.State;
+                affiliateExisting.Currency = request.GeneralInfo.Currency;
+                affiliateExisting.TenantId = request.TenantId;
+                affiliateExisting.Bank = request.Bank;
+                affiliateExisting.Company = request.Company;
 
                 await ctx.SaveChangesAsync();
 
