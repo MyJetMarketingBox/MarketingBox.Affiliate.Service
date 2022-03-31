@@ -9,7 +9,7 @@ namespace MarketingBox.Affiliate.Service.Grpc.Requests.Offers
     public class OfferCreateRequest : ValidatableEntity
     {
         [DataMember(Order = 1), Required, Range(1, long.MaxValue, ErrorMessage = "BrandId must be grater than 0.")]
-        public long? BrnadId { get; set; }
+        public long? BrandId { get; set; }
 
         [DataMember(Order = 2), Required, StringLength(128,MinimumLength = 1)]
         public string Name { get; set; }

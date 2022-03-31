@@ -35,11 +35,11 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 _logger.LogInformation("Creating offer by request {@CreateOfferRequest}", request);
                 
                 await using var context = new DatabaseContext(_dbContextOptionsBuilder.Options);
-                var existingBrand = await context.Brands.AnyAsync(x => x.Id == request.BrnadId);
+                var existingBrand = await context.Brands.AnyAsync(x => x.Id == request.BrandId);
                 
                 if (!existingBrand)
                 {
-                    throw new NotFoundException(nameof(request.BrnadId), request.BrnadId);
+                    throw new NotFoundException(nameof(request.BrandId), request.BrandId);
                 }
 
                 var offerEntity = _mapper.Map<Offer>(request);
