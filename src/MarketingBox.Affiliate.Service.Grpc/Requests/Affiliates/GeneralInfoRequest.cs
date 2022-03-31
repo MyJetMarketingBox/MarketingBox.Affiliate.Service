@@ -17,7 +17,7 @@ public class GeneralInfoRequest : ValidatableEntity
     [LogMasked(PreserveLength = false)]
     public string Password { get; set; }
 
-    [DataMember(Order = 3), Required, IsValidEmail, StringLength(128,MinimumLength = 5)]
+    [DataMember(Order = 3), Required, IsValidEmail]
     [LogMasked(PreserveLength = true, ShowFirst = 1, ShowLast = 1)]
     public string Email { get; set; }
 

@@ -21,7 +21,7 @@ namespace MarketingBox.Affiliate.Service.Grpc.Requests.Affiliates
         [DataMember(Order = 5), Required, Phone, StringLength(20,MinimumLength = 7)]
         public string Phone { get; set; }
 
-        [DataMember(Order = 6), Required, IsValidEmail, StringLength(128,MinimumLength = 5)]
+        [DataMember(Order = 6), Required, IsValidEmail]
         public string Email { get; set; }
 
         [DataMember(Order = 7)] public SubEntity[] Sub { get; set; }
