@@ -4,7 +4,7 @@ using MarketingBox.Sdk.Common.Models;
 namespace MarketingBox.Affiliate.Service.Grpc.Requests.Campaigns
 {
     [DataContract]
-    public class CampaignSearchRequest : ValidatableEntity
+    public class CampaignSearchRequest
     {
         [DataMember(Order = 1)] public long? CampaignId { get; set; }
 

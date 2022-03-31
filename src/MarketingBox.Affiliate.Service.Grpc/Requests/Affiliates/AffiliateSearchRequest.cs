@@ -7,7 +7,7 @@ using MarketingBox.Sdk.Common.Models;
 namespace MarketingBox.Affiliate.Service.Grpc.Requests.Affiliates
 {
     [DataContract]
-    public class AffiliateSearchRequest : ValidatableEntity
+    public class AffiliateSearchRequest
     {
         [DataMember(Order = 1)] public string Username { get; set; }
 

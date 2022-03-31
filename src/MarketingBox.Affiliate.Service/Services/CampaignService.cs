@@ -208,8 +208,6 @@ namespace MarketingBox.Affiliate.Service.Services
         {
             try
             {
-                request.ValidateEntity();
-
                 _logger.LogInformation(
                     $"CampaignService.SearchAsync start with request : {JsonConvert.SerializeObject(request)}");
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);

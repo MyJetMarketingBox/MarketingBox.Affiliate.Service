@@ -6,7 +6,7 @@ using MarketingBox.Sdk.Common.Models;
 namespace MarketingBox.Affiliate.Service.Grpc.Requests.Brands
 {
     [DataContract]
-    public class BrandSearchRequest : ValidatableEntity
+    public class BrandSearchRequest
     {
         [DataMember(Order = 1)] public long? BrandId { get; set; }
 
@@ -14,7 +14,7 @@ namespace MarketingBox.Affiliate.Service.Grpc.Requests.Brands
 
         [DataMember(Order = 3)] public long? IntegrationId { get; set; }
 
-        [DataMember(Order = 4), IsEnum] public BrandStatus? Status { get; set; }
+        [DataMember(Order = 4)] public BrandStatus? Status { get; set; }
 
         [DataMember(Order = 5)] public long? Cursor { get; set; }
 

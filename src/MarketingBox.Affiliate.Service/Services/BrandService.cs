@@ -267,8 +267,6 @@ namespace MarketingBox.Affiliate.Service.Services
         {
             try
             {
-                request.ValidateEntity();
-
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
                 var query = ctx.Brands
