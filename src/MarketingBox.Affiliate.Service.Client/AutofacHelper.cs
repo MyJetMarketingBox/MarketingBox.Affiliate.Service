@@ -23,6 +23,8 @@ namespace MarketingBox.Affiliate.Service.Client
             builder.RegisterInstance(factory.GetGeoService()).As<IGeoService>().SingleInstance();
             builder.RegisterInstance(factory.GetBrandPayoutService()).As<IBrandPayoutService>().SingleInstance();
             builder.RegisterInstance(factory.GetAffiliatePayoutService()).As<IAffiliatePayoutService>().SingleInstance();
+            builder.RegisterInstance(factory.GetOfferService()).As<IOfferService>().SingleInstance();
+            builder.RegisterInstance(factory.GetOfferAffiliateService()).As<IOfferAffiliateService>().SingleInstance();
         }
         public static void RegisterCountryClient(
             this ContainerBuilder builder,
