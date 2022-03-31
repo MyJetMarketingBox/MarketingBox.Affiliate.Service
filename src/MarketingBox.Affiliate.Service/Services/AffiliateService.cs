@@ -74,6 +74,47 @@ namespace MarketingBox.Affiliate.Service.Services
             action.Invoke(affiliatePayouts);
         }
 
+        private static async Task CheckExistingAffiliate(
+            string tenantId,
+            string username,
+            string email,
+            DatabaseContext ctx,
+            Func<long,bool> condition = null)
+        {
+            var existingEntity = await ctx.Affiliates
+                .FirstOrDefaultAsync(x => x.TenantId.ToLower().Equals(tenantId.ToLowerInvariant()) &&
+                                          (x.Email.ToLower().Equals(email.ToLowerInvariant()) ||
+                                           x.Username.ToLower().Equals(username.ToLowerInvariant())));
+            
+            if (existingEntity != null && (condition?.Invoke(existingEntity.Id) ?? true))
+            {
+                string message = null;
+                var existingEmail = existingEntity.Email.Equals(email,
+                    StringComparison.InvariantCultureIgnoreCase);
+                var existingUsername = existingEntity.Username.Equals(username,
+                    StringComparison.InvariantCultureIgnoreCase);
+                if (existingEmail && existingUsername)
+                {
+                    message =
+                        $"Affiliate with user name '{username}' and email '{email}' already exists.";
+                }
+                else
+                {
+                    if (existingEmail)
+                    {
+                        message = $"Affiliate with email '{email}' already exists.";
+                    }
+
+                    if (existingUsername)
+                    {
+                        message = $"Affiliate with user name '{username}' already exists.";
+                    }
+                }
+
+                throw new AlreadyExistsException(message);
+            }
+        }
+
         public AffiliateService(ILogger<AffiliateService> logger,
             IServiceBusPublisher<AffiliateUpdated> publisherPartnerUpdated,
             IMyNoSqlServerDataWriter<AffiliateNoSql> myNoSqlServerDataWriter,
@@ -198,15 +239,12 @@ namespace MarketingBox.Affiliate.Service.Services
                 await using var ctx = _databaseContextFactory.Create();
 
                 var affiliate = _mapper.Map<GrpcModels.Affiliate>(request);
-                var existingEntity = await ctx.Affiliates
-                    .FirstOrDefaultAsync(x => x.TenantId == request.TenantId &&
-                                              (x.Email == request.GeneralInfo.Email ||
-                                               x.Username == request.GeneralInfo.Username));
-                if (existingEntity != null)
-                {
-                    throw new AlreadyExistsException(
-                        $"Affiliate with user name '{request.GeneralInfo.Username}' or with email '{request.GeneralInfo.Email}' already exists.");
-                }
+
+                await CheckExistingAffiliate(
+                    request.TenantId,
+                    request.GeneralInfo.Username,
+                    request.GeneralInfo.Email,
+                    ctx);
 
                 var affiliatePayoutIds = request.AffiliatePayoutIds.Distinct().ToList();
                 if (affiliatePayoutIds.Any())
@@ -264,20 +302,18 @@ namespace MarketingBox.Affiliate.Service.Services
                     .ThenInclude(x => x.Geo)
                     .Include(x => x.OfferAffiliates)
                     .FirstOrDefaultAsync(x => x.Id == request.AffiliateId);
-                var affiliateWithNameEmail = await ctx.Affiliates
-                    .FirstOrDefaultAsync(x => x.TenantId == request.TenantId &&
-                                              (x.Email == request.GeneralInfo.Email ||
-                                               x.Username == request.GeneralInfo.Username));
+                
                 if (affiliateExisting is null)
                 {
                     throw new NotFoundException(nameof(request.AffiliateId), request.AffiliateId);
                 }
-
-                if (affiliateWithNameEmail is not null && affiliateWithNameEmail.Id != affiliateExisting.Id)
-                {
-                    throw new AlreadyExistsException(
-                        $"Affiliate with user name '{request.GeneralInfo.Username}' or with email '{request.GeneralInfo.Email}' already exists.");
-                }
+                
+                await CheckExistingAffiliate(
+                    request.TenantId,
+                    request.GeneralInfo.Username,
+                    request.GeneralInfo.Email,
+                    ctx,
+                    x => x != affiliateExisting.Id);
 
                 var affiliatePayoutIds = request.AffiliatePayoutIds.Distinct().ToList();
                 if (affiliatePayoutIds.Any())
@@ -316,7 +352,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 var nosql = AffiliateNoSql.Create(affiliateMessage);
                 // await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 // _logger.LogInformation("Sent partner update to MyNoSql {@context}", request);
-                
+
                 await _publisherPartnerUpdated.PublishAsync(MapToMessage(affiliateMessage,
                     AffiliateUpdatedEventType.Updated));
                 _logger.LogInformation("Sent partner update to service bus {@context}", request);
