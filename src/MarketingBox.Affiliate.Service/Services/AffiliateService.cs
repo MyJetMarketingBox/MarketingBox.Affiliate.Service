@@ -309,8 +309,8 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 await ctx.SaveChangesAsync();
 
-                await CreateOrUpdateUser(affiliate);
-
+                await CreateOrUpdateUser(affiliateExisting);
+                //
                 var affiliateMessage = _mapper.Map<AffiliateMessage>(affiliateExisting);
                 var nosql = AffiliateNoSql.Create(affiliateMessage);
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
