@@ -11,10 +11,10 @@ namespace MarketingBox.Affiliate.Service.Grpc.Requests.Affiliates
     {
         [DataMember(Order = 1)] public string Username { get; set; }
 
-        [DataMember(Order = 2), Range(1, long.MaxValue)]
+        [DataMember(Order = 2)]
         public long? AffiliateId { get; set; }
 
-        [DataMember(Order = 4), IsValidEmail, StringLength(128,MinimumLength = 5)] public string Email { get; set; }
+        [DataMember(Order = 4)] public string Email { get; set; }
 
         [DataMember(Order = 5)] public DateTime? CreatedAt { get; set; }
 

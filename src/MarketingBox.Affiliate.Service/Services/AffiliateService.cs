@@ -400,8 +400,6 @@ namespace MarketingBox.Affiliate.Service.Services
         {
             try
             {
-                request.ValidateEntity();
-
                 await using var ctx = _databaseContextFactory.Create();
 
                 IQueryable<Domain.Models.Affiliates.Affiliate> query = ctx.Affiliates
