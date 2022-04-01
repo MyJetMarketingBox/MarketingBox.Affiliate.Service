@@ -63,7 +63,10 @@ namespace MarketingBox.Affiliate.Service.Services
             Action<List<AffiliatePayout>> action)
         {
             var affiliatePayouts =
-                await ctx.AffiliatePayouts.Where(x => affiliatePayoutIds.Contains(x.Id)).ToListAsync();
+                await ctx.AffiliatePayouts
+                    .Include(x => x.Geo)
+                    .Where(x => affiliatePayoutIds.Contains(x.Id))
+                    .ToListAsync();
             var notFoundIds = affiliatePayoutIds.Except(affiliatePayouts.Select(x => x.Id)).ToList();
             if (notFoundIds.Any())
             {
@@ -79,13 +82,13 @@ namespace MarketingBox.Affiliate.Service.Services
             string username,
             string email,
             DatabaseContext ctx,
-            Func<long,bool> condition = null)
+            Func<long, bool> condition = null)
         {
             var existingEntity = await ctx.Affiliates
                 .FirstOrDefaultAsync(x => x.TenantId.ToLower().Equals(tenantId.ToLowerInvariant()) &&
                                           (x.Email.ToLower().Equals(email.ToLowerInvariant()) ||
                                            x.Username.ToLower().Equals(username.ToLowerInvariant())));
-            
+
             if (existingEntity != null && (condition?.Invoke(existingEntity.Id) ?? true))
             {
                 string message = null;
@@ -302,12 +305,12 @@ namespace MarketingBox.Affiliate.Service.Services
                     .ThenInclude(x => x.Geo)
                     .Include(x => x.OfferAffiliates)
                     .FirstOrDefaultAsync(x => x.Id == request.AffiliateId);
-                
+
                 if (affiliateExisting is null)
                 {
                     throw new NotFoundException(nameof(request.AffiliateId), request.AffiliateId);
                 }
-                
+
                 await CheckExistingAffiliate(
                     request.TenantId,
                     request.GeneralInfo.Username,

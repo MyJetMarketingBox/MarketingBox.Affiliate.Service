@@ -33,7 +33,10 @@ namespace MarketingBox.Affiliate.Service.Services
             DatabaseContext ctx,
             Action<List<BrandPayout>> action)
         {
-            var brandPayouts = await ctx.BrandPayouts.Where(x => brandPayoutIds.Contains(x.Id)).ToListAsync();
+            var brandPayouts = await ctx.BrandPayouts
+                .Include(x=>x.Geo)
+                .Where(x => brandPayoutIds.Contains(x.Id))
+                .ToListAsync();
             var notFoundIds = brandPayoutIds.Except(brandPayouts.Select(x => x.Id)).ToList();
             if (notFoundIds.Any())
             {
