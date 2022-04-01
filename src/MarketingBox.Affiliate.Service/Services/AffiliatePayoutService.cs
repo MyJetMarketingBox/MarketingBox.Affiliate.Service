@@ -96,11 +96,11 @@ namespace MarketingBox.Affiliate.Service.Services
             }
         }
 
-        public async Task<Response<IReadOnlyCollection<AffiliatePayout>>> GetAllAsync(GetAllRequest request)
+        public async Task<Response<IReadOnlyCollection<AffiliatePayout>>> SearchAsync(PayoutSearchRequest request)
         {
             try
             {
-                var response = await _repository.GetAllAsync(request);
+                var response = await _repository.SearchAsync(request);
                 return new Response<IReadOnlyCollection<AffiliatePayout>>
                 {
                     Status = ResponseStatus.Ok,

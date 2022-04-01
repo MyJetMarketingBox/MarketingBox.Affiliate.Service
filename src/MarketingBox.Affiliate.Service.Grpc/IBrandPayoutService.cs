@@ -24,5 +24,5 @@ public interface IBrandPayoutService
     Task<Response<BrandPayout>> UpdateAsync(PayoutUpdateRequest request);
     
     [OperationContract]
-    Task<Response<IReadOnlyCollection<BrandPayout>>> GetAllAsync(GetAllRequest request);
+    Task<Response<IReadOnlyCollection<BrandPayout>>> SearchAsync(PayoutSearchRequest request);
 }

@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using AutoMapper;
 using MarketingBox.Affiliate.Postgres;
 using MarketingBox.Affiliate.Service.Domain.Models.Affiliates;
-using MarketingBox.Affiliate.Service.Grpc.Requests;
 using MarketingBox.Affiliate.Service.Grpc.Requests.Payout;
 using MarketingBox.Affiliate.Service.Repositories.Interfaces;
 using MarketingBox.Sdk.Common.Exceptions;
@@ -141,15 +140,23 @@ namespace MarketingBox.Affiliate.Service.Repositories
             }
         }
 
-        public async Task<IReadOnlyCollection<AffiliatePayout>> GetAllAsync(GetAllRequest request)
+        public async Task<IReadOnlyCollection<AffiliatePayout>> SearchAsync(PayoutSearchRequest request)
         {
             try
             {
                 await using var context = new DatabaseContext(_dbContextOptionsBuilder.Options);
                 var query = context.AffiliatePayouts
+                    .Include(x=>x.Geo)
+                    .Include(x=>x.Affiliates)
                     .AsQueryable();
                 
                 var limit = request.Take <= 0 ? 1000 : request.Take;
+                
+                if (request.EntityId.HasValue)
+                {
+                    query = query.Where(x => x.Affiliates.Any(z => z.Id == request.EntityId));
+                }
+                
                 if (request.Asc)
                 {
                     if (request.Cursor != null)

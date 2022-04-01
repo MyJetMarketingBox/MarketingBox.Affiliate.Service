@@ -24,5 +24,5 @@ public interface IAffiliatePayoutService
     Task<Response<AffiliatePayout>> UpdateAsync(PayoutUpdateRequest request);
     
     [OperationContract]
-    Task<Response<IReadOnlyCollection<AffiliatePayout>>> GetAllAsync(GetAllRequest request);
+    Task<Response<IReadOnlyCollection<AffiliatePayout>>> SearchAsync(PayoutSearchRequest request);
 }
