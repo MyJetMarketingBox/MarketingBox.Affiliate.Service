@@ -21,13 +21,13 @@ public class BrandCreateRequest : ValidatableEntity
     [RequiredOnlyIf("IntegrationType", Domain.Models.Integrations.IntegrationType.API)]
     public long? IntegrationId { get; set; }
 
-    [DataMember(Order = 3)] [Required] public IntegrationType? IntegrationType { get; set; }
+    [DataMember(Order = 3)] [Required, IsEnum] public IntegrationType? IntegrationType { get; set; }
 
     [DataMember(Order = 4)] public List<long> BrandPayoutIds { get; set; } = new();
 
-    [DataMember(Order = 5), IsEnum] public BrandStatus Status { get; set; } = BrandStatus.Active;
+    [DataMember(Order = 5), IsEnum] public BrandStatus? Status { get; set; }
 
-    [DataMember(Order = 6), IsEnum] public BrandPrivacy Privacy { get; set; } = BrandPrivacy.Public;
+    [DataMember(Order = 6), IsEnum] public BrandPrivacy? Privacy { get; set; }
 
     [DataMember(Order = 7)] [Required] public string TenantId { get; set; }
 }

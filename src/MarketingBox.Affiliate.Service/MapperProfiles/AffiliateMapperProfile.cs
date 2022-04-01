@@ -1,6 +1,7 @@
 using System;
 using AutoMapper;
 using MarketingBox.Affiliate.Service.Domain.Models.Affiliates;
+using MarketingBox.Affiliate.Service.Domain.Models.Common;
 using MarketingBox.Affiliate.Service.Grpc.Requests.Affiliates;
 
 namespace MarketingBox.Affiliate.Service.MapperProfiles
@@ -24,7 +25,9 @@ namespace MarketingBox.Affiliate.Service.MapperProfiles
             CreateMap<AffiliateUpdateRequest, Domain.Models.Affiliates.Affiliate>()
                 .IncludeMembers(x=>x.GeneralInfo);
 
-            CreateMap<GeneralInfoRequest, Domain.Models.Affiliates.Affiliate>();
+            CreateMap<GeneralInfoRequest, Domain.Models.Affiliates.Affiliate>()
+                .ForMember(x => x.State, x => x.MapFrom(z => z.State ?? State.Active))
+                .ForMember(x => x.Currency, x => x.MapFrom(z => z.Currency ?? Currency.USD));
             CreateMap<CreateSubRequest, GeneralInfoRequest>()
                 .ForMember(x => x.State,
                     x => x.MapFrom(x => State.NotActive));

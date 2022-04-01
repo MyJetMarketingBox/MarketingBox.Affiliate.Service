@@ -12,6 +12,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using MarketingBox.Affiliate.Service.Domain.Models.Affiliates;
+using MarketingBox.Affiliate.Service.Domain.Models.Common;
 using MarketingBox.Affiliate.Service.Grpc.Requests.Affiliates;
 using MarketingBox.Affiliate.Service.Messages.Affiliates;
 using MarketingBox.Affiliate.Service.MyNoSql.Affiliates;
@@ -341,8 +342,8 @@ namespace MarketingBox.Affiliate.Service.Services
                 affiliateExisting.Phone = request.GeneralInfo.Phone;
                 affiliateExisting.Skype = request.GeneralInfo.Skype;
                 affiliateExisting.ZipCode = request.GeneralInfo.ZipCode;
-                affiliateExisting.State = request.GeneralInfo.State;
-                affiliateExisting.Currency = request.GeneralInfo.Currency;
+                affiliateExisting.State = request.GeneralInfo.State ?? State.Active;
+                affiliateExisting.Currency = request.GeneralInfo.Currency ?? Currency.USD;
                 affiliateExisting.TenantId = request.TenantId;
                 affiliateExisting.Bank = request.Bank;
                 affiliateExisting.Company = request.Company;
@@ -454,7 +455,9 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 if (!string.IsNullOrEmpty(request.Username))
                 {
-                    query = query.Where(x => x.Username.Contains(request.Username));
+                    query = query.Where(x => x.Username
+                        .ToLower()
+                        .Contains(request.Username.ToLowerInvariant()));
                 }
 
                 if (request.AffiliateId.HasValue)
@@ -464,7 +467,9 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 if (!string.IsNullOrEmpty(request.Email))
                 {
-                    query = query.Where(x => x.Email.Contains(request.Email));
+                    query = query.Where(x => x.Email
+                        .ToLower()
+                        .Contains(request.Email.ToLowerInvariant()));
                 }
 
                 if (request.CreatedAt.HasValue)

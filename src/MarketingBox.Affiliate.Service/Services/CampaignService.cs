@@ -223,7 +223,9 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 if (!string.IsNullOrWhiteSpace(request.Name))
                 {
-                    query = query.Where(x => x.Name.Contains(request.Name));
+                    query = query.Where(x => x.Name
+                        .ToLower()
+                        .Contains(request.Name.ToLowerInvariant()));
                 }
 
                 if (request.CampaignId != null &&

@@ -25,9 +25,9 @@ namespace MarketingBox.Affiliate.Service.Grpc.Requests.Brands
 
         [DataMember(Order = 5)] public List<long> BrandPayoutIds { get; set; } = new();
 
-        [DataMember(Order = 6), IsEnum] public BrandStatus Status { get; set; } = BrandStatus.Active;
+        [DataMember(Order = 6), IsEnum] public BrandStatus? Status { get; set; }
 
-        [DataMember(Order = 7), IsEnum] public BrandPrivacy Privacy { get; set; } = BrandPrivacy.Public;
+        [DataMember(Order = 7), IsEnum] public BrandPrivacy? Privacy { get; set; }
 
         [DataMember(Order = 8), Required] public string TenantId { get; set; }
     }

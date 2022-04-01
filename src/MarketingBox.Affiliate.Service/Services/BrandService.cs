@@ -170,8 +170,8 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 brand.Name = request.Name;
                 brand.IntegrationType = request.IntegrationType.Value;
-                brand.Privacy = request.Privacy;
-                brand.Status = request.Status;
+                brand.Privacy = request.Privacy ?? BrandPrivacy.Public;
+                brand.Status = request.Status ?? BrandStatus.Active;
                 await ctx.SaveChangesAsync();
 
                 var brandMessage = _mapper.Map<BrandMessage>(brand);
@@ -279,11 +279,16 @@ namespace MarketingBox.Affiliate.Service.Services
                     .ThenInclude(x => x.Geo)
                     .AsQueryable();
 
-                if (!string.IsNullOrEmpty(request.TenantId)) query = query.Where(x => x.TenantId == request.TenantId);
+                if (!string.IsNullOrEmpty(request.TenantId)) 
+                    query = query.Where(x => x.TenantId == request.TenantId);
 
-                if (!string.IsNullOrEmpty(request.Name)) query = query.Where(x => x.Name.Contains(request.Name));
+                if (!string.IsNullOrEmpty(request.Name)) 
+                    query = query.Where(x => x.Name
+                        .ToLower()
+                        .Contains(request.Name.ToLowerInvariant()));
 
-                if (request.BrandId.HasValue) query = query.Where(x => x.Id == request.BrandId.Value);
+                if (request.BrandId.HasValue) 
+                    query = query.Where(x => x.Id == request.BrandId.Value);
 
                 if (request.IntegrationId.HasValue)
                     query = query.Where(x => x.IntegrationId == request.IntegrationId.Value);

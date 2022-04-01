@@ -16,7 +16,7 @@ public class IsEnumAttribute : ValidationAttribute
         var type = value.GetType();
         if (!type.IsEnum)
         {
-            return ValidationResult.Success;
+            return new ValidationResult("Property is not enum type.", new []{memberName});
         }
 
         return Enum.IsDefined(type, value)

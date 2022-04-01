@@ -41,7 +41,7 @@ namespace MarketingBox.Affiliate.Service.Services
             try
             {
                 request.ValidateEntity();
-                
+
                 _logger.LogInformation("Creating new CampaignRow {@Context}", request);
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
@@ -49,12 +49,14 @@ namespace MarketingBox.Affiliate.Service.Services
                 if (geo is null)
                 {
                     throw new NotFoundException(nameof(request.GeoId), request.GeoId);
-                }               
+                }
+
                 var campaign = ctx.Campaigns.FirstOrDefault(x => x.Id == request.CampaignId);
                 if (campaign is null)
                 {
                     throw new NotFoundException(nameof(request.CampaignId), request.CampaignId);
-                }               
+                }
+
                 var brand = ctx.Brands.FirstOrDefault(x => x.Id == request.BrandId);
                 if (brand is null)
                 {
@@ -88,7 +90,7 @@ namespace MarketingBox.Affiliate.Service.Services
             try
             {
                 request.ValidateEntity();
-                
+
                 _logger.LogInformation("Updating a CampaignRow {@Context}", request);
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
@@ -96,12 +98,14 @@ namespace MarketingBox.Affiliate.Service.Services
                 if (geo is null)
                 {
                     throw new NotFoundException(nameof(request.GeoId), request.GeoId);
-                }               
+                }
+
                 var campaign = ctx.Campaigns.FirstOrDefault(x => x.Id == request.CampaignId);
                 if (campaign is null)
                 {
                     throw new NotFoundException(nameof(request.CampaignId), request.CampaignId);
-                }               
+                }
+
                 var brand = ctx.Brands.FirstOrDefault(x => x.Id == request.BrandId);
                 if (brand is null)
                 {
@@ -116,7 +120,14 @@ namespace MarketingBox.Affiliate.Service.Services
                     throw new NotFoundException(nameof(request.CampaignRowId), request.CampaignRowId);
                 }
 
-                campaignRow.ActivityHours = request.ActivityHours;
+                campaignRow.ActivityHours = request.ActivityHours ?? Enumerable.Range(0, 6).Select(x =>
+                    new ActivityHours
+                    {
+                        Day = (DayOfWeek) x,
+                        From = new TimeSpan(0, 0, 0),
+                        To = new TimeSpan(23, 59, 59),
+                        IsActive = true
+                    }).ToList();
                 campaignRow.CampaignId = request.CampaignId.Value;
                 campaignRow.BrandId = request.BrandId.Value;
                 campaignRow.CapType = request.CapType.Value;
@@ -152,7 +163,7 @@ namespace MarketingBox.Affiliate.Service.Services
             try
             {
                 request.ValidateEntity();
-                
+
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
                 var campaignRow = await ctx.CampaignRows
@@ -182,7 +193,7 @@ namespace MarketingBox.Affiliate.Service.Services
             try
             {
                 request.ValidateEntity();
-                
+
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
                 var campaignRow =
@@ -264,7 +275,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 var response = query
                     .AsEnumerable()
                     .ToArray();
-                if (response.Length==0)
+                if (response.Length == 0)
                 {
                     throw new NotFoundException(NotFoundException.DefaultMessage);
                 }

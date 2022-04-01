@@ -22,7 +22,7 @@ public class RequiredOnlyIfAttribute : RequiredAttribute
             return base.IsValid(value, context);
         if (value is not null)
             return new ValidationResult(
-                $"{context.MemberName} should be null when {PropertyName} is equal {DesiredValue}.",
+                $"{context.MemberName} should be null when {PropertyName} is not equal to {DesiredValue}.",
                 new[] {context.MemberName});
         return ValidationResult.Success;
     }

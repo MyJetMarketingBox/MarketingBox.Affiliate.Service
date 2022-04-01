@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
 using System.Runtime.Serialization;
 using MarketingBox.Affiliate.Service.Domain.Models.Attributes;
 using MarketingBox.Affiliate.Service.Domain.Models.CampaignRows;
@@ -34,13 +32,6 @@ namespace MarketingBox.Affiliate.Service.Grpc.Requests.CampaignRows
 
         [DataMember(Order = 8)]
         public List<ActivityHours> ActivityHours { get; set; }
-            = Enumerable.Range(0, 6).Select(x => new ActivityHours
-            {
-                Day = (DayOfWeek) x,
-                From = new TimeSpan(0, 0, 0),
-                To = new TimeSpan(23, 59, 59),
-                IsActive = true
-            }).ToList();
 
         [DataMember(Order = 9)] public string Information { get; set; }
 
