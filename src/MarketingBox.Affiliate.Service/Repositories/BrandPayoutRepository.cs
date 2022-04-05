@@ -41,8 +41,8 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 brandPayout.CreatedAt = date;
                 brandPayout.ModifiedAt = date;
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
-                var geo = await ctx.Geos.FirstOrDefaultAsync(x => x.Id == request.GeoId);
-                if (geo is null)
+                var existGeo = await ctx.Geos.AnyAsync(x => x.Id == request.GeoId);
+                if (!existGeo)
                 {
                     throw new NotFoundException(nameof(request.GeoId), request.GeoId);
                 }
@@ -117,6 +117,12 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 if (brandPayout is null)
                 {
                     throw new NotFoundException(nameof(request.Id), request.Id);
+                }
+
+                var existGeo = await ctx.Geos.AnyAsync(x => x.Id == request.GeoId);
+                if (!existGeo)
+                {
+                    throw new NotFoundException(nameof(request.GeoId), request.GeoId);
                 }
 
                 brandPayout.Amount = request.Amount.Value;
