@@ -16,7 +16,6 @@ using MarketingBox.Sdk.Common.Exceptions;
 using MarketingBox.Sdk.Common.Extensions;
 using MarketingBox.Sdk.Common.Models.Grpc;
 using MyJetWallet.Sdk.ServiceBus;
-using Newtonsoft.Json;
 using Campaign = MarketingBox.Affiliate.Service.Domain.Models.Campaigns.Campaign;
 
 namespace MarketingBox.Affiliate.Service.Services
@@ -208,8 +207,10 @@ namespace MarketingBox.Affiliate.Service.Services
         {
             try
             {
+                request.ValidateEntity();
+
                 _logger.LogInformation(
-                    $"CampaignService.SearchAsync start with request : {JsonConvert.SerializeObject(request)}");
+                    "CampaignService.SearchAsync start with request : {@Context}",request);
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
                 var query = ctx.Campaigns
                     .Include(x => x.CampaignRows)
@@ -233,8 +234,9 @@ namespace MarketingBox.Affiliate.Service.Services
                 {
                     query = query.Where(x => x.Id == request.CampaignId);
                 }
+                
+                var total = query.Count();
 
-                var limit = request.Take <= 0 ? 1000 : request.Take;
                 if (request.Asc)
                 {
                     if (request.Cursor != null)
@@ -254,7 +256,11 @@ namespace MarketingBox.Affiliate.Service.Services
                     query = query.OrderByDescending(x => x.Id);
                 }
 
-                query = query.Take(limit);
+                if (request.Take.HasValue)
+                {
+                    query = query.Take(request.Take.Value);
+                }
+                
                 await query.LoadAsync();
 
                 var response = query
@@ -267,17 +273,18 @@ namespace MarketingBox.Affiliate.Service.Services
                 }
 
                 _logger.LogInformation(
-                    $"CampaignService.SearchAsync return Boxes : {JsonConvert.SerializeObject(response)}");
+                    "CampaignService.SearchAsync return campaigns : {@Response}", response);
 
                 return new Response<IReadOnlyCollection<Campaign>>()
                 {
                     Status = ResponseStatus.Ok,
-                    Data = response
+                    Data = response,
+                    Total = total
                 };
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Error searching campaignes {@context}", request);
+                _logger.LogError(e, "Error searching campaigns {@Context}", request);
                 return e.FailedResponse<IReadOnlyCollection<Campaign>>();
             }
         }

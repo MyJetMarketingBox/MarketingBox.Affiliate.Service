@@ -1,10 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Runtime.Serialization;
-using MarketingBox.Affiliate.Service.Domain.Models.Attributes;
 using MarketingBox.Affiliate.Service.Domain.Models.Brands;
 using MarketingBox.Affiliate.Service.Domain.Models.Integrations;
-using MarketingBox.Affiliate.Service.Domain.Models.Offers;
+using MarketingBox.Sdk.Common.Attributes;
 using MarketingBox.Sdk.Common.Models;
 
 namespace MarketingBox.Affiliate.Service.Grpc.Requests.Brands;
@@ -30,7 +29,7 @@ public class BrandCreateRequest : ValidatableEntity
 
     [DataMember(Order = 5)] [Required] public string TenantId { get; set; }
 
-    [DataMember(Order = 6), Url]
+    [DataMember(Order = 6), Url, StringLength(2100,MinimumLength = 11)]
     [RequiredOnlyIf(nameof(IntegrationType), Domain.Models.Integrations.IntegrationType.S2S)]
     public string Link { get; set; }
 

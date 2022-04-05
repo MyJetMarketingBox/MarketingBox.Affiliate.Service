@@ -36,7 +36,7 @@ namespace MarketingBox.Affiliate.Service.Repositories
             _dbContextOptionsBuilder = dbContextOptionsBuilder;
         }
 
-        public async Task<IReadOnlyCollection<Geo>> GetAllAsync(GetAllRequest request)
+        public async Task<(IReadOnlyCollection<Geo>, int)> GetAllAsync(GetAllRequest request)
         {
             try
             {
@@ -44,7 +44,8 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 var query = context.Geos
                     .AsQueryable();
                 
-                var limit = request.Take <= 0 ? 1000 : request.Take;
+                var total = query.Count();
+
                 if (request.Asc)
                 {
                     if (request.Cursor != null)
@@ -64,7 +65,10 @@ namespace MarketingBox.Affiliate.Service.Repositories
                     query = query.OrderByDescending(x => x.Id);
                 }
 
-                query = query.Take(limit);
+                if (request.Take.HasValue)
+                {
+                    query = query.Take(request.Take.Value);
+                }
 
                 await query.LoadAsync();
                 
@@ -74,7 +78,7 @@ namespace MarketingBox.Affiliate.Service.Repositories
                     throw new NotFoundException(NotFoundException.DefaultMessage);
                 }
 
-                return result;
+                return (result, total);
             }
             catch (Exception e)
             {

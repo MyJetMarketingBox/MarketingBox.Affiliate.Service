@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Runtime.Serialization;
-using MarketingBox.Affiliate.Service.Domain.Models.Attributes;
 using MarketingBox.Affiliate.Service.Domain.Models.Brands;
 using MarketingBox.Affiliate.Service.Domain.Models.Integrations;
+using MarketingBox.Sdk.Common.Attributes;
 using MarketingBox.Sdk.Common.Models;
 
 namespace MarketingBox.Affiliate.Service.Grpc.Requests.Brands
@@ -26,9 +26,11 @@ namespace MarketingBox.Affiliate.Service.Grpc.Requests.Brands
         [DataMember(Order = 5)] public List<long> BrandPayoutIds { get; set; } = new();
 
         [DataMember(Order = 6), Required] public string TenantId { get; set; }
-        [DataMember(Order = 7), Url]
+        
+        [DataMember(Order = 7), Url, StringLength(2100,MinimumLength = 11)]
         [RequiredOnlyIf(nameof(IntegrationType), Domain.Models.Integrations.IntegrationType.S2S)]
         public string Link { get; set; }
+        
         [DataMember(Order = 8)] 
         [RequiredOnlyIf(nameof(IntegrationType), Domain.Models.Integrations.IntegrationType.S2S)]
         public LinkParameters LinkParameters { get; set; }

@@ -227,6 +227,8 @@ namespace MarketingBox.Affiliate.Service.Services
         {
             try
             {
+                request.ValidateEntity();
+
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
                 var query = ctx.CampaignRows
@@ -248,7 +250,8 @@ namespace MarketingBox.Affiliate.Service.Services
                     query = query.Where(x => x.Id == request.CampaignRowId);
                 }
 
-                var limit = request.Take <= 0 ? 1000 : request.Take;
+                var total = query.Count();
+
                 if (request.Asc)
                 {
                     if (request.Cursor != null)
@@ -268,7 +271,10 @@ namespace MarketingBox.Affiliate.Service.Services
                     query = query.OrderByDescending(x => x.Id);
                 }
 
-                query = query.Take(limit);
+                if (request.Take.HasValue)
+                {
+                    query = query.Take(request.Take.Value);
+                }
 
                 await query.LoadAsync();
 
@@ -281,7 +287,8 @@ namespace MarketingBox.Affiliate.Service.Services
                 return new Response<IReadOnlyCollection<CampaignRow>>()
                 {
                     Status = ResponseStatus.Ok,
-                    Data = response
+                    Data = response,
+                    Total = total
                 };
             }
             catch (Exception e)

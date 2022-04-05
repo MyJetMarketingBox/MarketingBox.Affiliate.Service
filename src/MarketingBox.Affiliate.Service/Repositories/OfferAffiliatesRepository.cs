@@ -119,14 +119,15 @@ public class OfferAffiliatesRepository : IOfferAffiliatesRepository
         }
     }
 
-    public async Task<IReadOnlyCollection<OfferAffiliate>> GetAllAsync(GetAllRequest request)
+    public async Task<(IReadOnlyCollection<OfferAffiliate>, int)> GetAllAsync(GetAllRequest request)
     {
         try
         {
             await using var context = new DatabaseContext(_dbContextOptionsBuilder.Options);
             var query = context.OfferAffiliates.AsQueryable();
+            
+            var total = query.Count();
 
-            var limit = request.Take <= 0 ? 1000 : request.Take;
             if (request.Asc)
             {
                 if (request.Cursor.HasValue)
@@ -146,17 +147,21 @@ public class OfferAffiliatesRepository : IOfferAffiliatesRepository
                 query = query.OrderByDescending(x => x.Id);
             }
 
-            query = query.Take(limit);
+            if (request.Take.HasValue)
+            {
+                query = query.Take(request.Take.Value);
+            }
 
             await query.LoadAsync();
 
             var result = query.ToList();
+
             if (!result.Any())
             {
                 throw new NotFoundException(NotFoundException.DefaultMessage);
             }
 
-            return result;
+            return (result, total);
         }
         catch (Exception e)
         {

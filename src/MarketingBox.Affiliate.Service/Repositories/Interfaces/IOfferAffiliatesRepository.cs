@@ -14,5 +14,5 @@ public interface IOfferAffiliatesRepository
     
     Task DeleteAsync(long id);
     
-    Task<IReadOnlyCollection<OfferAffiliate>> GetAllAsync(GetAllRequest request);
+    Task<(IReadOnlyCollection<OfferAffiliate>, int)> GetAllAsync(GetAllRequest request);
 }

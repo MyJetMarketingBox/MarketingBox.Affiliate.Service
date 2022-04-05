@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Runtime.Serialization;
-using MarketingBox.Affiliate.Service.Domain.Models.Attributes;
 using MarketingBox.Affiliate.Service.Domain.Models.Common;
 using MarketingBox.Affiliate.Service.Domain.Models.Offers;
+using MarketingBox.Sdk.Common.Attributes;
 using MarketingBox.Sdk.Common.Models;
 
 namespace MarketingBox.Affiliate.Service.Grpc.Requests.Offers;
@@ -22,7 +22,7 @@ public class OfferUpdateRequest : ValidatableEntity
     [DataMember(Order = 4), Required, Range(1, 184)]
     public int? LanguageId { get; set; }
 
-    [DataMember(Order = 5), Required, Url] public string Link { get; set; }
+    [DataMember(Order = 5), Required, Url, StringLength(2100,MinimumLength = 11)] public string Link { get; set; }
     [DataMember(Order = 6), IsEnum] public OfferPrivacy? Privacy { get; set; }
     [DataMember(Order = 7), IsEnum] public OfferState? State { get; set; }
 

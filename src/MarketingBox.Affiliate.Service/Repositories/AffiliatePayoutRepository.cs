@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using MarketingBox.Affiliate.Postgres;
 using MarketingBox.Affiliate.Service.Domain.Models.Affiliates;
+using MarketingBox.Affiliate.Service.Domain.Models.Common;
 using MarketingBox.Affiliate.Service.Grpc.Requests.Payout;
 using MarketingBox.Affiliate.Service.Repositories.Interfaces;
 using MarketingBox.Sdk.Common.Exceptions;
@@ -19,6 +20,20 @@ namespace MarketingBox.Affiliate.Service.Repositories
         private readonly DbContextOptionsBuilder<DatabaseContext> _dbContextOptionsBuilder;
         private readonly ILogger<AffiliatePayoutRepository> _logger;
         private readonly IMapper _mapper;
+
+        private static async Task EnsureGeo(
+            long? geoId,
+            DatabaseContext ctx,
+            AffiliatePayout affiliatePayout)
+        {
+            var existingGeo = await ctx.Geos.FirstOrDefaultAsync(x => x.Id == geoId);
+            if (existingGeo is null)
+            {
+                throw new NotFoundException(nameof(geoId), geoId);
+            }
+
+            affiliatePayout.Geo = existingGeo;
+        }
 
         public AffiliatePayoutRepository(
             DbContextOptionsBuilder<DatabaseContext> dbContextOptionsBuilder,
@@ -39,11 +54,7 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 var affiliatePayout = _mapper.Map<AffiliatePayout>(request);
 
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
-                var existGeo = await ctx.Geos.AnyAsync(x => x.Id == request.GeoId);
-                if (!existGeo)
-                {
-                    throw new NotFoundException(nameof(request.GeoId), request.GeoId);
-                }
+                await EnsureGeo(request.GeoId, ctx, affiliatePayout);
 
                 var date = DateTime.UtcNow;
                 affiliatePayout.CreatedAt = date;
@@ -121,16 +132,17 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 if (affiliatePayout is null)
                 {
                     throw new NotFoundException(nameof(request.Id), request.Id);
-                }                
-                var existGeo = await ctx.Geos.AnyAsync(x => x.Id == request.GeoId);
-                if (!existGeo)
-                {
-                    throw new NotFoundException(nameof(request.GeoId), request.GeoId);
                 }
 
-                affiliatePayout.Amount = request.Amount.Value;
+                if (affiliatePayout.GeoId != request.GeoId)
+                {
+                    await EnsureGeo(request.GeoId, ctx, affiliatePayout);
+                }
+
+                affiliatePayout.Amount = request.Currency == Currency.BTC
+                    ? Math.Round(request.Amount.Value, 8, MidpointRounding.AwayFromZero)
+                    : Math.Round(request.Amount.Value, 2, MidpointRounding.AwayFromZero);
                 affiliatePayout.Currency = request.Currency;
-                affiliatePayout.GeoId = request.GeoId.Value;
                 affiliatePayout.PayoutType = request.PayoutType.Value;
                 affiliatePayout.ModifiedAt = DateTime.UtcNow;
 
@@ -145,23 +157,23 @@ namespace MarketingBox.Affiliate.Service.Repositories
             }
         }
 
-        public async Task<IReadOnlyCollection<AffiliatePayout>> SearchAsync(PayoutSearchRequest request)
+        public async Task<(IReadOnlyCollection<AffiliatePayout>, int)> SearchAsync(PayoutSearchRequest request)
         {
             try
             {
                 await using var context = new DatabaseContext(_dbContextOptionsBuilder.Options);
                 var query = context.AffiliatePayouts
-                    .Include(x=>x.Geo)
-                    .Include(x=>x.Affiliates)
+                    .Include(x => x.Geo)
+                    .Include(x => x.Affiliates)
                     .AsQueryable();
-                
-                var limit = request.Take <= 0 ? 1000 : request.Take;
-                
+
                 if (request.EntityId.HasValue)
                 {
                     query = query.Where(x => x.Affiliates.Any(z => z.Id == request.EntityId));
                 }
-                
+
+                var total = query.Count();
+
                 if (request.Asc)
                 {
                     if (request.Cursor != null)
@@ -181,21 +193,24 @@ namespace MarketingBox.Affiliate.Service.Repositories
                     query = query.OrderByDescending(x => x.Id);
                 }
 
-                query = query.Take(limit);
+                if (request.Take.HasValue)
+                {
+                    query = query.Take(request.Take.Value);
+                }
 
                 await query.LoadAsync();
-                
+
                 var result = query.ToList();
                 if (!result.Any())
                 {
                     throw new NotFoundException(NotFoundException.DefaultMessage);
                 }
-
-                return result;
+                
+                return (result, total);
             }
             catch (Exception e)
             {
-                _logger.LogError(e,e.Message);
+                _logger.LogError(e, e.Message);
                 throw;
             }
         }

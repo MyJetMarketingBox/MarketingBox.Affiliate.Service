@@ -30,16 +30,20 @@ namespace MarketingBox.Affiliate.Service.Services
             _repository = repository;
             _noSqlServerDataWriter = noSqlServerDataWriter;
         }
+
         public async Task<Response<IReadOnlyCollection<Country>>> SearchAsync(SearchByNameRequest request)
         {
             try
             {
-                var result = await _repository.GetAllAsync(request);
+                request.ValidateEntity();
+
+                var (result, total) = await _repository.GetAllAsync(request);
                 // await _noSqlServerDataWriter.InsertOrReplaceAsync(CountriesNoSql.Create(result));
                 return new Response<IReadOnlyCollection<Country>>
                 {
                     Data = result,
-                    Status = ResponseStatus.Ok
+                    Status = ResponseStatus.Ok,
+                    Total = total
                 };
             }
             catch (Exception e)

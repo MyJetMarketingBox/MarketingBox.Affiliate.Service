@@ -26,18 +26,20 @@ namespace MarketingBox.Affiliate.Service.Repositories
             _logger = logger;
         }
 
-        public async Task<IReadOnlyCollection<Country>> GetAllAsync(SearchByNameRequest request)
+        public async Task<(IReadOnlyCollection<Country>, int)> GetAllAsync(SearchByNameRequest request)
         {
             try
             {
                 await using var context = new DatabaseContext(_dbContextOptionsBuilder.Options);
                 var query = context.Countries.AsQueryable();
                 
-                
                 if (!string.IsNullOrEmpty(request.Name))
                 {
                     query = query.Where(x => x.Name.ToLower().Contains(request.Name.ToLowerInvariant()));
                 }
+                
+                var total = query.Count();
+
                 if (request.Asc)
                 {
                     if (request.Cursor.HasValue)
@@ -56,7 +58,7 @@ namespace MarketingBox.Affiliate.Service.Repositories
 
                     query = query.OrderByDescending(x => x.Id);
                 }
-
+                
                 if (request.Take.HasValue)
                 {
                     query = query.Take(request.Take.Value);
@@ -70,7 +72,7 @@ namespace MarketingBox.Affiliate.Service.Repositories
                     throw new NotFoundException(NotFoundException.DefaultMessage);
                 }
 
-                return result;
+                return (result,total);
             }
             catch (Exception e)
             {

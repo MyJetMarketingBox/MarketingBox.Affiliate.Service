@@ -24,6 +24,7 @@ public class OfferAffiliateService : IOfferAffiliateService
         _logger = logger;
         _repository = repository;
     }
+
     public async Task<Response<OfferAffiliate>> CreateAsync(OfferAffiliateCreateRequest request)
     {
         try
@@ -88,11 +89,14 @@ public class OfferAffiliateService : IOfferAffiliateService
     {
         try
         {
-            var response = await _repository.GetAllAsync(request);
+            request.ValidateEntity();
+
+            var (response, total) = await _repository.GetAllAsync(request);
             return new Response<IReadOnlyCollection<OfferAffiliate>>
             {
                 Status = ResponseStatus.Ok,
-                Data = response
+                Data = response,
+                Total = total
             };
         }
         catch (Exception e)

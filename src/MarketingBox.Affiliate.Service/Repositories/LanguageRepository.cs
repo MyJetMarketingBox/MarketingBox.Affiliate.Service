@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using MarketingBox.Affiliate.Postgres;
 using MarketingBox.Affiliate.Service.Domain.Models.Languages;
 using MarketingBox.Affiliate.Service.Grpc.Requests;
+using MarketingBox.Affiliate.Service.Repositories.Interfaces;
 using MarketingBox.Sdk.Common.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -24,7 +25,7 @@ public class LanguageRepository : ILanguageRepository
         _logger = logger;
     }
 
-    public async Task<IReadOnlyCollection<Language>> SearchAsync(SearchByNameRequest request)
+    public async Task<(IReadOnlyCollection<Language>, int)> SearchAsync(SearchByNameRequest request)
     {
         try
         {
@@ -35,6 +36,9 @@ public class LanguageRepository : ILanguageRepository
             {
                 query = query.Where(x => x.Name.ToLower().Contains(request.Name.ToLowerInvariant()));
             }
+
+            var total = query.Count();
+
             if (request.Asc)
             {
                 if (request.Cursor.HasValue)
@@ -59,7 +63,6 @@ public class LanguageRepository : ILanguageRepository
                 query = query.Take(request.Take.Value);
             }
 
-
             await query.LoadAsync();
 
             var result = query.ToList();
@@ -68,7 +71,7 @@ public class LanguageRepository : ILanguageRepository
                 throw new NotFoundException(NotFoundException.DefaultMessage);
             }
 
-            return result;
+            return (result, total);
         }
         catch (Exception e)
         {

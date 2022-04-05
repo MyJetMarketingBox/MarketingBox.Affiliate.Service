@@ -25,7 +25,7 @@ namespace MarketingBox.Affiliate.Service.Services
             try
             {
                 request.ValidateEntity();
-                
+
                 var response = await _repository.CreateAsync(request);
                 return new Response<BrandPayout>
                 {
@@ -44,7 +44,7 @@ namespace MarketingBox.Affiliate.Service.Services
             try
             {
                 request.ValidateEntity();
-                
+
                 var response = await _repository.GetAsync(request);
                 return new Response<BrandPayout>
                 {
@@ -63,7 +63,7 @@ namespace MarketingBox.Affiliate.Service.Services
             try
             {
                 request.ValidateEntity();
-                
+
                 await _repository.DeleteAsync(request);
                 return new Response<bool>
                 {
@@ -82,7 +82,7 @@ namespace MarketingBox.Affiliate.Service.Services
             try
             {
                 request.ValidateEntity();
-                
+
                 var response = await _repository.UpdateAsync(request);
                 return new Response<BrandPayout>
                 {
@@ -100,11 +100,14 @@ namespace MarketingBox.Affiliate.Service.Services
         {
             try
             {
-                var response = await _repository.SearchAsync(request);
+                request.ValidateEntity();
+
+                var (response, total)= await _repository.SearchAsync(request);
                 return new Response<IReadOnlyCollection<BrandPayout>>
                 {
                     Status = ResponseStatus.Ok,
-                    Data = response
+                    Data = response,
+                    Total = total
                 };
             }
             catch (Exception e)

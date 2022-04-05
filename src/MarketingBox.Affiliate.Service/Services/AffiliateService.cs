@@ -430,9 +430,11 @@ namespace MarketingBox.Affiliate.Service.Services
         {
             try
             {
+                request.ValidateEntity();
+                
                 await using var ctx = _databaseContextFactory.Create();
 
-                IQueryable<Domain.Models.Affiliates.Affiliate> query = ctx.Affiliates
+                var query = ctx.Affiliates
                     .Include(x => x.Payouts)
                     .ThenInclude(x => x.Geo)
                     .Include(x => x.OfferAffiliates)
@@ -467,7 +469,8 @@ namespace MarketingBox.Affiliate.Service.Services
                     query = query.Where(x => x.CreatedAt.Date == request.CreatedAt.Value.Date);
                 }
 
-                var limit = request.Take <= 0 ? 1000 : request.Take;
+                var total = query.Count();
+
                 if (request.Asc)
                 {
                     if (request.Cursor != null)
@@ -487,7 +490,10 @@ namespace MarketingBox.Affiliate.Service.Services
                     query = query.OrderByDescending(x => x.Id);
                 }
 
-                query = query.Take(limit);
+                if (request.Take.HasValue)
+                {
+                    query = query.Take(request.Take.Value);
+                }
 
                 await query.LoadAsync();
 
@@ -501,7 +507,8 @@ namespace MarketingBox.Affiliate.Service.Services
                 return new Response<IReadOnlyCollection<GrpcModels.Affiliate>>()
                 {
                     Status = ResponseStatus.Ok,
-                    Data = response
+                    Data = response,
+                    Total = total
                 };
             }
             catch (Exception e)

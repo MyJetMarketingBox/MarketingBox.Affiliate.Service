@@ -5,6 +5,7 @@ using MarketingBox.Affiliate.Service.Domain.Models.Languages;
 using MarketingBox.Affiliate.Service.Grpc;
 using MarketingBox.Affiliate.Service.Grpc.Requests;
 using MarketingBox.Affiliate.Service.Repositories;
+using MarketingBox.Affiliate.Service.Repositories.Interfaces;
 using MarketingBox.Sdk.Common.Extensions;
 using MarketingBox.Sdk.Common.Models.Grpc;
 
@@ -18,15 +19,19 @@ public class LanguageService : ILanguageService
     {
         _repository = repository;
     }
+
     public async Task<Response<IReadOnlyCollection<Language>>> SearchAsync(SearchByNameRequest request)
     {
         try
         {
-            var response = await _repository.SearchAsync(request);
+            request.ValidateEntity();
+
+            var (response, total) = await _repository.SearchAsync(request);
             return new Response<IReadOnlyCollection<Language>>()
             {
                 Status = ResponseStatus.Ok,
-                Data = response
+                Data = response,
+                Total = total
             };
         }
         catch (Exception e)

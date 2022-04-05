@@ -30,11 +30,14 @@ namespace MarketingBox.Affiliate.Service.Services
         {
             try
             {
-                var result = await _repository.GetAllAsync(request);
+                request.ValidateEntity();
+
+                var (result, total) = await _repository.GetAllAsync(request);
                 return new Response<IReadOnlyCollection<Geo>>
                 {
                     Status = ResponseStatus.Ok,
-                    Data = result
+                    Data = result,
+                    Total = total
                 };
             }
             catch (Exception e)

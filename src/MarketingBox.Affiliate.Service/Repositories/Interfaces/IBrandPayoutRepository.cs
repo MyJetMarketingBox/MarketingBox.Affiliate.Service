@@ -11,6 +11,6 @@ namespace MarketingBox.Affiliate.Service.Repositories.Interfaces
         Task<BrandPayout> GetAsync(PayoutByIdRequest request);
         Task DeleteAsync(PayoutByIdRequest request);
         Task<BrandPayout> UpdateAsync(PayoutUpdateRequest request);
-        Task<IReadOnlyCollection<BrandPayout>> SearchAsync(PayoutSearchRequest request);
+        Task<(IReadOnlyCollection<BrandPayout>, int)> SearchAsync(PayoutSearchRequest request);
     }
 }
