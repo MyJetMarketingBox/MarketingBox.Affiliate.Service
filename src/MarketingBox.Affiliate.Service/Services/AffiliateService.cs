@@ -61,8 +61,14 @@ namespace MarketingBox.Affiliate.Service.Services
         private static async Task EnsureAndDoAffiliatePayout(
             ICollection<long> affiliatePayoutIds,
             DatabaseContext ctx,
-            Action<List<AffiliatePayout>> action)
+            GrpcModels.Affiliate affiliate)
         {
+            if (!affiliatePayoutIds.Any())
+            {
+                affiliate.Payouts.Clear();
+                return;
+            }
+
             var affiliatePayouts =
                 await ctx.AffiliatePayouts
                     .Include(x => x.Geo)
@@ -75,7 +81,7 @@ namespace MarketingBox.Affiliate.Service.Services
                     $"The following affiliate payout ids were not found:{string.Join(',', notFoundIds)}");
             }
 
-            action.Invoke(affiliatePayouts);
+            affiliate.Payouts = affiliatePayouts;
         }
 
         private static async Task CheckExistingAffiliate(
@@ -250,14 +256,10 @@ namespace MarketingBox.Affiliate.Service.Services
                     request.GeneralInfo.Email,
                     ctx);
 
-                var affiliatePayoutIds = request.AffiliatePayoutIds.Distinct().ToList();
-                if (affiliatePayoutIds.Any())
-                {
-                    await EnsureAndDoAffiliatePayout(
-                        affiliatePayoutIds,
-                        ctx,
-                        affiliatePayouts => affiliate.Payouts.AddRange(affiliatePayouts));
-                }
+                await EnsureAndDoAffiliatePayout(
+                    request.AffiliatePayoutIds.Distinct().ToList(),
+                    ctx,
+                    affiliate);
 
                 ctx.Affiliates.Add(affiliate);
 
@@ -319,22 +321,10 @@ namespace MarketingBox.Affiliate.Service.Services
                     ctx,
                     x => x != affiliateExisting.Id);
 
-                var affiliatePayoutIds = request.AffiliatePayoutIds.Distinct().ToList();
-                if (affiliatePayoutIds.Any())
-                {
-                    await EnsureAndDoAffiliatePayout(
-                        affiliatePayoutIds,
-                        ctx,
-                        affiliatePayouts =>
-                        {
-                            affiliatePayouts ??= new List<AffiliatePayout>();
-                            affiliateExisting.Payouts = affiliatePayouts;
-                        });
-                }
-                else
-                {
-                    affiliateExisting.Payouts.Clear();
-                }
+                await EnsureAndDoAffiliatePayout(
+                    request.AffiliatePayoutIds.Distinct().ToList(),
+                    ctx,
+                    affiliateExisting);
 
                 affiliateExisting.Username = request.GeneralInfo.Username;
                 affiliateExisting.Password = request.GeneralInfo.Password;
