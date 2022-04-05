@@ -56,11 +56,6 @@ namespace MarketingBox.Affiliate.Service.Services
 
         private static async Task EnsureIntegration(long? integrationId, DatabaseContext ctx, Brand brand)
         {
-            if (brand.IntegrationId == integrationId)
-            {
-                return;
-            }
-
             if (integrationId.HasValue)
             {
                 var integration = await ctx.Integrations
