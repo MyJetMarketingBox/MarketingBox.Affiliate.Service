@@ -8,7 +8,7 @@ namespace MarketingBox.Affiliate.Service.Grpc.Requests.Affiliates
     [DataContract]
     public class CreateSubRequest : ValidatableEntity
     {
-        [DataMember(Order = 1), Required, Range(1, long.MaxValue)]
+        [DataMember(Order = 1), Required, AdvancedCompare(ComparisonType.GreaterThanOrEqual, 1)]
         public long? MasterAffiliateId { get; set; }
 
         [DataMember(Order = 2)] public string MasterAffiliateApiKey { get; set; }

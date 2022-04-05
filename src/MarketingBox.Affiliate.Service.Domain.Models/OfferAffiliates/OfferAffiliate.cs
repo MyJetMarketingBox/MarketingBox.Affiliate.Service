@@ -14,5 +14,8 @@ namespace MarketingBox.Affiliate.Service.Domain.Models.OfferAffiliates
         public Affiliates.Affiliate Affiliate { get; set; }
         [DataMember(Order = 6)] public long OfferId { get; set; }
         public Offer Offer { get; set; }
+        
+        [DataMember(Order = 7)]
+        public string ProxyLink { get; set; }
     }
 }

@@ -8,7 +8,7 @@ namespace MarketingBox.Affiliate.Service.Grpc.Requests.Country;
 [DataContract]
 public class GeoUpdateRequest : ValidatableEntity
 {
-    [DataMember(Order = 1), Required, Range(1, int.MaxValue)]
+    [DataMember(Order = 1), Required, AdvancedCompare(ComparisonType.GreaterThanOrEqual, 1)]
     public int? Id { get; set; }
 
     [DataMember(Order = 2), Required, StringLength(128,MinimumLength = 1)]

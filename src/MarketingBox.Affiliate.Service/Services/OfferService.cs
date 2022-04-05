@@ -14,6 +14,7 @@ namespace MarketingBox.Affiliate.Service.Services
     {
         private readonly IOfferRepository _offerRepository;
         private readonly ILogger<OfferService> _logger;
+
         public OfferService(
             IOfferRepository offerRepository,
             ILogger<OfferService> logger)
@@ -21,13 +22,33 @@ namespace MarketingBox.Affiliate.Service.Services
             _offerRepository = offerRepository;
             _logger = logger;
         }
+
         public async Task<Response<Offer>> CreateAsync(OfferCreateRequest request)
         {
             try
             {
                 request.ValidateEntity();
-                
+
                 var result = await _offerRepository.CreateAsync(request);
+                return new Response<Offer>
+                {
+                    Status = ResponseStatus.Ok,
+                    Data = result
+                };
+            }
+            catch (Exception e)
+            {
+                return e.FailedResponse<Offer>();
+            }
+        }
+
+        public async Task<Response<Offer>> UpdateAsync(OfferUpdateRequest request)
+        {
+            try
+            {
+                request.ValidateEntity();
+
+                var result = await _offerRepository.UpdateAsync(request);
                 return new Response<Offer>
                 {
                     Status = ResponseStatus.Ok,
@@ -45,7 +66,7 @@ namespace MarketingBox.Affiliate.Service.Services
             try
             {
                 request.ValidateEntity();
-                
+
                 var result = await _offerRepository.GetAsync(request.Id.Value);
                 return new Response<Offer>
                 {
@@ -64,7 +85,7 @@ namespace MarketingBox.Affiliate.Service.Services
             try
             {
                 request.ValidateEntity();
-                
+
                 await _offerRepository.DeleteAsync(request.Id.Value);
                 return new Response<bool>
                 {

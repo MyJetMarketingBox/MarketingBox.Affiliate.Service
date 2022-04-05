@@ -1,6 +1,9 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Runtime.Serialization;
+using MarketingBox.Affiliate.Service.Domain.Models.Attributes;
+using MarketingBox.Affiliate.Service.Domain.Models.Common;
+using MarketingBox.Affiliate.Service.Domain.Models.Offers;
 using MarketingBox.Sdk.Common.Models;
 
 namespace MarketingBox.Affiliate.Service.Grpc.Requests.Offers
@@ -8,13 +11,22 @@ namespace MarketingBox.Affiliate.Service.Grpc.Requests.Offers
     [DataContract]
     public class OfferCreateRequest : ValidatableEntity
     {
-        [DataMember(Order = 1), Required, Range(1, long.MaxValue, ErrorMessage = "BrandId must be grater than 0.")]
-        public long? BrandId { get; set; }
-
-        [DataMember(Order = 2), Required, StringLength(128,MinimumLength = 1)]
+        [DataMember(Order = 1), Required, StringLength(128, MinimumLength = 1)]
         public string Name { get; set; }
 
-        [DataMember(Order = 3), Required, Url] public string Link { get; set; }
-        [DataMember(Order = 4)] public ICollection<OfferSubParameterCreateRequest> Parameters { get; set; }
+        [DataMember(Order = 2), Required, MinLength(1)] public List<int> GeoIds { get; set; } = new();
+
+        [DataMember(Order = 3), Required, IsEnum]
+        public Currency? Currency { get; set; }
+
+        [DataMember(Order = 4), Required, Range(1, 184)]
+        public int? LanguageId { get; set; }
+
+        [DataMember(Order = 5), Required, Url] public string Link { get; set; }
+        [DataMember(Order = 6), IsEnum] public OfferPrivacy? Privacy { get; set; }
+        [DataMember(Order = 7), IsEnum] public OfferState? State { get; set; }
+
+        [DataMember(Order = 8), AdvancedCompare(ComparisonType.GreaterThanOrEqual, 1)]
+        public long? BrandId { get; set; }
     }
 }

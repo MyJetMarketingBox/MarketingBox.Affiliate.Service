@@ -10,24 +10,24 @@ namespace MarketingBox.Affiliate.Service.Grpc.Requests.CampaignRows
     [DataContract]
     public class CampaignRowCreateRequest : ValidatableEntity
     {
-        [DataMember(Order = 1), Required, Range(1, long.MaxValue)]
+        [DataMember(Order = 1), Required, AdvancedCompare(ComparisonType.GreaterThanOrEqual, 1)]
         public long? CampaignId { get; set; }
 
-        [DataMember(Order = 2), Required, Range(1, long.MaxValue)]
+        [DataMember(Order = 2), Required, AdvancedCompare(ComparisonType.GreaterThanOrEqual, 1)]
         public long? BrandId { get; set; }
 
-        [DataMember(Order = 3), Required, Range(1, int.MaxValue)]
+        [DataMember(Order = 3), Required, AdvancedCompare(ComparisonType.GreaterThanOrEqual, 1)]
         public int? GeoId { get; set; }
 
-        [DataMember(Order = 4), Required, Range(1, int.MaxValue)]
+        [DataMember(Order = 4), Required, AdvancedCompare(ComparisonType.GreaterThanOrEqual, 1)]
         public int? Priority { get; set; }
 
-        [DataMember(Order = 5), Required, Range(1, int.MaxValue)]
+        [DataMember(Order = 5), Required, AdvancedCompare(ComparisonType.GreaterThanOrEqual, 1)]
         public int? Weight { get; set; }
 
         [DataMember(Order = 6), Required, IsEnum] public CapType? CapType { get; set; }
 
-        [DataMember(Order = 7), Required, Range(1, long.MaxValue)]
+        [DataMember(Order = 7), Required, AdvancedCompare(ComparisonType.GreaterThanOrEqual, 1)]
         public long? DailyCapValue { get; set; }
 
         [DataMember(Order = 8)]

@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Runtime.Serialization;
+using MarketingBox.Affiliate.Service.Domain.Models.Attributes;
 using MarketingBox.Sdk.Common.Models;
 
 namespace MarketingBox.Affiliate.Service.Grpc.Requests.Brands
@@ -7,7 +8,7 @@ namespace MarketingBox.Affiliate.Service.Grpc.Requests.Brands
     [DataContract]
     public class BrandByIdRequest : ValidatableEntity
     {
-        [DataMember(Order = 1), Required, Range(1, long.MaxValue)]
+        [DataMember(Order = 1), Required, AdvancedCompare(ComparisonType.GreaterThanOrEqual, 1)]
         public long? BrandId { get; set; }
     }
 }

@@ -133,6 +133,12 @@ namespace MarketingBox.Affiliate.Service.Modules
                 .As<IGeoRepository>()
                 .SingleInstance();
         }
+        private static void SetupLanguages(ContainerBuilder builder)
+        {
+            builder.RegisterType<LanguageRepository>()
+                .As<ILanguageRepository>()
+                .SingleInstance();
+        }
         
         private static void SetupPayouts(ContainerBuilder builder)
         {
@@ -172,6 +178,7 @@ namespace MarketingBox.Affiliate.Service.Modules
             SetupCampaignRows(builder);
             SetupOffers(builder);
             SetupCountries(builder);
+            SetupLanguages(builder);
             SetupPayouts(builder);
             SetupOfferAffiliates(builder);
         }

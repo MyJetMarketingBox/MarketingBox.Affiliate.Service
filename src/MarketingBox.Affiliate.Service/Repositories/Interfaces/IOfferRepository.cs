@@ -9,5 +9,6 @@ namespace MarketingBox.Affiliate.Service.Repositories.Interfaces
         Task<Offer> CreateAsync(OfferCreateRequest request);
         Task<Offer> GetAsync(long id);
         Task DeleteAsync(long id);
+        Task<Offer> UpdateAsync(OfferUpdateRequest request);
     }
 }

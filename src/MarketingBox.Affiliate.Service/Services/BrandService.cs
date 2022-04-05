@@ -16,6 +16,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MyJetWallet.Sdk.ServiceBus;
 using MyNoSqlServer.Abstractions;
+using SimpleTrading.Telemetry;
 
 namespace MarketingBox.Affiliate.Service.Services
 {
@@ -28,13 +29,19 @@ namespace MarketingBox.Affiliate.Service.Services
         private readonly IServiceBusPublisher<BrandRemoved> _publisherBrandRemoved;
         private readonly IMapper _mapper;
 
-        private static async Task EnsureAndDoBrandPayout(
+        private static async Task EnsureBrandPayout(
             ICollection<long> brandPayoutIds,
             DatabaseContext ctx,
-            Action<List<BrandPayout>> action)
+            Brand brand)
         {
+            if (!brandPayoutIds.Any())
+            {
+                brand.Payouts.Clear();
+                return;
+            }
+
             var brandPayouts = await ctx.BrandPayouts
-                .Include(x=>x.Geo)
+                .Include(x => x.Geo)
                 .Where(x => brandPayoutIds.Contains(x.Id))
                 .ToListAsync();
             var notFoundIds = brandPayoutIds.Except(brandPayouts.Select(x => x.Id)).ToList();
@@ -44,11 +51,16 @@ namespace MarketingBox.Affiliate.Service.Services
                     $"The following brand payout ids were not found:{string.Join(',', notFoundIds)}");
             }
 
-            action.Invoke(brandPayouts);
+            brand.Payouts = brandPayouts;
         }
 
         private static async Task EnsureIntegration(long? integrationId, DatabaseContext ctx, Brand brand)
         {
+            if (brand.IntegrationId == integrationId)
+            {
+                return;
+            }
+
             if (integrationId.HasValue)
             {
                 var integration = await ctx.Integrations
@@ -92,14 +104,10 @@ namespace MarketingBox.Affiliate.Service.Services
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
                 var brand = _mapper.Map<Brand>(request);
-                var brandPayoutIds = request.BrandPayoutIds.Distinct().ToList();
-                if (brandPayoutIds.Any())
-                {
-                    await EnsureAndDoBrandPayout(
-                        brandPayoutIds,
-                        ctx,
-                        brandPayouts => brand.Payouts.AddRange(brandPayouts));
-                }
+                await EnsureBrandPayout(
+                    request.BrandPayoutIds.Distinct().ToList(),
+                    ctx,
+                    brand);
 
                 await EnsureIntegration(request.IntegrationId, ctx, brand);
 
@@ -142,6 +150,8 @@ namespace MarketingBox.Affiliate.Service.Services
                     .ThenInclude(x => x.Geo)
                     .Include(x => x.CampaignRows)
                     .ThenInclude(x => x.Geo)
+                    .Include(x => x.LinkParameters)
+                    .Include(x => x.Integration)
                     .FirstOrDefaultAsync(x => x.Id == request.BrandId);
 
                 if (brand is null)
@@ -149,29 +159,17 @@ namespace MarketingBox.Affiliate.Service.Services
                     throw new NotFoundException($"Brand with {nameof(request.BrandId)}", request.BrandId);
                 }
 
-                var brandPayoutIds = request.BrandPayoutIds.Distinct().ToList();
-                if (brandPayoutIds.Any())
-                {
-                    await EnsureAndDoBrandPayout(
-                        request.BrandPayoutIds.Distinct().ToList(),
-                        ctx,
-                        brandPayouts =>
-                        {
-                            brandPayouts ??= new List<BrandPayout>();
-                            brand.Payouts = brandPayouts;
-                        });
-                }
-                else
-                {
-                    brand.Payouts.Clear();
-                }
+                await EnsureBrandPayout(
+                    request.BrandPayoutIds.Distinct().ToList(),
+                    ctx,
+                    brand);
 
                 await EnsureIntegration(request.IntegrationId, ctx, brand);
 
                 brand.Name = request.Name;
                 brand.IntegrationType = request.IntegrationType.Value;
-                brand.Privacy = request.Privacy ?? BrandPrivacy.Public;
-                brand.Status = request.Status ?? BrandStatus.Active;
+                brand.LinkParameters = request.LinkParameters;
+                brand.Link = request.Link;
                 await ctx.SaveChangesAsync();
 
                 var brandMessage = _mapper.Map<BrandMessage>(brand);
@@ -209,6 +207,8 @@ namespace MarketingBox.Affiliate.Service.Services
                     .ThenInclude(x => x.Geo)
                     .Include(x => x.CampaignRows)
                     .ThenInclude(x => x.Geo)
+                    .Include(x => x.LinkParameters)
+                    .Include(x => x.Integration)
                     .FirstOrDefaultAsync(x => x.Id == request.BrandId);
                 if (brand is null) throw new NotFoundException(nameof(request.BrandId), request.BrandId);
 
@@ -277,24 +277,23 @@ namespace MarketingBox.Affiliate.Service.Services
                     .ThenInclude(x => x.Geo)
                     .Include(x => x.CampaignRows)
                     .ThenInclude(x => x.Geo)
+                    .Include(x => x.LinkParameters)
+                    .Include(x => x.Integration)
                     .AsQueryable();
 
-                if (!string.IsNullOrEmpty(request.TenantId)) 
+                if (!string.IsNullOrEmpty(request.TenantId))
                     query = query.Where(x => x.TenantId == request.TenantId);
 
-                if (!string.IsNullOrEmpty(request.Name)) 
+                if (!string.IsNullOrEmpty(request.Name))
                     query = query.Where(x => x.Name
                         .ToLower()
                         .Contains(request.Name.ToLowerInvariant()));
 
-                if (request.BrandId.HasValue) 
+                if (request.BrandId.HasValue)
                     query = query.Where(x => x.Id == request.BrandId.Value);
 
                 if (request.IntegrationId.HasValue)
                     query = query.Where(x => x.IntegrationId == request.IntegrationId.Value);
-
-                if (request.Status.HasValue)
-                    query = query.Where(x => x.Status == request.Status);
 
                 var limit = request.Take <= 0 ? 1000 : request.Take;
                 if (request.Asc)

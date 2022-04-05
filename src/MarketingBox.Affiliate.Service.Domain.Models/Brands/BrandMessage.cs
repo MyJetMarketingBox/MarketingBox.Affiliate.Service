@@ -14,8 +14,8 @@ namespace MarketingBox.Affiliate.Service.Domain.Models.Brands
         [DataMember(Order = 3)] public string Name { get; set; }
         [DataMember(Order = 4)] public long? IntegrationId { get; set; }
         [DataMember(Order = 5)] public IntegrationType IntegrationType { get; set; }
-        [DataMember(Order = 6)] public BrandPayout BrandPayout { get; set; }
-        [DataMember(Order = 7)] public BrandStatus Status { get; set; }
-        [DataMember(Order = 8)] public BrandPrivacy Privacy { get; set; }
+        [DataMember(Order = 6)] public string Link { get; set; }
+        [DataMember(Order = 7)] public LinkParameters LinkParameters { get; set; }
+        [DataMember(Order = 9)] public List<BrandPayout> Payouts { get; set; } = new();
     }
 }

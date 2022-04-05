@@ -14,8 +14,6 @@ namespace MarketingBox.Affiliate.Service.Grpc.Requests.Brands
 
         [DataMember(Order = 3)] public long? IntegrationId { get; set; }
 
-        [DataMember(Order = 4)] public BrandStatus? Status { get; set; }
-
         [DataMember(Order = 5)] public long? Cursor { get; set; }
 
         [DataMember(Order = 6)] public int Take { get; set; }

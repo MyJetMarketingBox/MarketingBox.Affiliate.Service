@@ -8,7 +8,7 @@ namespace MarketingBox.Affiliate.Service.Repositories.Interfaces
 {
     public interface ICountryRepository
     {
-        Task<IReadOnlyCollection<Country>> GetAllAsync(GetAllRequest request);
+        Task<IReadOnlyCollection<Country>> GetAllAsync(SearchByNameRequest request);
         Task CreateOrUpdateAsync(IEnumerable<Country> request);
     }
 }

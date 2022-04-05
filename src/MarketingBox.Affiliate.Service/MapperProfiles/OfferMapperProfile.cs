@@ -8,8 +8,9 @@ namespace MarketingBox.Affiliate.Service.MapperProfiles
     {
         public OfferMapperProfile()
         {
-            CreateMap<OfferCreateRequest, Offer>();
-            CreateMap<OfferSubParameterCreateRequest, OfferSubParameter>();
+            CreateMap<OfferCreateRequest, Offer>()
+                .ForMember(x => x.State, x => x.MapFrom(z => z.State ?? OfferState.Active))
+                .ForMember(x => x.Privacy, x => x.MapFrom(z => z.Privacy ?? OfferPrivacy.Public));
         }
     }
 }

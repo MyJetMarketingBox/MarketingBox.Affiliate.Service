@@ -11,6 +11,8 @@ public interface IOfferService
 {
     [OperationContract]
     Task<Response<Offer>> CreateAsync(OfferCreateRequest request);
+    [OperationContract]
+    Task<Response<Offer>> UpdateAsync(OfferUpdateRequest request);
     
     [OperationContract]
     Task<Response<Offer>> GetAsync(OfferRequestById request);

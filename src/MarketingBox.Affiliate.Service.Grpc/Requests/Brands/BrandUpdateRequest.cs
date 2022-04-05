@@ -11,24 +11,26 @@ namespace MarketingBox.Affiliate.Service.Grpc.Requests.Brands
     [DataContract]
     public class BrandUpdateRequest : ValidatableEntity
     {
-        [DataMember(Order = 1), Required, Range(1, long.MaxValue)]
+        [DataMember(Order = 1), Required, AdvancedCompare(ComparisonType.GreaterThanOrEqual, 1)]
         public long? BrandId { get; set; }
 
         [DataMember(Order = 2), Required, StringLength(128, MinimumLength = 1)]
         public string Name { get; set; }
 
-        [DataMember(Order = 3), RequiredOnlyIf("IntegrationType", Domain.Models.Integrations.IntegrationType.API),
-         Range(1, long.MaxValue)]
+        [DataMember(Order = 3), RequiredOnlyIf(nameof(IntegrationType), Domain.Models.Integrations.IntegrationType.API),
+        AdvancedCompare(ComparisonType.GreaterThanOrEqual, 1)]
         public long? IntegrationId { get; set; }
 
         [DataMember(Order = 4), Required, IsEnum] public IntegrationType? IntegrationType { get; set; }
 
         [DataMember(Order = 5)] public List<long> BrandPayoutIds { get; set; } = new();
 
-        [DataMember(Order = 6), IsEnum] public BrandStatus? Status { get; set; }
-
-        [DataMember(Order = 7), IsEnum] public BrandPrivacy? Privacy { get; set; }
-
-        [DataMember(Order = 8), Required] public string TenantId { get; set; }
+        [DataMember(Order = 6), Required] public string TenantId { get; set; }
+        [DataMember(Order = 7), Url]
+        [RequiredOnlyIf(nameof(IntegrationType), Domain.Models.Integrations.IntegrationType.S2S)]
+        public string Link { get; set; }
+        [DataMember(Order = 8)] 
+        [RequiredOnlyIf(nameof(IntegrationType), Domain.Models.Integrations.IntegrationType.S2S)]
+        public LinkParameters LinkParameters { get; set; }
     }
 }

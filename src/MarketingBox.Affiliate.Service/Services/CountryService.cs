@@ -30,7 +30,7 @@ namespace MarketingBox.Affiliate.Service.Services
             _repository = repository;
             _noSqlServerDataWriter = noSqlServerDataWriter;
         }
-        public async Task<Response<IReadOnlyCollection<Country>>> GetAllAsync(GetAllRequest request)
+        public async Task<Response<IReadOnlyCollection<Country>>> SearchAsync(SearchByNameRequest request)
         {
             try
             {

@@ -6,6 +6,7 @@ using MarketingBox.Affiliate.Service.Domain.Models.CampaignRows;
 using MarketingBox.Affiliate.Service.Domain.Models.Campaigns;
 using MarketingBox.Affiliate.Service.Domain.Models.Country;
 using MarketingBox.Affiliate.Service.Domain.Models.Integrations;
+using MarketingBox.Affiliate.Service.Domain.Models.Languages;
 using MarketingBox.Affiliate.Service.Domain.Models.OfferAffiliates;
 using MarketingBox.Affiliate.Service.Domain.Models.Offers;
 using Microsoft.EntityFrameworkCore;
@@ -25,9 +26,9 @@ public class DatabaseContext : MyDbContext
     private const string IntegrationTableName = "integrations";
     private const string AffiliateSubParamsTableName = "affiliate-subparam";
     private const string OfferTableName = "offers";
-    private const string OfferSubParamsTableName = "offer-subparams";
     private const string GeoTableName = "geos";
     private const string CountryTableName = "countries";
+    private const string LanguageTableName = "languages";
     private const string AffiliatePayoutTableName = "affiliate-payouts";
     private const string BrandPayoutTableName = "brand-payouts";
     private const string OfferAffiliatesTableName = "offer-affiliates";
@@ -48,8 +49,8 @@ public class DatabaseContext : MyDbContext
     public DbSet<AffiliateSubParam> AffiliateSubParams { get; set; }
     public DbSet<Offer> Offers { get; set; }
     public DbSet<Country> Countries { get; set; }
+    public DbSet<Language> Languages { get; set; }
     public DbSet<Geo> Geos { get; set; }
-    public DbSet<OfferSubParameter> SubParameters { get; set; }
     public DbSet<AffiliatePayout> AffiliatePayouts { get; set; }
     public DbSet<BrandPayout> BrandPayouts { get; set; }
     public DbSet<OfferAffiliate> OfferAffiliates { get; set; }
@@ -70,8 +71,8 @@ public class DatabaseContext : MyDbContext
         SetCampaignRow(modelBuilder);
         SetAffiliateSubParam(modelBuilder);
         SetOffer(modelBuilder);
-        SetOfferSubParam(modelBuilder);
         SetCountry(modelBuilder);
+        SetLanguage(modelBuilder);
         SetGeo(modelBuilder);
         SetBrandPayout(modelBuilder);
         SetAffiliatePayout(modelBuilder);
@@ -148,25 +149,31 @@ public class DatabaseContext : MyDbContext
         modelBuilder.Entity<Country>().HasIndex(x => x.Numeric);
     }
 
+    private static void SetLanguage(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Language>().ToTable(LanguageTableName);
+        modelBuilder.Entity<Language>().HasKey(x => x.Id);
+        modelBuilder.Entity<Language>().Property(x => x.Name).IsRequired();
+        modelBuilder.Entity<Language>().Property(x => x.Code2).IsRequired();
+        modelBuilder.Entity<Language>().Property(x => x.Code3).IsRequired();
+
+        modelBuilder.Entity<Language>().HasIndex(x => x.Name).IsUnique();
+        modelBuilder.Entity<Language>().HasIndex(x => x.Code2);
+        modelBuilder.Entity<Language>().HasIndex(x => x.Code3);
+    }
+
     private static void SetOffer(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Offer>().ToTable(OfferTableName);
         modelBuilder.Entity<Offer>().HasKey(x => x.Id);
         modelBuilder.Entity<Offer>()
-            .HasMany(x => x.Parameters)
-            .WithOne()
-            .HasForeignKey(x => x.OfferId);
-    }
-
-    private static void SetOfferSubParam(ModelBuilder modelBuilder)
-    {
-        modelBuilder.Entity<OfferSubParameter>().ToTable(OfferSubParamsTableName);
-
-        modelBuilder.Entity<OfferSubParameter>().Property(e => e.Id).UseIdentityColumn();
-        modelBuilder.Entity<OfferSubParameter>().HasKey(e => e.Id);
-
-        modelBuilder.Entity<OfferSubParameter>().Property(e => e.ParamName).HasMaxLength(64);
-        modelBuilder.Entity<OfferSubParameter>().Property(e => e.ParamValue).HasMaxLength(512);
+            .HasOne(x => x.Language)
+            .WithMany()
+            .HasForeignKey(x => x.LanguageId);
+        modelBuilder.Entity<Offer>()
+            .HasOne(x => x.Brand)
+            .WithMany(x => x.Offers)
+            .HasForeignKey(x => x.BrandId);
     }
 
     private static void SetAffiliateSubParam(ModelBuilder modelBuilder)
@@ -185,9 +192,9 @@ public class DatabaseContext : MyDbContext
         modelBuilder.Entity<Service.Domain.Models.Affiliates.Affiliate>().ToTable(AffiliateTableName);
         modelBuilder.Entity<Service.Domain.Models.Affiliates.Affiliate>().HasKey(e => e.Id);
         modelBuilder.Entity<Service.Domain.Models.Affiliates.Affiliate>()
-            .OwnsOne(e=>e.Bank);
+            .OwnsOne(e => e.Bank);
         modelBuilder.Entity<Service.Domain.Models.Affiliates.Affiliate>()
-            .OwnsOne(e=>e.Company);
+            .OwnsOne(e => e.Company);
 
         modelBuilder.Entity<Service.Domain.Models.Affiliates.Affiliate>()
             .HasIndex(e => new {e.TenantId, e.Id});
@@ -203,6 +210,9 @@ public class DatabaseContext : MyDbContext
     {
         modelBuilder.Entity<Brand>().ToTable(BrandTableName);
         modelBuilder.Entity<Brand>().HasKey(e => e.Id);
+        
+        modelBuilder.Entity<Brand>()
+            .OwnsOne(e => e.LinkParameters);
 
         modelBuilder.Entity<Brand>()
             .HasOne(x => x.Integration)
@@ -210,7 +220,6 @@ public class DatabaseContext : MyDbContext
             .HasForeignKey(x => x.IntegrationId);
 
         modelBuilder.Entity<Brand>().HasIndex(e => new {e.TenantId, e.Id});
-        modelBuilder.Entity<Brand>().HasIndex(e => new {e.TenantId, e.Status});
     }
 
     private static void SetCampaignRow(ModelBuilder modelBuilder)
@@ -239,8 +248,8 @@ public class DatabaseContext : MyDbContext
                     JsonConvert.DeserializeObject<List<ActivityHours>>(v,
                         JsonSerializingSettings));
 
-        modelBuilder.Entity<CampaignRow>().HasIndex(e => new {e.CampaignId});
-        modelBuilder.Entity<CampaignRow>().HasIndex(e => new {e.BrandId});
+        modelBuilder.Entity<CampaignRow>().HasIndex(e => e.CampaignId);
+        modelBuilder.Entity<CampaignRow>().HasIndex(e => e.BrandId);
     }
 
     private static void SetIntegration(ModelBuilder modelBuilder)

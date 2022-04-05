@@ -26,14 +26,18 @@ namespace MarketingBox.Affiliate.Service.Repositories
             _logger = logger;
         }
 
-        public async Task<IReadOnlyCollection<Country>> GetAllAsync(GetAllRequest request)
+        public async Task<IReadOnlyCollection<Country>> GetAllAsync(SearchByNameRequest request)
         {
             try
             {
                 await using var context = new DatabaseContext(_dbContextOptionsBuilder.Options);
                 var query = context.Countries.AsQueryable();
                 
-                var limit = request.Take <= 0 ? 1000 : request.Take;
+                
+                if (!string.IsNullOrEmpty(request.Name))
+                {
+                    query = query.Where(x => x.Name.ToLower().Contains(request.Name.ToLowerInvariant()));
+                }
                 if (request.Asc)
                 {
                     if (request.Cursor.HasValue)
@@ -53,7 +57,10 @@ namespace MarketingBox.Affiliate.Service.Repositories
                     query = query.OrderByDescending(x => x.Id);
                 }
 
-                query = query.Take(limit);
+                if (request.Take.HasValue)
+                {
+                    query = query.Take(request.Take.Value);
+                }
 
                 await query.LoadAsync();
                 

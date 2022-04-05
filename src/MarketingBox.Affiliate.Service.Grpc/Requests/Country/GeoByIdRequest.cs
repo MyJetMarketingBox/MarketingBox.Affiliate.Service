@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.Runtime.Serialization;
+using MarketingBox.Affiliate.Service.Domain.Models.Attributes;
 using MarketingBox.Sdk.Common.Models;
 
 namespace MarketingBox.Affiliate.Service.Grpc.Requests.Country;
@@ -7,6 +8,6 @@ namespace MarketingBox.Affiliate.Service.Grpc.Requests.Country;
 [DataContract]
 public class GeoByIdRequest : ValidatableEntity
 {
-    [DataMember(Order = 1), Required, Range(1, long.MaxValue)]
+    [DataMember(Order = 1), Required, AdvancedCompare(ComparisonType.GreaterThanOrEqual, 1)]
     public long? GeoId { get; set; }
 }

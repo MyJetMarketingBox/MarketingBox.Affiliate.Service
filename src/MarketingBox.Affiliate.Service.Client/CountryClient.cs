@@ -40,7 +40,7 @@ public class CountryClient : ICountryClient
             }
 
             _logger.LogInformation("Getting countries from grpc service.");
-            var result = await _countryService.GetAllAsync(new GetAllRequest {Asc = true});
+            var result = await _countryService.SearchAsync(new SearchByNameRequest() {Asc = true});
             
             return result.Process();
         }
