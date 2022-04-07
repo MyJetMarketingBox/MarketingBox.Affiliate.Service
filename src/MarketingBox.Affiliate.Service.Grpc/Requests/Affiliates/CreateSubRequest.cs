@@ -16,9 +16,9 @@ namespace MarketingBox.Affiliate.Service.Grpc.Requests.Affiliates
         [DataMember(Order = 3), Required, StringLength(128, MinimumLength = 1)]
         public string Username { get; set; }
 
-        [DataMember(Order = 4), Required, IsValidPassword] public string Password { get; set; }
+        [DataMember(Order = 4), IsValidPassword] public string Password { get; set; }
 
-        [DataMember(Order = 5), Required, Phone, StringLength(20,MinimumLength = 7)]
+        [DataMember(Order = 5), Phone, StringLength(20,MinimumLength = 7)]
         public string Phone { get; set; }
 
         [DataMember(Order = 6), Required, IsValidEmail]

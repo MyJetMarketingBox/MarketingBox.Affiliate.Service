@@ -21,7 +21,7 @@ public class GeneralInfoRequest : ValidatableEntity
     [LogMasked(PreserveLength = true, ShowFirst = 1, ShowLast = 1)]
     public string Email { get; set; }
 
-    [DataMember(Order = 4), Required, Phone, StringLength(20,MinimumLength = 7)]
+    [DataMember(Order = 4), Phone, StringLength(20,MinimumLength = 7)]
     [LogMasked(PreserveLength = true, ShowFirst = 1, ShowLast = 1)]
     public string Phone { get; set; }
 
