@@ -31,5 +31,8 @@ namespace MarketingBox.Affiliate.Service.Settings
 
         [YamlProperty("MarketingBoxAffiliateService.JaegerUrl")]
         public string JaegerUrl { get; set; }
+
+        [YamlProperty("MarketingBoxAffiliateService.TrackingLinkApiUrl")]
+        public string TrackingLinkApiUrl { get; set; }
     }
 }

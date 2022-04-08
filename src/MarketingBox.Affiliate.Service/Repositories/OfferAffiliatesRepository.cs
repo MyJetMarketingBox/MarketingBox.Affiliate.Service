@@ -125,7 +125,7 @@ public class OfferAffiliatesRepository : IOfferAffiliatesRepository
         {
             await using var context = new DatabaseContext(_dbContextOptionsBuilder.Options);
             var query = context.OfferAffiliates.AsQueryable();
-            
+
             var total = query.Count();
 
             if (request.Asc)
@@ -162,6 +162,29 @@ public class OfferAffiliatesRepository : IOfferAffiliatesRepository
             }
 
             return (result, total);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, e.Message);
+            throw;
+        }
+    }
+
+    public async Task<string> GetUrlAsync(long id)
+    {
+        try
+        {
+            _logger.LogInformation("Getting url for OfferAffiliate with {OfferAffiliateId}", id);
+
+            await using var context = new DatabaseContext(_dbContextOptionsBuilder.Options);
+            var rows = await context.OfferAffiliates.FirstOrDefaultAsync(x => x.Id == id);
+            if (rows is null)
+            {
+                throw new NotFoundException($"OfferAffiliate with {nameof(OfferAffiliate.Id)}", id);
+            }
+
+            var url = $"{Program.Settings.TrackingLinkApiUrl}/{rows.UniqueId}";
+            return url;
         }
         catch (Exception e)
         {

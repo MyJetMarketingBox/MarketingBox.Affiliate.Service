@@ -85,6 +85,10 @@ public class DatabaseContext : MyDbContext
     {
         modelBuilder.Entity<OfferAffiliate>().ToTable(OfferAffiliatesTableName);
         modelBuilder.Entity<OfferAffiliate>().HasKey(x => x.Id);
+        
+        modelBuilder.Entity<OfferAffiliate>().HasIndex(x => x.UniqueId).IsUnique();
+        modelBuilder.Entity<OfferAffiliate>().Property(x => x.UniqueId).IsRequired();
+        
         modelBuilder.Entity<OfferAffiliate>()
             .HasOne(x => x.Affiliate)
             .WithMany(x => x.OfferAffiliates)
@@ -166,6 +170,12 @@ public class DatabaseContext : MyDbContext
     {
         modelBuilder.Entity<Offer>().ToTable(OfferTableName);
         modelBuilder.Entity<Offer>().HasKey(x => x.Id);
+
+        modelBuilder.Entity<Offer>().HasIndex(x => x.Name);
+        modelBuilder.Entity<Offer>().HasIndex(x => x.Currency);
+        modelBuilder.Entity<Offer>().HasIndex(x => x.State);
+        modelBuilder.Entity<Offer>().HasIndex(x => x.Privacy);
+
         modelBuilder.Entity<Offer>()
             .HasOne(x => x.Language)
             .WithMany()
@@ -220,6 +230,7 @@ public class DatabaseContext : MyDbContext
             .HasForeignKey(x => x.IntegrationId);
 
         modelBuilder.Entity<Brand>().HasIndex(e => new {e.TenantId, e.Id});
+        modelBuilder.Entity<Brand>().HasIndex(e => e.IntegrationType);
     }
 
     private static void SetCampaignRow(ModelBuilder modelBuilder)

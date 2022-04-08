@@ -26,7 +26,7 @@ namespace MarketingBox.Affiliate.Service.Grpc.Requests.Offers
         [DataMember(Order = 6), IsEnum] public OfferPrivacy? Privacy { get; set; }
         [DataMember(Order = 7), IsEnum] public OfferState? State { get; set; }
 
-        [DataMember(Order = 8), AdvancedCompare(ComparisonType.GreaterThanOrEqual, 1)]
+        [DataMember(Order = 8), Required, AdvancedCompare(ComparisonType.GreaterThanOrEqual, 1)]
         public long? BrandId { get; set; }
     }
 }

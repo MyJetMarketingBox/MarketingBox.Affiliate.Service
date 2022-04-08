@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using MarketingBox.Affiliate.Service.Domain.Models.Offers;
 using MarketingBox.Affiliate.Service.Grpc;
@@ -96,6 +97,26 @@ namespace MarketingBox.Affiliate.Service.Services
             catch (Exception e)
             {
                 return e.FailedResponse<bool>();
+            }
+        }
+
+        public async Task<Response<IReadOnlyCollection<Offer>>> SearchAsync(OfferSearchRequest request)
+        {
+            try
+            {
+                request.ValidateEntity();
+
+                var (result, total) = await _offerRepository.SearchAsync(request);
+                return new Response<IReadOnlyCollection<Offer>>
+                {
+                    Status = ResponseStatus.Ok,
+                    Data = result,
+                    Total = total
+                };
+            }
+            catch (Exception e)
+            {
+                return e.FailedResponse<IReadOnlyCollection<Offer>>();
             }
         }
     }

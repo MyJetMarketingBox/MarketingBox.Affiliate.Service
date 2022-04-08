@@ -1,3 +1,4 @@
+using System;
 using System.Runtime.Serialization;
 using MarketingBox.Affiliate.Service.Domain.Models.Campaigns;
 using MarketingBox.Affiliate.Service.Domain.Models.Offers;
@@ -17,5 +18,7 @@ namespace MarketingBox.Affiliate.Service.Domain.Models.OfferAffiliates
         
         [DataMember(Order = 7)]
         public string ProxyLink { get; set; }
+
+        public string UniqueId { get; } = Guid.NewGuid().ToString("N");
     }
 }

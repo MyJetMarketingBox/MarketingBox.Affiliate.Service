@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.ServiceModel;
 using System.Threading.Tasks;
 using MarketingBox.Affiliate.Service.Domain.Models.Offers;
@@ -11,6 +12,7 @@ public interface IOfferService
 {
     [OperationContract]
     Task<Response<Offer>> CreateAsync(OfferCreateRequest request);
+    
     [OperationContract]
     Task<Response<Offer>> UpdateAsync(OfferUpdateRequest request);
     
@@ -19,4 +21,7 @@ public interface IOfferService
     
     [OperationContract]
     Task<Response<bool>> DeleteAsync(OfferRequestById request);
+    
+    [OperationContract]
+    Task<Response<IReadOnlyCollection<Offer>>> SearchAsync(OfferSearchRequest request);
 }

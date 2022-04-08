@@ -11,10 +11,6 @@ namespace MarketingBox.Affiliate.Service.MapperProfiles
         {
             CreateMap<BrandCreateRequest, Brand>();
             CreateMap<Brand, BrandMessage>();
-            //  .IncludeMembers(x => x.LinkParameters)
-            //.IncludeMembers(x => x.Payouts);
-            //CreateMap<LinkParameters, LinkParameters>();
-            //CreateMap<BrandPayout, BrandPayout>();
         }
     }
 }

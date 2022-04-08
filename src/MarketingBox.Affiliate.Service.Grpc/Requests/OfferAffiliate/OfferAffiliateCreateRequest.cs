@@ -16,7 +16,4 @@ public class OfferAffiliateCreateRequest : ValidatableEntity
 
     [DataMember(Order = 3), Required, AdvancedCompare(ComparisonType.GreaterThanOrEqual, 1)]
     public long? OfferId { get; set; }
-    
-    [DataMember(Order = 4), Url]
-    public string ProxyLink { get; set; }
 }

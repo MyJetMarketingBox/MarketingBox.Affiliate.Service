@@ -1,4 +1,5 @@
 ﻿using System.Runtime.Serialization;
+using MarketingBox.Affiliate.Service.Domain.Models.Integrations;
 using MarketingBox.Sdk.Common.Attributes;
 using MarketingBox.Sdk.Common.Models;
 
@@ -22,5 +23,6 @@ namespace MarketingBox.Affiliate.Service.Grpc.Requests.Brands
         [DataMember(Order = 7)] public bool Asc { get; set; }
 
         [DataMember(Order = 8)] public string TenantId { get; set; }
+        [DataMember(Order = 9)] public IntegrationType? IntegrationType { get; set; }
     }
 }

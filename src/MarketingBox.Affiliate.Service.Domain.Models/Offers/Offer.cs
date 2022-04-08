@@ -14,7 +14,7 @@ namespace MarketingBox.Affiliate.Service.Domain.Models.Offers
         [DataMember(Order = 2)] public string Name { get; set; }
         [DataMember(Order = 3)] public List<OfferAffiliates.OfferAffiliate> OfferAffiliates { get; set; } = new();
 
-        public int? LanguageId { get; set; }
+        public int LanguageId { get; set; }
         
         [DataMember(Order = 4)] public Language Language { get; set; }
 
@@ -27,7 +27,7 @@ namespace MarketingBox.Affiliate.Service.Domain.Models.Offers
         [DataMember(Order = 8)] public List<Geo> Geos { get; set; } = new();
         [DataMember(Order = 9)] public string Link { get; set; }
         
-        [DataMember(Order = 10)] public long? BrandId { get; set; }
+        [DataMember(Order = 10)] public long BrandId { get; set; }
 
         public Brand Brand { get; set; }
     }

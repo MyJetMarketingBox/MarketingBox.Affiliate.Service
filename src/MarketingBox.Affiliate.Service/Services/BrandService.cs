@@ -287,10 +287,19 @@ namespace MarketingBox.Affiliate.Service.Services
                         .Contains(request.Name.ToLowerInvariant()));
 
                 if (request.BrandId.HasValue)
+                {
                     query = query.Where(x => x.Id == request.BrandId.Value);
+                }
 
                 if (request.IntegrationId.HasValue)
+                {
                     query = query.Where(x => x.IntegrationId == request.IntegrationId.Value);
+                }
+                
+                if (request.IntegrationType.HasValue)
+                {
+                    query = query.Where(x => x.IntegrationType == request.IntegrationType.Value);
+                }
 
                 var total = query.Count();
 
