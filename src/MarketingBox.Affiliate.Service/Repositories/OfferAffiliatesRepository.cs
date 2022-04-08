@@ -171,13 +171,14 @@ public class OfferAffiliatesRepository : IOfferAffiliatesRepository
             _logger.LogInformation("Getting url for OfferAffiliate with {OfferAffiliateId}", id);
 
             await using var context = new DatabaseContext(_dbContextOptionsBuilder.Options);
-            var rows = await context.OfferAffiliates.FirstOrDefaultAsync(x => x.Id == id);
-            if (rows is null)
+            var offerAffiliate = await context.OfferAffiliates.FirstOrDefaultAsync(x => x.Id == id);
+            if (offerAffiliate is null)
             {
                 throw new NotFoundException($"OfferAffiliate with {nameof(OfferAffiliate.Id)}", id);
             }
 
-            var url = $"{Program.Settings.TrackingLinkApiUrl}/{rows.UniqueId}";
+            var url =
+                $"{Program.Settings.ExternalReferenceProxyApiUrl}/{Program.Settings.ExternalReferenceProxyApiUrlPath}/{offerAffiliate.UniqueId}";
             return url;
         }
         catch (Exception e)
