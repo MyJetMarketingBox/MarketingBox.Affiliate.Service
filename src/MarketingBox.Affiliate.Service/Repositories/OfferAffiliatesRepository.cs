@@ -38,12 +38,6 @@ public class OfferAffiliatesRepository : IOfferAffiliatesRepository
             _logger.LogInformation("Creating OfferAffiliate by request {@CreateOfferAffiliateRequest}", request);
 
             await using var context = new DatabaseContext(_dbContextOptionsBuilder.Options);
-            var existingCampaign = await context.Campaigns.AnyAsync(x => x.Id == request.CampaignId);
-
-            if (!existingCampaign)
-            {
-                throw new NotFoundException(nameof(request.CampaignId), request.CampaignId);
-            }
 
             var existingOffer = await context.Offers.AnyAsync(x => x.Id == request.OfferId);
 

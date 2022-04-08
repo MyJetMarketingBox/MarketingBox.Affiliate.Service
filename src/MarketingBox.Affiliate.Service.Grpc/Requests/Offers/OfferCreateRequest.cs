@@ -21,12 +21,10 @@ namespace MarketingBox.Affiliate.Service.Grpc.Requests.Offers
 
         [DataMember(Order = 4), Required, Range(1, 184)]
         public int? LanguageId { get; set; }
+        [DataMember(Order = 5), IsEnum] public OfferPrivacy? Privacy { get; set; }
+        [DataMember(Order = 6), IsEnum] public OfferState? State { get; set; }
 
-        [DataMember(Order = 5), Required, Url, StringLength(2100,MinimumLength = 11)] public string Link { get; set; }
-        [DataMember(Order = 6), IsEnum] public OfferPrivacy? Privacy { get; set; }
-        [DataMember(Order = 7), IsEnum] public OfferState? State { get; set; }
-
-        [DataMember(Order = 8), Required, AdvancedCompare(ComparisonType.GreaterThanOrEqual, 1)]
+        [DataMember(Order = 7), Required, AdvancedCompare(ComparisonType.GreaterThanOrEqual, 1)]
         public long? BrandId { get; set; }
     }
 }

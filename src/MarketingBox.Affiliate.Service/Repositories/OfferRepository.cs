@@ -10,7 +10,6 @@ using MarketingBox.Affiliate.Service.Domain.Models.Offers;
 using MarketingBox.Affiliate.Service.Grpc.Requests.Offers;
 using MarketingBox.Affiliate.Service.Repositories.Interfaces;
 using MarketingBox.Sdk.Common.Exceptions;
-using MarketingBox.Sdk.Common.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -160,7 +159,6 @@ namespace MarketingBox.Affiliate.Service.Repositories
 
                 offerEntity.Currency = request.Currency.Value;
                 offerEntity.LanguageId = request.LanguageId.Value;
-                offerEntity.Link = request.Link;
                 offerEntity.Privacy = request.Privacy ?? OfferPrivacy.Public;
                 offerEntity.State = request.State ?? OfferState.Active;
                 offerEntity.BrandId = request.BrandId.Value;
@@ -192,7 +190,7 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 {
                     query = query.Where(x =>
                         (x.Privacy == OfferPrivacy.Private &&
-                         x.OfferAffiliates.Exists(z => z.AffiliateId == request.AffiliateId)) ||
+                         x.OfferAffiliates.Any(z => z.AffiliateId == request.AffiliateId)) ||
                         x.Privacy == OfferPrivacy.Public);
                 }
 

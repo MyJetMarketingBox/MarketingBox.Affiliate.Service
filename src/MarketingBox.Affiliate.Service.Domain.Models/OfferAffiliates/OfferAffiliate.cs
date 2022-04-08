@@ -1,6 +1,5 @@
 using System;
 using System.Runtime.Serialization;
-using MarketingBox.Affiliate.Service.Domain.Models.Campaigns;
 using MarketingBox.Affiliate.Service.Domain.Models.Offers;
 
 namespace MarketingBox.Affiliate.Service.Domain.Models.OfferAffiliates
@@ -9,15 +8,10 @@ namespace MarketingBox.Affiliate.Service.Domain.Models.OfferAffiliates
     public class OfferAffiliate
     {
         [DataMember(Order = 1)] public long Id { get; set; }
-        [DataMember(Order = 2)] public long CampaignId { get; set; }
-        public Campaign Campaign { get; set; }
-        [DataMember(Order = 4)] public long AffiliateId { get; set; }
+        [DataMember(Order = 2)] public long AffiliateId { get; set; }
         public Affiliates.Affiliate Affiliate { get; set; }
-        [DataMember(Order = 6)] public long OfferId { get; set; }
+        [DataMember(Order = 3)] public long OfferId { get; set; }
         public Offer Offer { get; set; }
-        
-        [DataMember(Order = 7)]
-        public string ProxyLink { get; set; }
 
         public string UniqueId { get; } = Guid.NewGuid().ToString("N");
     }

@@ -6,6 +6,7 @@ using MarketingBox.Sdk.Common.Models;
 
 namespace MarketingBox.Affiliate.Service.Grpc.Requests.Offers;
 
+[DataContract]
 public class OfferSearchRequest : ValidatableEntity
 {
     [DataMember(Order = 1), AdvancedCompare(ComparisonType.GreaterThanOrEqual, 1)]

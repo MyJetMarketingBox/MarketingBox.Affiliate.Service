@@ -146,7 +146,6 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 var campaign = await ctx.Campaigns
                     .Include(x => x.CampaignRows)
-                    .Include(x => x.OfferAffiliates)
                     .FirstOrDefaultAsync(x => x.Id == request.CampaignId);
                 if (campaign is null)
                 {
@@ -214,7 +213,6 @@ namespace MarketingBox.Affiliate.Service.Services
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
                 var query = ctx.Campaigns
                     .Include(x => x.CampaignRows)
-                    .Include(x => x.OfferAffiliates)
                     .AsQueryable();
 
                 if (!string.IsNullOrWhiteSpace(request.TenantId))

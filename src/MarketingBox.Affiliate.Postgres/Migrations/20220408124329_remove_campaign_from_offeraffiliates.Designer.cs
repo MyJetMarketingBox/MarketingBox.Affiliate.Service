@@ -3,6 +3,7 @@ using System;
 using MarketingBox.Affiliate.Postgres;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MarketingBox.Affiliate.Postgres.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20220408124329_remove_campaign_from_offeraffiliates")]
+    partial class remove_campaign_from_offeraffiliates
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -474,6 +476,9 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
                     b.Property<long>("OfferId")
                         .HasColumnType("bigint");
 
+                    b.Property<string>("ProxyLink")
+                        .HasColumnType("text");
+
                     b.Property<string>("UniqueId")
                         .IsRequired()
                         .HasColumnType("text");
@@ -506,6 +511,9 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
 
                     b.Property<int>("LanguageId")
                         .HasColumnType("integer");
+
+                    b.Property<string>("Link")
+                        .HasColumnType("text");
 
                     b.Property<string>("Name")
                         .HasColumnType("text");

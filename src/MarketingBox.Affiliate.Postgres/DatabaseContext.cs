@@ -280,10 +280,6 @@ public class DatabaseContext : MyDbContext
         modelBuilder.Entity<Campaign>().HasKey(e => e.Id);
         modelBuilder.Entity<Campaign>().HasIndex(e => new {e.TenantId, e.Id});
         modelBuilder.Entity<Campaign>().HasIndex(e => new {e.TenantId, e.Name});
-        modelBuilder.Entity<Campaign>()
-            .HasMany(e => e.OfferAffiliates)
-            .WithOne(x => x.Campaign)
-            .HasForeignKey(x => x.CampaignId);
     }
 
     public async Task AddNewAffiliateSubParam(IEnumerable<AffiliateSubParam> subParams)

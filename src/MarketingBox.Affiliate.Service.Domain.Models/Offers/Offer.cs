@@ -25,7 +25,6 @@ namespace MarketingBox.Affiliate.Service.Domain.Models.Offers
         [DataMember(Order = 7)] public Currency Currency { get; set; }
         
         [DataMember(Order = 8)] public List<Geo> Geos { get; set; } = new();
-        [DataMember(Order = 9)] public string Link { get; set; }
         
         [DataMember(Order = 10)] public long BrandId { get; set; }
 

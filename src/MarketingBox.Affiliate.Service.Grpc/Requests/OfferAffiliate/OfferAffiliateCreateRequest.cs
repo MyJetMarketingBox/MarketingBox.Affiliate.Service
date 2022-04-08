@@ -9,11 +9,8 @@ namespace MarketingBox.Affiliate.Service.Grpc.Requests.OfferAffiliate;
 public class OfferAffiliateCreateRequest : ValidatableEntity
 {
     [DataMember(Order = 1), Required, AdvancedCompare(ComparisonType.GreaterThanOrEqual, 1)]
-    public long? CampaignId { get; set; }
-
-    [DataMember(Order = 2), Required, AdvancedCompare(ComparisonType.GreaterThanOrEqual, 1)]
     public long? AffiliateId { get; set; }
 
-    [DataMember(Order = 3), Required, AdvancedCompare(ComparisonType.GreaterThanOrEqual, 1)]
+    [DataMember(Order = 2), Required, AdvancedCompare(ComparisonType.GreaterThanOrEqual, 1)]
     public long? OfferId { get; set; }
 }
