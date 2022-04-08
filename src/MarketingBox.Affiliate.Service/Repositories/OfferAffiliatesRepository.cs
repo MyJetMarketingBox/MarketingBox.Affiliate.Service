@@ -177,8 +177,9 @@ public class OfferAffiliatesRepository : IOfferAffiliatesRepository
                 throw new NotFoundException($"OfferAffiliate with {nameof(OfferAffiliate.Id)}", id);
             }
 
-            var url =
-                $"{Program.Settings.ExternalReferenceProxyApiUrl}/{Program.Settings.ExternalReferenceProxyApiUrlPath}/{offerAffiliate.UniqueId}";
+            var url = Program.Settings.ExternalReferenceProxyApiUrl +
+                      Program.Settings.ExternalReferenceProxyApiUrlPath +
+                      offerAffiliate.UniqueId;
             return url;
         }
         catch (Exception e)
