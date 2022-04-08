@@ -18,7 +18,7 @@ namespace MarketingBox.Affiliate.Service.MapperProfiles
         }
 
         private List<ActivityHours> GetDefaultValues =>
-            Enumerable.Range(0, 6).Select(x => new ActivityHours
+            Enumerable.Range(0, 7).Select(x => new ActivityHours
             {
                 Day = (DayOfWeek) x,
                 From = new TimeSpan(0, 0, 0),

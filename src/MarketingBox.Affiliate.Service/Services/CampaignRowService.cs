@@ -133,7 +133,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 campaignRow.CapType = request.CapType.Value;
                 campaignRow.GeoId = request.GeoId.Value;
                 campaignRow.DailyCapValue = request.DailyCapValue.Value;
-                campaignRow.EnableTraffic = request.EnableTraffic.Value;
+                campaignRow.EnableTraffic = request.EnableTraffic ?? false;
                 campaignRow.Information = request.Information;
                 campaignRow.Priority = request.Priority.Value;
                 campaignRow.Weight = request.Weight.Value;
