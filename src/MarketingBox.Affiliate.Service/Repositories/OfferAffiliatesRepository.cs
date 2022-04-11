@@ -70,7 +70,7 @@ public class OfferAffiliatesRepository : IOfferAffiliatesRepository
     {
         try
         {
-            _logger.LogInformation("Getting OfferAffiliate with {OfferAffililateId}", id);
+            _logger.LogInformation("Getting OfferAffiliate with id {OfferAffililateId}", id);
 
             await using var context = new DatabaseContext(_dbContextOptionsBuilder.Options);
             var offerAffiliate = await context.OfferAffiliates
@@ -89,12 +89,12 @@ public class OfferAffiliatesRepository : IOfferAffiliatesRepository
             throw;
         }
     }
-
+    
     public async Task DeleteAsync(long id)
     {
         try
         {
-            _logger.LogInformation("Deleting OfferAffiliate with {OfferAffiliateId}", id);
+            _logger.LogInformation("Deleting OfferAffiliate with id {OfferAffiliateId}", id);
 
             await using var context = new DatabaseContext(_dbContextOptionsBuilder.Options);
             var rows = await context.OfferAffiliates
@@ -103,7 +103,7 @@ public class OfferAffiliatesRepository : IOfferAffiliatesRepository
 
             if (rows == 0)
             {
-                throw new NotFoundException($"OfferAffiliate with {nameof(Offer.Id)}", id);
+                throw new NotFoundException($"OfferAffiliate with id {nameof(Offer.Id)}", id);
             }
         }
         catch (Exception e)
@@ -168,13 +168,13 @@ public class OfferAffiliatesRepository : IOfferAffiliatesRepository
     {
         try
         {
-            _logger.LogInformation("Getting url for OfferAffiliate with {OfferAffiliateId}", id);
+            _logger.LogInformation("Getting url for OfferAffiliate with id {OfferAffiliateId}", id);
 
             await using var context = new DatabaseContext(_dbContextOptionsBuilder.Options);
             var offerAffiliate = await context.OfferAffiliates.FirstOrDefaultAsync(x => x.Id == id);
             if (offerAffiliate is null)
             {
-                throw new NotFoundException($"OfferAffiliate with {nameof(OfferAffiliate.Id)}", id);
+                throw new NotFoundException($"OfferAffiliate with id {nameof(OfferAffiliate.Id)}", id);
             }
 
             var url = Program.Settings.ExternalReferenceProxyApiUrl +

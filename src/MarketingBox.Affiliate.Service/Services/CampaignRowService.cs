@@ -68,7 +68,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 await ctx.SaveChangesAsync();
 
                 var nosql = CampaignRowNoSql.Create(_mapper.Map<CampaignRowMessage>(campaignRow));
-                // await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
+                await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 _logger.LogInformation("Sent campaignRow update to MyNoSql {@Context}", request);
 
                 return new Response<CampaignRow>()
@@ -141,7 +141,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 await ctx.SaveChangesAsync();
 
                 var nosql = CampaignRowNoSql.Create(_mapper.Map<CampaignRowMessage>(campaignRow));
-                // await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
+                await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 _logger.LogInformation("Sent campaignRow update to MyNoSql {@Context}", request);
 
                 return new Response<CampaignRow>()
@@ -202,9 +202,9 @@ namespace MarketingBox.Affiliate.Service.Services
                 if (campaignRow == null)
                     throw new NotFoundException(nameof(request.CampaignRowId), request.CampaignRowId);
 
-                // await _myNoSqlServerDataWriter.DeleteAsync(
-                //     CampaignRowNoSql.GeneratePartitionKey(campaignRow.CampaignId),
-                //     CampaignRowNoSql.GenerateRowKey(campaignRow.Id));
+                await _myNoSqlServerDataWriter.DeleteAsync(
+                    CampaignRowNoSql.GeneratePartitionKey(campaignRow.CampaignId),
+                    CampaignRowNoSql.GenerateRowKey(campaignRow.Id));
 
                 await ctx.CampaignRows.Where(x => x.Id == campaignRow.Id)
                     .DeleteFromQueryAsync();

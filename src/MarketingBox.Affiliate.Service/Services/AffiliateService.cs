@@ -269,8 +269,8 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 var affiliateMassage = _mapper.Map<AffiliateMessage>(affiliate);
                 var nosql = AffiliateNoSql.Create(affiliateMassage);
-                // await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
-                // _logger.LogInformation("Sent partner update to MyNoSql {@context}", request);
+                await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
+                _logger.LogInformation("Sent partner update to MyNoSql {@context}", request);
 
                 // TODO: change logic
 
@@ -341,11 +341,11 @@ namespace MarketingBox.Affiliate.Service.Services
                 await ctx.SaveChangesAsync();
 
                 await CreateOrUpdateUser(affiliateExisting);
-                //
+                
                 var affiliateMessage = _mapper.Map<AffiliateMessage>(affiliateExisting);
                 var nosql = AffiliateNoSql.Create(affiliateMessage);
-                // await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
-                // _logger.LogInformation("Sent partner update to MyNoSql {@context}", request);
+                await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
+                _logger.LogInformation("Sent partner update to MyNoSql {@context}", request);
 
                 await _publisherPartnerUpdated.PublishAsync(MapToMessage(affiliateMessage,
                     AffiliateUpdatedEventType.Updated));

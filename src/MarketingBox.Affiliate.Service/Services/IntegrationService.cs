@@ -70,8 +70,8 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 var integrationMessage = MapToMessage(integration);
                 var nosql = IntegrationNoSql.Create(integrationMessage);
-                // await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
-                // _logger.LogInformation("Sent Integration update to MyNoSql {@context}", request);
+                await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
+                _logger.LogInformation("Sent Integration update to MyNoSql {@context}", request);
 
                 await _publisherIntegrationUpdated.PublishAsync(integrationMessage);
                 _logger.LogInformation("Sent Integration update to service bus {@context}", request);
@@ -116,8 +116,8 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 var integrationMessage = MapToMessage(existingIntegration);
                 var nosql = IntegrationNoSql.Create(integrationMessage);
-                // await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
-                // _logger.LogInformation("Sent integration update to MyNoSql {@context}", request);
+                await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
+                _logger.LogInformation("Sent integration update to MyNoSql {@context}", request);
 
                 await _publisherIntegrationUpdated.PublishAsync(integrationMessage);
                 _logger.LogInformation("Sent integration update to service bus {@context}", request);
@@ -187,17 +187,17 @@ namespace MarketingBox.Affiliate.Service.Services
                         $"There are brands that use this integration. Brand's ids:{string.Join(',', brands)}");
                 }
 
-                // try
-                // {
-                //     await _myNoSqlServerDataWriter.DeleteAsync(
-                //         IntegrationNoSql.GeneratePartitionKey(integration.TenantId),
-                //         IntegrationNoSql.GenerateRowKey(integration.Id));
-                // }
-                // catch (Exception serializationException)
-                // {
-                //     _logger.LogInformation(serializationException,
-                //         $"NoSql table {IntegrationNoSql.TableName} is empty");
-                // }
+                try
+                {
+                    await _myNoSqlServerDataWriter.DeleteAsync(
+                        IntegrationNoSql.GeneratePartitionKey(integration.TenantId),
+                        IntegrationNoSql.GenerateRowKey(integration.Id));
+                }
+                catch (Exception serializationException)
+                {
+                    _logger.LogInformation(serializationException,
+                        $"NoSql table {IntegrationNoSql.TableName} is empty");
+                }
 
                 await _publisherIntegrationRemoved.PublishAsync(new IntegrationRemoved()
                 {

@@ -111,8 +111,8 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 var brandMessage = _mapper.Map<BrandMessage>(brand);
                 var nosql = BrandNoSql.Create(brandMessage);
-                // await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
-                // _logger.LogInformation("Sent brand update to MyNoSql {@context}", request);
+                await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
+                _logger.LogInformation("Sent brand update to MyNoSql {@context}", request);
 
                 await _publisherBrandUpdated.PublishAsync(brandMessage);
                 _logger.LogInformation("Sent brand update to service bus {@context}", request);
@@ -169,8 +169,8 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 var brandMessage = _mapper.Map<BrandMessage>(brand);
                 var nosql = BrandNoSql.Create(brandMessage);
-                // await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
-                // _logger.LogInformation("Sent brand update to MyNoSql {@context}", request);
+                await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
+                _logger.LogInformation("Sent brand update to MyNoSql {@context}", request);
 
                 await _publisherBrandUpdated.PublishAsync(brandMessage);
                 _logger.LogInformation("Sent brand update to service bus {@context}", request);
@@ -236,9 +236,9 @@ namespace MarketingBox.Affiliate.Service.Services
                 ctx.Brands.Remove(brand);
                 await ctx.SaveChangesAsync();
 
-                // await _myNoSqlServerDataWriter.DeleteAsync(
-                //     BrandNoSql.GeneratePartitionKey(brand.TenantId),
-                //     BrandNoSql.GenerateRowKey(brand.Id));
+                await _myNoSqlServerDataWriter.DeleteAsync(
+                    BrandNoSql.GeneratePartitionKey(brand.TenantId),
+                    BrandNoSql.GenerateRowKey(brand.Id));
 
                 await _publisherBrandRemoved.PublishAsync(new BrandRemoved
                 {
