@@ -39,9 +39,11 @@ public class OfferAffiliatesRepository : IOfferAffiliatesRepository
 
             await using var context = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
-            var existingOffer = await context.Offers.AnyAsync(x => x.Id == request.OfferId);
+            var existingOffer = await context.Offers
+                .Include(x=>x.Brand)
+                .FirstOrDefaultAsync(x => x.Id == request.OfferId);
 
-            if (!existingOffer)
+            if (existingOffer is null)
             {
                 throw new NotFoundException(nameof(request.OfferId), request.OfferId);
             }
@@ -89,22 +91,26 @@ public class OfferAffiliatesRepository : IOfferAffiliatesRepository
             throw;
         }
     }
-    
-    public async Task DeleteAsync(long id)
+
+    public async Task<string> DeleteAsync(long id)
     {
         try
         {
             _logger.LogInformation("Deleting OfferAffiliate with id {OfferAffiliateId}", id);
 
             await using var context = new DatabaseContext(_dbContextOptionsBuilder.Options);
-            var rows = await context.OfferAffiliates
-                .Where(x => x.Id == id)
-                .DeleteFromQueryAsync();
+            var offerAffiliate = await context.OfferAffiliates
+                .FirstOrDefaultAsync(x => x.Id == id);
 
-            if (rows == 0)
+            if (offerAffiliate is null)
             {
                 throw new NotFoundException($"OfferAffiliate with id {nameof(Offer.Id)}", id);
             }
+
+            var uniqueId = offerAffiliate.UniqueId;
+            context.OfferAffiliates.Remove(offerAffiliate);
+            await context.SaveChangesAsync();
+            return uniqueId;
         }
         catch (Exception e)
         {

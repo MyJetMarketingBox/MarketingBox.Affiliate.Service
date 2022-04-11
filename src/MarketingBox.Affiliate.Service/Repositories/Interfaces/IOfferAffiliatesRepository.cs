@@ -12,7 +12,7 @@ public interface IOfferAffiliatesRepository
     
     Task<OfferAffiliate> GetAsync(long id);
     
-    Task DeleteAsync(long id);
+    Task<string> DeleteAsync(long id);
     
     Task<(IReadOnlyCollection<OfferAffiliate>, int)> GetAllAsync(GetAllRequest request);
     Task<string> GetUrlAsync(long id);

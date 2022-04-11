@@ -5,10 +5,12 @@ using MarketingBox.Affiliate.Service.Domain.Models.OfferAffiliates;
 using MarketingBox.Affiliate.Service.Grpc;
 using MarketingBox.Affiliate.Service.Grpc.Requests;
 using MarketingBox.Affiliate.Service.Grpc.Requests.OfferAffiliate;
+using MarketingBox.Affiliate.Service.MyNoSql.OfferAffiliates;
 using MarketingBox.Affiliate.Service.Repositories.Interfaces;
 using MarketingBox.Sdk.Common.Extensions;
 using MarketingBox.Sdk.Common.Models.Grpc;
 using Microsoft.Extensions.Logging;
+using MyNoSqlServer.Abstractions;
 
 namespace MarketingBox.Affiliate.Service.Services;
 
@@ -16,13 +18,16 @@ public class OfferAffiliateService : IOfferAffiliateService
 {
     private readonly ILogger<OfferAffiliateService> _logger;
     private readonly IOfferAffiliatesRepository _repository;
+    private readonly IMyNoSqlServerDataWriter<OfferAffiliateNoSql> _noSqlServerDataWriter;
 
     public OfferAffiliateService(
         ILogger<OfferAffiliateService> logger,
-        IOfferAffiliatesRepository repository)
+        IOfferAffiliatesRepository repository,
+        IMyNoSqlServerDataWriter<OfferAffiliateNoSql> noSqlServerDataWriter)
     {
         _logger = logger;
         _repository = repository;
+        _noSqlServerDataWriter = noSqlServerDataWriter;
     }
 
     public async Task<Response<OfferAffiliate>> CreateAsync(OfferAffiliateCreateRequest request)
@@ -32,6 +37,9 @@ public class OfferAffiliateService : IOfferAffiliateService
             request.ValidateEntity();
 
             var response = await _repository.CreateAsync(request);
+            
+            await _noSqlServerDataWriter.InsertOrReplaceAsync(OfferAffiliateNoSql.Create(response));
+            
             return new Response<OfferAffiliate>()
             {
                 Status = ResponseStatus.Ok,
@@ -71,7 +79,10 @@ public class OfferAffiliateService : IOfferAffiliateService
         {
             request.ValidateEntity();
 
-            await _repository.DeleteAsync(request.OfferAffiliateId.Value);
+            var uniqueId = await _repository.DeleteAsync(request.OfferAffiliateId.Value);
+            await _noSqlServerDataWriter.DeleteAsync(
+                OfferAffiliateNoSql.GeneratePartitionKey(),
+                OfferAffiliateNoSql.GenerateRowKey(uniqueId));
             return new Response<bool>()
             {
                 Status = ResponseStatus.Ok,
