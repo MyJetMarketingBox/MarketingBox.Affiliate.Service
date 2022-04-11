@@ -120,7 +120,7 @@ namespace MarketingBox.Affiliate.Service.Services
                     throw new NotFoundException(nameof(request.CampaignRowId), request.CampaignRowId);
                 }
 
-                campaignRow.ActivityHours = request.ActivityHours ?? Enumerable.Range(0, 6).Select(x =>
+                campaignRow.ActivityHours = request.ActivityHours ?? Enumerable.Range(0, 7).Select(x =>
                     new ActivityHours
                     {
                         Day = (DayOfWeek) x,

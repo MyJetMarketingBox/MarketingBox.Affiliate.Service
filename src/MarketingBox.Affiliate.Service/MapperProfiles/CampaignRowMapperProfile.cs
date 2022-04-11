@@ -17,7 +17,7 @@ namespace MarketingBox.Affiliate.Service.MapperProfiles
             CreateMap<CampaignRow, CampaignRowMessage>();
         }
 
-        private List<ActivityHours> GetDefaultValues =>
+        private static List<ActivityHours> GetDefaultValues =>
             Enumerable.Range(0, 7).Select(x => new ActivityHours
             {
                 Day = (DayOfWeek) x,
