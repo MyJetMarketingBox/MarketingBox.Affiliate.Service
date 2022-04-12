@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using MarketingBox.Affiliate.Service.Domain.Models.OfferAffiliates;
+using MarketingBox.Affiliate.Service.Extensions;
 using MarketingBox.Affiliate.Service.Grpc;
 using MarketingBox.Affiliate.Service.Grpc.Requests;
 using MarketingBox.Affiliate.Service.Grpc.Requests.OfferAffiliate;
@@ -37,8 +38,8 @@ public class OfferAffiliateService : IOfferAffiliateService
             request.ValidateEntity();
 
             var response = await _repository.CreateAsync(request);
-            
-            await _noSqlServerDataWriter.InsertOrReplaceAsync(OfferAffiliateNoSql.Create(response));
+
+            await response.InsertOrReplaceToNoSqlAsync(_noSqlServerDataWriter);
             
             return new Response<OfferAffiliate>()
             {

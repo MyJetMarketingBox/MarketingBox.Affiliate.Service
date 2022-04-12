@@ -5,10 +5,12 @@ using System.Threading.Tasks;
 using AutoMapper;
 using MarketingBox.Affiliate.Postgres;
 using MarketingBox.Affiliate.Service.Domain.Models.Brands;
+using MarketingBox.Affiliate.Service.Extensions;
 using MarketingBox.Affiliate.Service.Grpc;
 using MarketingBox.Affiliate.Service.Grpc.Requests.Brands;
 using MarketingBox.Affiliate.Service.Messages.Brands;
 using MarketingBox.Affiliate.Service.MyNoSql.Brands;
+using MarketingBox.Affiliate.Service.MyNoSql.OfferAffiliates;
 using MarketingBox.Sdk.Common.Exceptions;
 using MarketingBox.Sdk.Common.Extensions;
 using MarketingBox.Sdk.Common.Models.Grpc;
@@ -16,7 +18,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MyJetWallet.Sdk.ServiceBus;
 using MyNoSqlServer.Abstractions;
-using SimpleTrading.Telemetry;
 
 namespace MarketingBox.Affiliate.Service.Services
 {
@@ -27,6 +28,7 @@ namespace MarketingBox.Affiliate.Service.Services
         private readonly IServiceBusPublisher<BrandMessage> _publisherBrandUpdated;
         private readonly IMyNoSqlServerDataWriter<BrandNoSql> _myNoSqlServerDataWriter;
         private readonly IServiceBusPublisher<BrandRemoved> _publisherBrandRemoved;
+        private readonly IMyNoSqlServerDataWriter<OfferAffiliateNoSql> _noSqlServerDataWriter;
         private readonly IMapper _mapper;
 
         private static async Task EnsureBrandPayout(
@@ -79,7 +81,7 @@ namespace MarketingBox.Affiliate.Service.Services
             IServiceBusPublisher<BrandMessage> publisherBrandUpdated,
             IMyNoSqlServerDataWriter<BrandNoSql> myNoSqlServerDataWriter,
             IServiceBusPublisher<BrandRemoved> publisherBrandRemoved,
-            IMapper mapper)
+            IMapper mapper, IMyNoSqlServerDataWriter<OfferAffiliateNoSql> noSqlServerDataWriter)
         {
             _logger = logger;
             _dbContextOptionsBuilder = dbContextOptionsBuilder;
@@ -87,6 +89,7 @@ namespace MarketingBox.Affiliate.Service.Services
             _myNoSqlServerDataWriter = myNoSqlServerDataWriter;
             _publisherBrandRemoved = publisherBrandRemoved;
             _mapper = mapper;
+            _noSqlServerDataWriter = noSqlServerDataWriter;
         }
 
         public async Task<Response<Brand>> CreateAsync(BrandCreateRequest request)
@@ -143,6 +146,8 @@ namespace MarketingBox.Affiliate.Service.Services
                 var brand = await ctx.Brands
                     .Include(x => x.Payouts)
                     .ThenInclude(x => x.Geo)
+                    .Include(x=>x.Offers)
+                    .ThenInclude(x=>x.OfferAffiliates)
                     .Include(x => x.CampaignRows)
                     .ThenInclude(x => x.Geo)
                     .Include(x => x.LinkParameters)
@@ -167,6 +172,13 @@ namespace MarketingBox.Affiliate.Service.Services
                 brand.Link = request.Link;
                 await ctx.SaveChangesAsync();
 
+                var offerAffiliates = brand.Offers.SelectMany(x => x.OfferAffiliates);
+                
+                foreach (var offerAffiliate in offerAffiliates)
+                {
+                    await offerAffiliate.InsertOrReplaceToNoSqlAsync(_noSqlServerDataWriter);
+                }
+                
                 var brandMessage = _mapper.Map<BrandMessage>(brand);
                 var nosql = BrandNoSql.Create(brandMessage);
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
