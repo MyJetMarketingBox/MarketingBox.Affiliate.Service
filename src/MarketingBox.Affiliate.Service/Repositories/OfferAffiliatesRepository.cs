@@ -183,9 +183,10 @@ public class OfferAffiliatesRepository : IOfferAffiliatesRepository
                 throw new NotFoundException($"OfferAffiliate with id {nameof(OfferAffiliate.Id)}", id);
             }
 
-            var url = Program.Settings.ExternalReferenceProxyApiUrl +
-                      Program.Settings.ExternalReferenceProxyApiUrlPath +
-                      offerAffiliate.UniqueId;
+            var baseAddress = Program.ReloadedSettings(x => x.ExternalReferenceProxyApiUrl).Invoke();
+            var relativeAddress = Program.ReloadedSettings(x => x.ExternalReferenceProxyApiUrlPath).Invoke();
+
+            var url = baseAddress + relativeAddress + offerAffiliate.UniqueId;
             return url;
         }
         catch (Exception e)
