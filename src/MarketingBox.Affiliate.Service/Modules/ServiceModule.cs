@@ -16,6 +16,7 @@ using MarketingBox.Affiliate.Service.MyNoSql.CampaignRows;
 using MarketingBox.Affiliate.Service.MyNoSql.Campaigns;
 using MarketingBox.Affiliate.Service.MyNoSql.Country;
 using MarketingBox.Affiliate.Service.MyNoSql.Integrations;
+using MarketingBox.Affiliate.Service.MyNoSql.Offer;
 using MarketingBox.Affiliate.Service.MyNoSql.OfferAffiliates;
 using MarketingBox.Affiliate.Service.Repositories;
 using MarketingBox.Affiliate.Service.Repositories.Interfaces;
@@ -115,7 +116,9 @@ namespace MarketingBox.Affiliate.Service.Modules
         }
 
         private static void SetupOffers(ContainerBuilder builder)
-        {
+        {            
+            builder.RegisterMyNoSqlWriter<OfferNoSql>(Program.ReloadedSettings(e => e.MyNoSqlWriterUrl),
+                OfferNoSql.TableName);
             builder.RegisterType<OfferRepository>()
                 .As<IOfferRepository>()
                 .SingleInstance();
