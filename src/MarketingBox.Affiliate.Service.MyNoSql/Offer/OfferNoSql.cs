@@ -18,6 +18,7 @@ public class OfferNoSql : MyNoSqlDbEntity
         {
             PartitionKey = GeneratePartitionKey(),
             RowKey = GenerateRowKey(offer.Id),
+            Offer = offer
         };
     }
 }
