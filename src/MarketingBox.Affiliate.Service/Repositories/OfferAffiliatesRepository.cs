@@ -54,8 +54,14 @@ public class OfferAffiliatesRepository : IOfferAffiliatesRepository
             {
                 throw new NotFoundException(nameof(request.AffiliateId), request.AffiliateId);
             }
-            
-            
+
+            var existOfferAffiliate = await context.OfferAffiliates.AnyAsync(x =>
+                x.OfferId == request.OfferId && x.AffiliateId == request.AffiliateId);
+            if (existOfferAffiliate)
+            {
+                throw new AlreadyExistsException(
+                    $"OfferAffiliate with offer {request.OfferId} and affiliate {request.AffiliateId} already exists.");
+            }
             
             var offerAffiliate = _mapper.Map<OfferAffiliate>(request);
             await context.AddAsync(offerAffiliate);
