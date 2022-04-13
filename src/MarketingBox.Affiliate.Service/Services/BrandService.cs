@@ -142,8 +142,6 @@ namespace MarketingBox.Affiliate.Service.Services
                 var brand = await ctx.Brands
                     .Include(x => x.Payouts)
                     .ThenInclude(x => x.Geo)
-                    .Include(x => x.Offers)
-                    .ThenInclude(x => x.OfferAffiliates)
                     .Include(x => x.CampaignRows)
                     .ThenInclude(x => x.Geo)
                     .Include(x => x.LinkParameters)

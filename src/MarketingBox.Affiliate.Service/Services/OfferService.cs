@@ -4,24 +4,29 @@ using System.Threading.Tasks;
 using MarketingBox.Affiliate.Service.Domain.Models.Offers;
 using MarketingBox.Affiliate.Service.Grpc;
 using MarketingBox.Affiliate.Service.Grpc.Requests.Offers;
+using MarketingBox.Affiliate.Service.MyNoSql.Offer;
 using MarketingBox.Affiliate.Service.Repositories.Interfaces;
 using MarketingBox.Sdk.Common.Extensions;
 using MarketingBox.Sdk.Common.Models.Grpc;
 using Microsoft.Extensions.Logging;
+using MyNoSqlServer.Abstractions;
 
 namespace MarketingBox.Affiliate.Service.Services
 {
     public class OfferService : IOfferService
     {
         private readonly IOfferRepository _offerRepository;
+        private readonly IMyNoSqlServerDataWriter<OfferNoSql> _myNoSqlServerDataWriter;
         private readonly ILogger<OfferService> _logger;
 
         public OfferService(
             IOfferRepository offerRepository,
-            ILogger<OfferService> logger)
+            ILogger<OfferService> logger,
+            IMyNoSqlServerDataWriter<OfferNoSql> myNoSqlServerDataWriter)
         {
             _offerRepository = offerRepository;
             _logger = logger;
+            _myNoSqlServerDataWriter = myNoSqlServerDataWriter;
         }
 
         public async Task<Response<Offer>> CreateAsync(OfferCreateRequest request)
@@ -31,6 +36,8 @@ namespace MarketingBox.Affiliate.Service.Services
                 request.ValidateEntity();
 
                 var result = await _offerRepository.CreateAsync(request);
+                
+                await _myNoSqlServerDataWriter.InsertOrReplaceAsync(OfferNoSql.Create(result));
                 return new Response<Offer>
                 {
                     Status = ResponseStatus.Ok,
@@ -50,6 +57,8 @@ namespace MarketingBox.Affiliate.Service.Services
                 request.ValidateEntity();
 
                 var result = await _offerRepository.UpdateAsync(request);
+                
+                await _myNoSqlServerDataWriter.InsertOrReplaceAsync(OfferNoSql.Create(result));
                 return new Response<Offer>
                 {
                     Status = ResponseStatus.Ok,
@@ -88,6 +97,10 @@ namespace MarketingBox.Affiliate.Service.Services
                 request.ValidateEntity();
 
                 await _offerRepository.DeleteAsync(request.Id.Value, request.AffiliateId.Value);
+                
+                await _myNoSqlServerDataWriter.DeleteAsync(
+                    OfferNoSql.GeneratePartitionKey(),
+                    OfferNoSql.GenerateRowKey(request.Id.Value));
                 return new Response<bool>
                 {
                     Status = ResponseStatus.Ok,

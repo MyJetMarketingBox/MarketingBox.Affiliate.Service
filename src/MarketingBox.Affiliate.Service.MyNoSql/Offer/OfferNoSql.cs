@@ -8,7 +8,7 @@ public class OfferNoSql : MyNoSqlDbEntity
     public const string TableName = "marketingbox-affiliateservice-offers";
     public static string GeneratePartitionKey() => "offers";
 
-    public static string GenerateRowKey(long uniqueId) => $"{uniqueId}";
+    public static string GenerateRowKey(long id) => $"{id}";
 
     public Domain.Models.Offers.Offer Offer { get; set; }
 
