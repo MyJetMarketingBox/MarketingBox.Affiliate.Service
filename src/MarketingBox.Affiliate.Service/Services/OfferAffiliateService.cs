@@ -124,7 +124,7 @@ public class OfferAffiliateService : IOfferAffiliateService
         {
             request.ValidateEntity();
 
-            var url = await _repository.GetUrlAsync(request.OfferAffiliateId.Value);
+            var url = await _repository.GetUrlAsync(request.OfferAffiliateId.Value, request.AffiliateId.Value);
             return new Response<string>
             {
                 Status = ResponseStatus.Ok,

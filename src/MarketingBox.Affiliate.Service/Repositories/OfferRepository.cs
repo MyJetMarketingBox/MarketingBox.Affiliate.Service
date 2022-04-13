@@ -20,6 +20,7 @@ namespace MarketingBox.Affiliate.Service.Repositories
         private readonly DbContextOptionsBuilder<DatabaseContext> _dbContextOptionsBuilder;
         private readonly ILogger<OfferRepository> _logger;
         private readonly IMapper _mapper;
+        private const long AdminId = 999;
 
         private static async Task EnsureBrand(long brandId, DatabaseContext context)
         {
@@ -52,6 +53,17 @@ namespace MarketingBox.Affiliate.Service.Repositories
             return existingGeos;
         }
 
+
+        private static void ValidateAccess(long affiliateId, Offer offerEntity)
+        {
+            if (affiliateId != AdminId &&
+                offerEntity.Privacy == OfferPrivacy.Private &&
+                offerEntity.OfferAffiliates.All(z => z.AffiliateId != affiliateId))
+            {
+                throw new ForbiddenException("Offer is private and current user has no access to this offer.");
+            }
+        }
+
         public OfferRepository(
             DbContextOptionsBuilder<DatabaseContext> dbContextOptionsBuilder,
             ILogger<OfferRepository> logger,
@@ -78,7 +90,7 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 await context.AddAsync(offerEntity);
                 await context.SaveChangesAsync();
 
-                return await GetAsync(offerEntity.Id);
+                return offerEntity;
             }
             catch (Exception e)
             {
@@ -87,7 +99,7 @@ namespace MarketingBox.Affiliate.Service.Repositories
             }
         }
 
-        public async Task<Offer> GetAsync(long id)
+        public async Task<Offer> GetAsync(long id, long affiliateId)
         {
             try
             {
@@ -105,6 +117,8 @@ namespace MarketingBox.Affiliate.Service.Repositories
                     throw new NotFoundException(nameof(Offer.Id), id);
                 }
 
+                ValidateAccess(affiliateId, offerEntity);
+
                 return offerEntity;
             }
             catch (Exception e)
@@ -114,21 +128,26 @@ namespace MarketingBox.Affiliate.Service.Repositories
             }
         }
 
-        public async Task DeleteAsync(long id)
+        public async Task DeleteAsync(long id, long affiliateId)
         {
             try
             {
                 _logger.LogInformation("Deleting offer with {OfferId}", id);
 
                 await using var context = new DatabaseContext(_dbContextOptionsBuilder.Options);
-                var rows = await context.Offers
-                    .Where(x => x.Id == id)
-                    .DeleteFromQueryAsync();
+                var offerEntity = await context.Offers
+                    .Include(x => x.OfferAffiliates)
+                    .FirstOrDefaultAsync(x => x.Id == id);
 
-                if (rows == 0)
+                if (offerEntity is null)
                 {
                     throw new NotFoundException(nameof(Offer.Id), id);
                 }
+
+                ValidateAccess(affiliateId, offerEntity);
+
+                context.Offers.Remove(offerEntity);
+                await context.SaveChangesAsync();
             }
             catch (Exception e)
             {
@@ -154,6 +173,9 @@ namespace MarketingBox.Affiliate.Service.Repositories
                     throw new NotFoundException(nameof(request.OfferId), request.OfferId);
                 }
 
+
+                ValidateAccess(request.AffiliateId.Value, offerEntity);
+
                 await EnsureBrand(request.BrandId.Value, context);
                 var existingGeos = await EnsureGeos(request.GeoIds, context);
 
@@ -166,7 +188,7 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 offerEntity.Geos = existingGeos;
                 await context.SaveChangesAsync();
 
-                return await GetAsync(offerEntity.Id);
+                return offerEntity;
             }
             catch (Exception e)
             {

@@ -85,14 +85,22 @@ public class DatabaseContext : MyDbContext
     {
         modelBuilder.Entity<OfferAffiliate>().ToTable(OfferAffiliatesTableName);
         modelBuilder.Entity<OfferAffiliate>().HasKey(x => x.Id);
+
+        modelBuilder
+            .Entity<OfferAffiliate>()
+            .HasIndex(x => new {x.OfferId, x.AffiliateId, x.UniqueId})
+            .IsUnique();
         
-        modelBuilder.Entity<OfferAffiliate>().HasIndex(x => x.UniqueId).IsUnique();
-        modelBuilder.Entity<OfferAffiliate>().Property(x => x.UniqueId).IsRequired();
+        modelBuilder
+            .Entity<OfferAffiliate>()
+            .Property(x => x.UniqueId)
+            .IsRequired();
         
         modelBuilder.Entity<OfferAffiliate>()
             .HasOne(x => x.Affiliate)
             .WithMany(x => x.OfferAffiliates)
             .HasForeignKey(x => x.AffiliateId);
+        
         modelBuilder.Entity<OfferAffiliate>()
             .HasOne(x => x.Offer)
             .WithMany(x => x.OfferAffiliates)

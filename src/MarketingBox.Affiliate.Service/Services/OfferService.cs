@@ -68,7 +68,7 @@ namespace MarketingBox.Affiliate.Service.Services
             {
                 request.ValidateEntity();
 
-                var result = await _offerRepository.GetAsync(request.Id.Value);
+                var result = await _offerRepository.GetAsync(request.Id.Value, request.AffiliateId.Value);
                 return new Response<Offer>
                 {
                     Status = ResponseStatus.Ok,
@@ -87,7 +87,7 @@ namespace MarketingBox.Affiliate.Service.Services
             {
                 request.ValidateEntity();
 
-                await _offerRepository.DeleteAsync(request.Id.Value);
+                await _offerRepository.DeleteAsync(request.Id.Value, request.AffiliateId.Value);
                 return new Response<bool>
                 {
                     Status = ResponseStatus.Ok,

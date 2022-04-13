@@ -29,4 +29,7 @@ public class OfferUpdateRequest : ValidatableEntity
 
     [DataMember(Order = 8), Required, AdvancedCompare(ComparisonType.GreaterThanOrEqual, 1)]
     public long? OfferId { get; set; }
+
+    [DataMember(Order = 9), Required, AdvancedCompare(ComparisonType.GreaterThanOrEqual, 1)]
+    public long? AffiliateId { get; set; }
 }

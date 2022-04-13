@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Runtime.Serialization;
 using MarketingBox.Affiliate.Service.Domain.Models.CampaignRows;
+using MarketingBox.Affiliate.Service.Grpc.Attributes;
 using MarketingBox.Sdk.Common.Attributes;
 using MarketingBox.Sdk.Common.Models;
 
@@ -30,7 +31,7 @@ namespace MarketingBox.Affiliate.Service.Grpc.Requests.CampaignRows
         [DataMember(Order = 7), Required, AdvancedCompare(ComparisonType.GreaterThanOrEqual, 1)]
         public long? DailyCapValue { get; set; }
 
-        [DataMember(Order = 8)] public List<ActivityHours> ActivityHours { get; set; }
+        [DataMember(Order = 8), ActivityHoursValidator] public List<ActivityHours> ActivityHours { get; set; }
 
         [DataMember(Order = 9)] public string Information { get; set; }
 

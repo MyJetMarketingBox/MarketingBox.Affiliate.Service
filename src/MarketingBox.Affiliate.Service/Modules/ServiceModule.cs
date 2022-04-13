@@ -172,7 +172,6 @@ namespace MarketingBox.Affiliate.Service.Modules
                     Program.LogFactory);
 
             builder.RegisterAuthServiceClient(Program.Settings.AuthServiceUrl);
-            var noSqlClient = builder.CreateNoSqlClient(Program.ReloadedSettings(e => e.MyNoSqlReaderHostPort));
             
             SetupAffiliates(builder, serviceBusClient);
             SetupCampaigns(builder, serviceBusClient);

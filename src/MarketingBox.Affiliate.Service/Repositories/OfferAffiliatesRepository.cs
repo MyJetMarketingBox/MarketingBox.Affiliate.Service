@@ -54,7 +54,9 @@ public class OfferAffiliatesRepository : IOfferAffiliatesRepository
             {
                 throw new NotFoundException(nameof(request.AffiliateId), request.AffiliateId);
             }
-
+            
+            
+            
             var offerAffiliate = _mapper.Map<OfferAffiliate>(request);
             await context.AddAsync(offerAffiliate);
             await context.SaveChangesAsync();
@@ -170,17 +172,21 @@ public class OfferAffiliatesRepository : IOfferAffiliatesRepository
         }
     }
 
-    public async Task<string> GetUrlAsync(long id)
+    public async Task<string> GetUrlAsync(long id, long affiliateId)
     {
         try
         {
-            _logger.LogInformation("Getting url for OfferAffiliate with id {OfferAffiliateId}", id);
+            _logger.LogInformation(
+                "Getting url for OfferAffiliate {OfferAffiliateId} with affiliate {AffiliateId}",
+                id,
+                affiliateId);
 
             await using var context = new DatabaseContext(_dbContextOptionsBuilder.Options);
-            var offerAffiliate = await context.OfferAffiliates.FirstOrDefaultAsync(x => x.Id == id);
+            var offerAffiliate =
+                await context.OfferAffiliates.FirstOrDefaultAsync(x => x.Id == id && x.AffiliateId == affiliateId);
             if (offerAffiliate is null)
             {
-                throw new NotFoundException($"OfferAffiliate with id {nameof(OfferAffiliate.Id)}", id);
+                throw new NotFoundException($"OfferAffiliate {id} for affiliate", affiliateId);
             }
 
             var baseAddress = Program.ReloadedSettings(x => x.ExternalReferenceProxyApiUrl).Invoke();
