@@ -1,4 +1,3 @@
-using MarketingBox.Affiliate.Service.Domain.Models.Brands;
 using MarketingBox.Affiliate.Service.Domain.Models.OfferAffiliates;
 using MyNoSqlServer.Abstractions;
 
@@ -12,7 +11,6 @@ public class OfferAffiliateNoSql : MyNoSqlDbEntity
     public static string GenerateRowKey(string uniqueId) => $"{uniqueId}";
 
     public OfferAffiliate OfferAffiliate { get; set; }
-    public Brand Brand { get; set; }
 
     public static OfferAffiliateNoSql Create(OfferAffiliate offerAffiliate)
     {
@@ -20,8 +18,7 @@ public class OfferAffiliateNoSql : MyNoSqlDbEntity
         {
             PartitionKey = GeneratePartitionKey(),
             RowKey = GenerateRowKey(offerAffiliate.UniqueId),
-            OfferAffiliate = offerAffiliate,
-            Brand = offerAffiliate.Offer.Brand
+            OfferAffiliate = offerAffiliate
         };
     }
 }
