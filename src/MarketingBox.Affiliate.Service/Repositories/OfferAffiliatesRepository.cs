@@ -164,11 +164,6 @@ public class OfferAffiliatesRepository : IOfferAffiliatesRepository
 
             var result = query.ToList();
 
-            if (!result.Any())
-            {
-                throw new NotFoundException(NotFoundException.DefaultMessage);
-            }
-
             return (result, total);
         }
         catch (Exception e)
