@@ -10,7 +10,4 @@ public class OfferAffiliateByIdRequest : ValidatableEntity
 {
     [DataMember(Order = 1), Required, AdvancedCompare(ComparisonType.GreaterThanOrEqual, 1)]
     public long? OfferAffiliateId { get; set; }
-    
-    [DataMember(Order = 2), Required, AdvancedCompare(ComparisonType.GreaterThanOrEqual, 1)]
-    public long? AffiliateId { get; set; }
 }

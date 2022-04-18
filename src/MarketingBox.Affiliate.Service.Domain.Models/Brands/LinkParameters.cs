@@ -7,7 +7,7 @@ namespace MarketingBox.Affiliate.Service.Domain.Models.Brands;
 [DataContract]
 public class LinkParameters : ValidatableEntity
 {
-    [DataMember(Order = 1), StringLength(20,MinimumLength = 1)] public string ClickId { get; set; }
+    [DataMember(Order = 1), Required, StringLength(20,MinimumLength = 1)] public string ClickId { get; set; }
     [DataMember(Order = 2), StringLength(20,MinimumLength = 1)] public string Language { get; set; }
     [DataMember(Order = 3), StringLength(20,MinimumLength = 1)] public string MPC_1 { get; set; }
     [DataMember(Order = 4), StringLength(20,MinimumLength = 1)] public string MPC_2 { get; set; }

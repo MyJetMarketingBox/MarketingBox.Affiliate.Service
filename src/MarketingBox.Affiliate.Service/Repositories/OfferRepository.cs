@@ -289,5 +289,44 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 throw;
             }
         }
+        
+        public async Task<string> GetUrlAsync(long offerId, long affiliateId)
+        {
+            try
+            {
+                _logger.LogInformation(
+                    "Getting url for Offer id {OfferAffiliateId} for affiliate id{AffiliateId}",
+                    offerId,
+                    affiliateId);
+
+                await using var context = new DatabaseContext(_dbContextOptionsBuilder.Options);
+                var offerEntity =
+                    await context.Offers
+                        .Include(x => x.OfferAffiliates)
+                        .FirstOrDefaultAsync(x => x.Id == offerId);
+                if (offerEntity is null)
+                {
+                    throw new NotFoundException(nameof(offerId), offerId);
+                }
+                ValidateAccess(affiliateId, offerEntity);
+
+                var offerAffiliate = offerEntity.OfferAffiliates.FirstOrDefault(x => x.AffiliateId == affiliateId);
+                if (offerAffiliate is null)
+                {
+                    throw new NotFoundException($"OfferAffiliate for offer {offerId} for affiliate", affiliateId);
+                }
+
+                var baseAddress = Program.ReloadedSettings(x => x.ExternalReferenceProxyApiUrl).Invoke();
+                var relativeAddress = Program.ReloadedSettings(x => x.ExternalReferenceProxyApiUrlPath).Invoke();
+
+                var url = baseAddress + relativeAddress + offerAffiliate.UniqueId;
+                return url;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, e.Message);
+                throw;
+            }
+        }
     }
 }

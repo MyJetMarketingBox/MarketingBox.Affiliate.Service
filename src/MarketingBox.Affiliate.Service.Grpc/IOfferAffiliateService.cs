@@ -21,7 +21,4 @@ public interface IOfferAffiliateService
     
     [OperationContract]
     Task<Response<IReadOnlyCollection<OfferAffiliate>>> GetAllAsync(GetAllRequest request);
-    
-    [OperationContract]
-    Task<Response<string>> GetUrlAsync(OfferAffiliateByIdRequest request);
 }

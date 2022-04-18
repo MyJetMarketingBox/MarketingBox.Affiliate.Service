@@ -12,5 +12,6 @@ namespace MarketingBox.Affiliate.Service.Repositories.Interfaces
         Task DeleteAsync(long id, long affiliateId);
         Task<Offer> UpdateAsync(OfferUpdateRequest request);
         Task<(IReadOnlyCollection<Offer>, int)> SearchAsync(OfferSearchRequest request);
+        Task<string> GetUrlAsync(long offerId, long affiliateId);
     }
 }

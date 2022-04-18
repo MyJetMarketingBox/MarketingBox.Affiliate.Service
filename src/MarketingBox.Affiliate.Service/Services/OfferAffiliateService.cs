@@ -117,24 +117,4 @@ public class OfferAffiliateService : IOfferAffiliateService
             return e.FailedResponse<IReadOnlyCollection<OfferAffiliate>>();
         }
     }
-
-    public async Task<Response<string>> GetUrlAsync(OfferAffiliateByIdRequest request)
-    {
-        try
-        {
-            request.ValidateEntity();
-
-            var url = await _repository.GetUrlAsync(request.OfferAffiliateId.Value, request.AffiliateId.Value);
-            return new Response<string>
-            {
-                Status = ResponseStatus.Ok,
-                Data = url,
-            };
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, e.Message);
-            return e.FailedResponse<string>();
-        }
-    }
 }

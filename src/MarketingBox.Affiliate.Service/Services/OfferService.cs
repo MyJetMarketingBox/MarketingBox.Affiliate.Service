@@ -36,7 +36,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 request.ValidateEntity();
 
                 var result = await _offerRepository.CreateAsync(request);
-                
+
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(OfferNoSql.Create(result));
                 return new Response<Offer>
                 {
@@ -57,7 +57,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 request.ValidateEntity();
 
                 var result = await _offerRepository.UpdateAsync(request);
-                
+
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(OfferNoSql.Create(result));
                 return new Response<Offer>
                 {
@@ -97,7 +97,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 request.ValidateEntity();
 
                 await _offerRepository.DeleteAsync(request.Id.Value, request.AffiliateId.Value);
-                
+
                 await _myNoSqlServerDataWriter.DeleteAsync(
                     OfferNoSql.GeneratePartitionKey(),
                     OfferNoSql.GenerateRowKey(request.Id.Value));
@@ -130,6 +130,25 @@ namespace MarketingBox.Affiliate.Service.Services
             catch (Exception e)
             {
                 return e.FailedResponse<IReadOnlyCollection<Offer>>();
+            }
+        }
+
+        public async Task<Response<string>> GetUrlAsync(GetUrlRequest request)
+        {
+            try
+            {
+                request.ValidateEntity();
+                
+                var result = await _offerRepository.GetUrlAsync(request.OfferId.Value, request.AffiliateId.Value);
+                return new Response<string>()
+                {
+                    Data = result,
+                    Status = ResponseStatus.Ok
+                };
+            }
+            catch (Exception e)
+            {
+                return e.FailedResponse<string>();
             }
         }
     }

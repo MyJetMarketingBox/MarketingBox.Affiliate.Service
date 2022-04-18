@@ -177,34 +177,4 @@ public class OfferAffiliatesRepository : IOfferAffiliatesRepository
             throw;
         }
     }
-
-    public async Task<string> GetUrlAsync(long id, long affiliateId)
-    {
-        try
-        {
-            _logger.LogInformation(
-                "Getting url for OfferAffiliate {OfferAffiliateId} with affiliate {AffiliateId}",
-                id,
-                affiliateId);
-
-            await using var context = new DatabaseContext(_dbContextOptionsBuilder.Options);
-            var offerAffiliate =
-                await context.OfferAffiliates.FirstOrDefaultAsync(x => x.Id == id && x.AffiliateId == affiliateId);
-            if (offerAffiliate is null)
-            {
-                throw new NotFoundException($"OfferAffiliate {id} for affiliate", affiliateId);
-            }
-
-            var baseAddress = Program.ReloadedSettings(x => x.ExternalReferenceProxyApiUrl).Invoke();
-            var relativeAddress = Program.ReloadedSettings(x => x.ExternalReferenceProxyApiUrlPath).Invoke();
-
-            var url = baseAddress + relativeAddress + offerAffiliate.UniqueId;
-            return url;
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, e.Message);
-            throw;
-        }
-    }
 }
