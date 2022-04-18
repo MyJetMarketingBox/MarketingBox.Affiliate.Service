@@ -265,11 +265,6 @@ namespace MarketingBox.Affiliate.Service.Services
                     .AsEnumerable()
                     .ToArray();
 
-                if (response.Length == 0)
-                {
-                    throw new NotFoundException(NotFoundException.DefaultMessage);
-                }
-
                 _logger.LogInformation(
                     "CampaignService.SearchAsync return campaigns : {@Response}", response);
 

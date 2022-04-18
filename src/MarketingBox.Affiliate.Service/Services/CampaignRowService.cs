@@ -279,10 +279,6 @@ namespace MarketingBox.Affiliate.Service.Services
                 await query.LoadAsync();
 
                 var response = query.ToArray();
-                if (response.Length == 0)
-                {
-                    throw new NotFoundException(NotFoundException.DefaultMessage);
-                }
 
                 return new Response<IReadOnlyCollection<CampaignRow>>()
                 {

@@ -326,11 +326,6 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 var response = query.ToArray();
 
-                if (!response.Any())
-                {
-                    throw new NotFoundException(NotFoundException.DefaultMessage);
-                }
-
                 return new Response<IReadOnlyCollection<Brand>>
                 {
                     Status = ResponseStatus.Ok,

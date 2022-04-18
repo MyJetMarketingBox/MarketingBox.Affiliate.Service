@@ -73,10 +73,6 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 await query.LoadAsync();
                 
                 var result = query.ToList();
-                if (!result.Any())
-                {
-                    throw new NotFoundException(NotFoundException.DefaultMessage);
-                }
 
                 return (result, total);
             }
