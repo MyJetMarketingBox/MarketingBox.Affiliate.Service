@@ -6,6 +6,7 @@ using AutoMapper;
 using MarketingBox.Affiliate.Postgres;
 using MarketingBox.Affiliate.Service.Domain.Models.Country;
 using MarketingBox.Affiliate.Service.Domain.Models.Integrations;
+using MarketingBox.Affiliate.Service.Domain.Models.Languages;
 using MarketingBox.Affiliate.Service.Domain.Models.Offers;
 using MarketingBox.Affiliate.Service.Grpc.Requests.Offers;
 using MarketingBox.Affiliate.Service.Repositories.Interfaces;
@@ -52,6 +53,17 @@ namespace MarketingBox.Affiliate.Service.Repositories
 
             return existingGeos;
         }
+        
+        private static async Task<Language> EnsureLanguage(int languageId, DatabaseContext context)
+        {
+            var language = await context.Languages.FirstOrDefaultAsync(x => x.Id == languageId);
+            if (language is null)
+            {
+                throw new NotFoundException("Language with id", languageId);
+            }
+
+            return language;
+        }
 
 
         private static void ValidateAccess(long affiliateId, Offer offerEntity)
@@ -87,6 +99,7 @@ namespace MarketingBox.Affiliate.Service.Repositories
 
                 var offerEntity = _mapper.Map<Offer>(request);
                 offerEntity.Geos = existingGeos;
+                offerEntity.Language = await EnsureLanguage(request.LanguageId.Value, context);
                 await context.AddAsync(offerEntity);
                 await context.SaveChangesAsync();
 
@@ -180,12 +193,12 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 var existingGeos = await EnsureGeos(request.GeoIds, context);
 
                 offerEntity.Currency = request.Currency.Value;
-                offerEntity.LanguageId = request.LanguageId.Value;
                 offerEntity.Privacy = request.Privacy ?? OfferPrivacy.Public;
                 offerEntity.State = request.State ?? OfferState.Active;
                 offerEntity.BrandId = request.BrandId.Value;
                 offerEntity.Name = request.Name;
                 offerEntity.Geos = existingGeos;
+                offerEntity.Language = await EnsureLanguage(request.LanguageId.Value, context);
                 await context.SaveChangesAsync();
 
                 return offerEntity;
