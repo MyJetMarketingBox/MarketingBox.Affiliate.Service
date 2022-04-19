@@ -11,6 +11,7 @@ public class OfferNoSql : MyNoSqlDbEntity
     public static string GenerateRowKey(long id) => $"{id}";
 
     public Domain.Models.Offers.Offer Offer { get; set; }
+    public string UniqueId { get; set; }
     
     public static OfferNoSql Create(Domain.Models.Offers.Offer offer)
     {
@@ -18,7 +19,8 @@ public class OfferNoSql : MyNoSqlDbEntity
         {
             PartitionKey = GeneratePartitionKey(),
             RowKey = GenerateRowKey(offer.Id),
-            Offer = offer
+            Offer = offer,
+            UniqueId = offer.UniqueId
         };
     }
 }
