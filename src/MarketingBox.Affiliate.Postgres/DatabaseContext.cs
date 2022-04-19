@@ -183,6 +183,7 @@ public class DatabaseContext : MyDbContext
         modelBuilder.Entity<Offer>().HasIndex(x => x.Currency);
         modelBuilder.Entity<Offer>().HasIndex(x => x.State);
         modelBuilder.Entity<Offer>().HasIndex(x => x.Privacy);
+        modelBuilder.Entity<Offer>().Property(x => x.UniqueId);
 
         modelBuilder.Entity<Offer>()
             .HasOne(x => x.Language)

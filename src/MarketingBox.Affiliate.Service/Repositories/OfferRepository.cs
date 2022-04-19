@@ -53,7 +53,7 @@ namespace MarketingBox.Affiliate.Service.Repositories
 
             return existingGeos;
         }
-        
+
         private static async Task<Language> EnsureLanguage(int languageId, DatabaseContext context)
         {
             var language = await context.Languages.FirstOrDefaultAsync(x => x.Id == languageId);
@@ -288,7 +288,7 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 await query.LoadAsync();
 
                 var result = query.ToList();
-                
+
                 return (result, total);
             }
             catch (Exception e)
@@ -297,13 +297,13 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 throw;
             }
         }
-        
+
         public async Task<string> GetUrlAsync(long offerId, long affiliateId)
         {
             try
             {
                 _logger.LogInformation(
-                    "Getting url for Offer id {OfferAffiliateId} for affiliate id{AffiliateId}",
+                    "Getting url for Offer id {OfferAffiliateId} for affiliate id {AffiliateId}",
                     offerId,
                     affiliateId);
 
@@ -316,18 +316,29 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 {
                     throw new NotFoundException(nameof(offerId), offerId);
                 }
-                ValidateAccess(affiliateId, offerEntity);
 
-                var offerAffiliate = offerEntity.OfferAffiliates.FirstOrDefault(x => x.AffiliateId == affiliateId);
-                if (offerAffiliate is null)
+                string uniqueId;
+                if (offerEntity.Privacy == OfferPrivacy.Public)
                 {
-                    throw new NotFoundException($"OfferAffiliate for offer {offerId} for affiliate", affiliateId);
+                    uniqueId = $"{offerEntity.UniqueId}{affiliateId}";
+                }
+                else
+                {
+                    ValidateAccess(affiliateId, offerEntity);
+
+                    var offerAffiliate = offerEntity.OfferAffiliates.FirstOrDefault(x => x.AffiliateId == affiliateId);
+                    if (offerAffiliate is null)
+                    {
+                        throw new NotFoundException($"OfferAffiliate for offer {offerId} for affiliate", affiliateId);
+                    }
+
+                    uniqueId = offerAffiliate.UniqueId;
                 }
 
                 var baseAddress = Program.ReloadedSettings(x => x.ExternalReferenceProxyApiUrl).Invoke();
                 var relativeAddress = Program.ReloadedSettings(x => x.ExternalReferenceProxyApiUrlPath).Invoke();
 
-                var url = baseAddress + relativeAddress + offerAffiliate.UniqueId;
+                var url = $"{baseAddress}{relativeAddress}{uniqueId}";
                 return url;
             }
             catch (Exception e)

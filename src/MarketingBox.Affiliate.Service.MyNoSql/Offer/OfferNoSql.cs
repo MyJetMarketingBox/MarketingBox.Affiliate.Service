@@ -11,7 +11,7 @@ public class OfferNoSql : MyNoSqlDbEntity
     public static string GenerateRowKey(long id) => $"{id}";
 
     public Domain.Models.Offers.Offer Offer { get; set; }
-
+    
     public static OfferNoSql Create(Domain.Models.Offers.Offer offer)
     {
         return new()

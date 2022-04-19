@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using MarketingBox.Affiliate.Service.Domain.Models.Brands;
@@ -29,5 +30,7 @@ namespace MarketingBox.Affiliate.Service.Domain.Models.Offers
         [DataMember(Order = 10)] public long BrandId { get; set; }
 
         public Brand Brand { get; set; }
+        
+        public string UniqueId { get; } = Guid.NewGuid().ToString("N");
     }
 }
