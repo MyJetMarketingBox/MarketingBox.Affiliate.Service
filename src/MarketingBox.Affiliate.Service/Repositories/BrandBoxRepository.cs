@@ -44,7 +44,7 @@ public class BrandBoxRepository : IBrandBoxRepository
                 .Where(x => brandIds.Contains(x.Id))
                 .Select(x => x.Id)
                 .ToListAsync();
-        var notFoundIds = existingBrandIds.Except(brandIds).ToList();
+        var notFoundIds = brandIds.Except(existingBrandIds).ToList();
         if (notFoundIds.Any())
         {
             throw new NotFoundException(
