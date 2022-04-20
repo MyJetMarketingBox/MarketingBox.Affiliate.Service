@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using MarketingBox.Affiliate.Service.Domain.Models.Affiliates;
+using MarketingBox.Affiliate.Service.Domain.Models.BrandBox;
 using MarketingBox.Affiliate.Service.Domain.Models.Brands;
 using MarketingBox.Affiliate.Service.Domain.Models.CampaignRows;
 using MarketingBox.Affiliate.Service.Domain.Models.Campaigns;
@@ -21,6 +22,7 @@ public class DatabaseContext : MyDbContext
 
     private const string AffiliateTableName = "affiliates";
     private const string BrandTableName = "brands";
+    private const string BrandBoxTableName = "brandboxes";
     private const string CampaignTableName = "campaigns";
     private const string CampaignRowTableName = "campaign-rows";
     private const string IntegrationTableName = "integrations";
@@ -45,6 +47,7 @@ public class DatabaseContext : MyDbContext
     public DbSet<Campaign> Campaigns { get; set; }
     public DbSet<Integration> Integrations { get; set; }
     public DbSet<Brand> Brands { get; set; }
+    public DbSet<BrandBox> BrandBoxes { get; set; }
     public DbSet<CampaignRow> CampaignRows { get; set; }
     public DbSet<AffiliateSubParam> AffiliateSubParams { get; set; }
     public DbSet<Offer> Offers { get; set; }
@@ -77,10 +80,21 @@ public class DatabaseContext : MyDbContext
         SetBrandPayout(modelBuilder);
         SetAffiliatePayout(modelBuilder);
         SetOfferAffiliate(modelBuilder);
+        SetBrandBox(modelBuilder);
 
         base.OnModelCreating(modelBuilder);
     }
 
+    
+    private static void SetBrandBox(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<BrandBox>().ToTable(BrandBoxTableName);
+        modelBuilder.Entity<BrandBox>().HasKey(x => x.Id);
+        modelBuilder.Entity<BrandBox>().HasIndex(x => x.Name).IsUnique();
+        modelBuilder.Entity<BrandBox>().Property(x => x.Name).IsRequired();
+        modelBuilder.Entity<BrandBox>().HasIndex(x => x.CreatedAt);
+    }
+    
     private static void SetOfferAffiliate(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<OfferAffiliate>().ToTable(OfferAffiliatesTableName);

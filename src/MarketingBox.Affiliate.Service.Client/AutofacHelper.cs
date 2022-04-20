@@ -26,6 +26,7 @@ namespace MarketingBox.Affiliate.Service.Client
             builder.RegisterInstance(factory.GetOfferService()).As<IOfferService>().SingleInstance();
             builder.RegisterInstance(factory.GetOfferAffiliateService()).As<IOfferAffiliateService>().SingleInstance();
             builder.RegisterInstance(factory.GetLanguageService()).As<ILanguageService>().SingleInstance();
+            builder.RegisterInstance(factory.GetBrandBoxService()).As<IBrandBoxService>().SingleInstance();
         }
         public static void RegisterCountryClient(
             this ContainerBuilder builder,

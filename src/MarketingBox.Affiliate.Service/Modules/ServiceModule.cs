@@ -161,6 +161,12 @@ namespace MarketingBox.Affiliate.Service.Modules
                 .As<IOfferAffiliatesRepository>()
                 .SingleInstance();
         }
+        private static void SetupBrandBoxes(ContainerBuilder builder)
+        {
+            builder.RegisterType<BrandBoxRepository>()
+                .As<IBrandBoxRepository>()
+                .SingleInstance();
+        }
 
         protected override void Load(ContainerBuilder builder)
         {
@@ -187,6 +193,7 @@ namespace MarketingBox.Affiliate.Service.Modules
             SetupLanguages(builder);
             SetupPayouts(builder);
             SetupOfferAffiliates(builder);
+            SetupBrandBoxes(builder);
         }
 
     }

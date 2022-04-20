@@ -31,5 +31,6 @@ namespace MarketingBox.Affiliate.Service.Client
         public IOfferService GetOfferService() => CreateGrpcService<IOfferService>();
         public IOfferAffiliateService GetOfferAffiliateService() => CreateGrpcService<IOfferAffiliateService>();
         public ILanguageService GetLanguageService() => CreateGrpcService<ILanguageService>();
+        public IBrandBoxService GetBrandBoxService() => CreateGrpcService<IBrandBoxService>();
     }
 }

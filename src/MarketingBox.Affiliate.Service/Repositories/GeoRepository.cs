@@ -181,7 +181,7 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 await ValidateExistingNames(result, context, result.Id);
 
                 await context.SaveChangesAsync();
-                return await GetAsync(result.Id);
+                return result;
             }
             catch (Exception e)
             {
