@@ -12,6 +12,9 @@ public interface IBrandBoxService
 {
     [OperationContract]
     Task<Response<IReadOnlyCollection<BrandBox>>> SearchAsync(BrandBoxSearchRequest request);
+    
+    [OperationContract]
+    Task<Response<IReadOnlyCollection<BrandBox>>> GetByIdsAsync(BrandBoxByIdsRequest request);
 
     [OperationContract]
     Task<Response<bool>> DeleteAsync(BrandBoxByIdRequest request);

@@ -202,4 +202,20 @@ public class BrandBoxRepository : IBrandBoxRepository
             throw;
         }
     }
+
+    public async Task<(IReadOnlyCollection<BrandBox>, int)> GetByIdsAsync(List<long> ids)
+    {
+        try
+        {
+            await using var context = new DatabaseContext(_dbContextOptionsBuilder.Options);
+            var result = await context.BrandBoxes.Where(x => ids.Contains(x.Id)).ToListAsync();
+
+            return (result, result.Count);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, e.Message);
+            throw;
+        }
+    }
 }

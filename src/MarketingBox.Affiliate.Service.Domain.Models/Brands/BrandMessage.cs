@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Runtime.Serialization;
-using MarketingBox.Affiliate.Service.Domain.Models.CampaignRows;
-using MarketingBox.Affiliate.Service.Domain.Models.Integrations;
-using MarketingBox.Affiliate.Service.Domain.Models.Offers;
+using MarketingBox.Sdk.Common.Enums;
 
 namespace MarketingBox.Affiliate.Service.Domain.Models.Brands
 {

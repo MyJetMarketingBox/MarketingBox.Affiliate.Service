@@ -1,6 +1,6 @@
 ﻿using System.Runtime.Serialization;
-using MarketingBox.Affiliate.Service.Domain.Models.Integrations;
 using MarketingBox.Sdk.Common.Attributes;
+using MarketingBox.Sdk.Common.Enums;
 using MarketingBox.Sdk.Common.Models;
 
 namespace MarketingBox.Affiliate.Service.Grpc.Requests.Brands

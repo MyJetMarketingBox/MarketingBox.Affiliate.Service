@@ -12,4 +12,5 @@ public interface IBrandBoxRepository
     Task<BrandBox> CreateAsync(BrandBox request);
     Task<BrandBox> UpdateAsync(BrandBoxUpdateRequest request);
     Task<(IReadOnlyCollection<BrandBox>, int)> SearchAsync(BrandBoxSearchRequest request);
+    Task<(IReadOnlyCollection<BrandBox>, int)> GetByIdsAsync(List<long> ids);
 }

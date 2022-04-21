@@ -48,6 +48,27 @@ public class BrandBoxService : IBrandBoxService
         }
     }
 
+    public async Task<Response<IReadOnlyCollection<BrandBox>>> GetByIdsAsync(BrandBoxByIdsRequest request)
+    {
+        try
+        {
+            request.ValidateEntity();
+
+            var (result, total) = await _repository.GetByIdsAsync(request.BrandBoxIds);
+            return new Response<IReadOnlyCollection<BrandBox>>
+            {
+                Status = ResponseStatus.Ok,
+                Data = result,
+                Total = total
+            };
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, e.Message);
+            return e.FailedResponse<IReadOnlyCollection<BrandBox>>();
+        }
+    }
+
     public async Task<Response<bool>> DeleteAsync(BrandBoxByIdRequest request)
     {
         try
