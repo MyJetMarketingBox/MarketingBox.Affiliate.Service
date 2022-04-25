@@ -145,6 +145,7 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 affiliatePayout.Currency = request.Currency;
                 affiliatePayout.PayoutType = request.PayoutType.Value;
                 affiliatePayout.ModifiedAt = DateTime.UtcNow;
+                affiliatePayout.Name = request.Name;
 
                 await ctx.SaveChangesAsync();
 
