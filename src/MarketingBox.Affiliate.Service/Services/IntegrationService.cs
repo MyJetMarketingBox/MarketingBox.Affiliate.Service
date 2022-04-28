@@ -67,6 +67,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 };
 
                 ctx.Integrations.Add(integration);
+                await ctx.SaveChangesAsync();
 
                 var integrationMessage = MapToMessage(integration);
                 var nosql = IntegrationNoSql.Create(integrationMessage);
@@ -75,7 +76,6 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 await _publisherIntegrationUpdated.PublishAsync(integrationMessage);
                 _logger.LogInformation("Sent Integration update to service bus {@context}", request);
-                await ctx.SaveChangesAsync();
 
                 return new Response<Integration>()
                 {
