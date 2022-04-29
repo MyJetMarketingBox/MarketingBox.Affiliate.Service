@@ -19,4 +19,7 @@ public class PayoutUpdateRequest : ValidatableEntity
 
     [DataMember(Order = 5), Required, AdvancedCompare(ComparisonType.GreaterThanOrEqual, 1)]
     public int? GeoId { get; set; }
+    
+    [DataMember(Order = 6), Required] 
+    public string Name { get; set; }
 }

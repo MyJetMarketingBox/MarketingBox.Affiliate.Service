@@ -18,5 +18,6 @@ namespace MarketingBox.Affiliate.Service.Domain.Models.Brands
         [DataMember(Order = 7)] public DateTime ModifiedAt { get; set; }
         public int GeoId { get; set; }
         [DataMember(Order = 9)] public Geo Geo { get; set; }
+        [DataMember(Order = 10)] public string Name { get; set; }
     }
 }
