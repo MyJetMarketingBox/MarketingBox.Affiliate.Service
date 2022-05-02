@@ -127,7 +127,7 @@ public class OfferAffiliatesRepository : IOfferAffiliatesRepository
         }
     }
 
-    public async Task<(IReadOnlyCollection<OfferAffiliate>, int)> GetAllAsync(GetAllRequest request)
+    public async Task<(IReadOnlyCollection<OfferAffiliate>, int)> SearchAsync(OfferAffiliateSearchRequest request)
     {
         try
         {

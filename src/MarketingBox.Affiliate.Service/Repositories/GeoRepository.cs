@@ -36,13 +36,28 @@ namespace MarketingBox.Affiliate.Service.Repositories
             _dbContextOptionsBuilder = dbContextOptionsBuilder;
         }
 
-        public async Task<(IReadOnlyCollection<Geo>, int)> GetAllAsync(GetAllRequest request)
+        public async Task<(IReadOnlyCollection<Geo>, int)> SearchAsync(GeoSearchRequest request)
         {
             try
             {
                 await using var context = new DatabaseContext(_dbContextOptionsBuilder.Options);
                 var query = context.Geos
                     .AsQueryable();
+                
+                if (!string.IsNullOrEmpty(request.Name))
+                {
+                    query = query.Where(x => x.Name.ToLower().Contains(request.Name.ToLowerInvariant()));
+                }
+                
+                if (request.GeoId.HasValue)
+                {
+                    query = query.Where(x => x.Id == request.GeoId);
+                }
+                
+                if (request.CountryIds.Any())
+                {
+                    query = query.Where(x => request.CountryIds.Intersect(x.CountryIds).Any());
+                }
                 
                 var total = query.Count();
 

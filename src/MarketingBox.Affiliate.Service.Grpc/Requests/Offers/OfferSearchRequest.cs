@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Runtime.Serialization;
 using MarketingBox.Affiliate.Service.Domain.Models.Common;
 using MarketingBox.Affiliate.Service.Domain.Models.Offers;
@@ -18,10 +19,11 @@ public class OfferSearchRequest : ValidatableEntity
     [DataMember(Order = 3)] public bool Asc { get; set; }
 
     [DataMember(Order = 4)] public long? AffiliateId { get; set; }
-    [DataMember(Order = 5)] public string OfferName { get; set; }
-    [DataMember(Order = 6)] public int? LanguageId { get; set; }
-    [DataMember(Order = 7)] public OfferPrivacy? Privacy { get; set; }
-    [DataMember(Order = 8)] public OfferState? State { get; set; }
-    [DataMember(Order = 9)] public Currency? Currency { get; set; }
-    [DataMember(Order = 10)] public long? BrandId { get; set; }
+    [DataMember(Order = 5)] public long? OfferId { get; set; }
+    [DataMember(Order = 6)] public string OfferName { get; set; }
+    [DataMember(Order = 7)] public List<int> LanguageIds { get; set; } = new();
+    [DataMember(Order = 8)] public List<OfferPrivacy> Privacies { get; set; } = new();
+    [DataMember(Order = 9)] public List<OfferState> States { get; set; } = new();
+    [DataMember(Order = 10)] public List<int> GeoIds { get; set; } = new();
+    [DataMember(Order = 11)] public List<long> BrandIds { get; set; } = new();
 }

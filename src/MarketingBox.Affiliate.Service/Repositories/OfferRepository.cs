@@ -229,29 +229,34 @@ namespace MarketingBox.Affiliate.Service.Repositories
                         x.Privacy == OfferPrivacy.Public);
                 }
 
-                if (request.Privacy.HasValue)
+                if (request.OfferId.HasValue)
                 {
-                    query = query.Where(x => x.Privacy == request.Privacy);
+                    query = query.Where(x => x.Id == request.OfferId);
                 }
 
-                if (request.State.HasValue)
+                if (request.Privacies.Any())
                 {
-                    query = query.Where(x => x.State == request.State);
+                    query = query.Where(x => request.Privacies.Contains(x.Privacy));
                 }
 
-                if (request.Currency.HasValue)
+                if (request.States.Any())
                 {
-                    query = query.Where(x => x.Currency == request.Currency);
+                    query = query.Where(x => request.States.Contains(x.State));
                 }
 
-                if (request.LanguageId.HasValue)
+                if (request.GeoIds.Any())
                 {
-                    query = query.Where(x => x.LanguageId == request.LanguageId);
+                    query = query.Where(x => request.GeoIds.Intersect(x.Geos.Select(x => x.Id)).Any());
                 }
 
-                if (request.BrandId.HasValue)
+                if (request.LanguageIds.Any())
                 {
-                    query = query.Where(x => x.BrandId == request.BrandId);
+                    query = query.Where(x => request.LanguageIds.Contains(x.LanguageId));
+                }
+
+                if (request.BrandIds.Any())
+                {
+                    query = query.Where(x => request.BrandIds.Contains(x.BrandId));
                 }
 
                 if (!string.IsNullOrEmpty(request.OfferName))

@@ -12,7 +12,7 @@ namespace MarketingBox.Affiliate.Service.Grpc;
 public interface IGeoService
 {
     [OperationContract]
-    Task<Response<IReadOnlyCollection<Geo>>> GetAllAsync(GetAllRequest request);
+    Task<Response<IReadOnlyCollection<Geo>>> SearchAllAsync(GeoSearchRequest request);
     [OperationContract]
     Task<Response<bool>> DeleteAsync(GeoByIdRequest request);
     [OperationContract]

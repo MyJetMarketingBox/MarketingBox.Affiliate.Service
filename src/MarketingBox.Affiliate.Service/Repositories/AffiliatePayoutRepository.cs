@@ -173,6 +173,21 @@ namespace MarketingBox.Affiliate.Service.Repositories
                     query = query.Where(x => x.Affiliates.Any(z => z.Id == request.EntityId));
                 }
 
+                if (!string.IsNullOrEmpty(request.Name))
+                {
+                    query = query.Where(x => x.Name.ToLower().Contains(request.Name.ToLowerInvariant()));
+                }
+
+                if (request.GeoIds.Any())
+                {
+                    query = query.Where(x => request.GeoIds.Contains(x.GeoId));
+                }
+                
+                if (request.PayoutTypes.Any())
+                {
+                    query = query.Where(x => request.PayoutTypes.Contains(x.PayoutType));
+                }
+
                 var total = query.Count();
 
                 if (request.Asc)

@@ -20,5 +20,5 @@ public interface IOfferAffiliateService
     Task<Response<bool>> DeleteAsync(OfferAffiliateByIdRequest request);
     
     [OperationContract]
-    Task<Response<IReadOnlyCollection<OfferAffiliate>>> GetAllAsync(GetAllRequest request);
+    Task<Response<IReadOnlyCollection<OfferAffiliate>>> SearchAsync(OfferAffiliateSearchRequest request);
 }

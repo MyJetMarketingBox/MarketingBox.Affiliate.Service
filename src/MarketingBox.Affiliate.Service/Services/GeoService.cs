@@ -26,13 +26,13 @@ namespace MarketingBox.Affiliate.Service.Services
             _repository = repository;
         }
 
-        public async Task<Response<IReadOnlyCollection<Geo>>> GetAllAsync(GetAllRequest request)
+        public async Task<Response<IReadOnlyCollection<Geo>>> SearchAllAsync(GeoSearchRequest request)
         {
             try
             {
                 request.ValidateEntity();
 
-                var (result, total) = await _repository.GetAllAsync(request);
+                var (result, total) = await _repository.SearchAsync(request);
                 return new Response<IReadOnlyCollection<Geo>>
                 {
                     Status = ResponseStatus.Ok,

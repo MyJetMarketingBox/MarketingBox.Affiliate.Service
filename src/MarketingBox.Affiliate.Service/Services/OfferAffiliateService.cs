@@ -97,13 +97,13 @@ public class OfferAffiliateService : IOfferAffiliateService
         }
     }
 
-    public async Task<Response<IReadOnlyCollection<OfferAffiliate>>> GetAllAsync(GetAllRequest request)
+    public async Task<Response<IReadOnlyCollection<OfferAffiliate>>> SearchAsync(OfferAffiliateSearchRequest request)
     {
         try
         {
             request.ValidateEntity();
 
-            var (response, total) = await _repository.GetAllAsync(request);
+            var (response, total) = await _repository.SearchAsync(request);
             return new Response<IReadOnlyCollection<OfferAffiliate>>
             {
                 Status = ResponseStatus.Ok,

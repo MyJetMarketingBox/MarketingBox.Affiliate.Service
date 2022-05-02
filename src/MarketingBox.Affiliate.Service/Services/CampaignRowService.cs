@@ -240,14 +240,44 @@ namespace MarketingBox.Affiliate.Service.Services
                     query = query.Where(x => x.BrandId == request.BrandId);
                 }
 
-                if (request.CampaignId.HasValue)
+                if (request.CampaignIds.Any())
                 {
-                    query = query.Where(x => x.CampaignId == request.CampaignId);
+                    query = query.Where(x => request.CampaignIds.Contains(x.CampaignId));
                 }
 
                 if (request.CampaignRowId.HasValue)
                 {
                     query = query.Where(x => x.Id == request.CampaignRowId);
+                }
+
+                if (request.GeoIds.Any())
+                {
+                    query = query.Where(x => request.GeoIds.Contains(x.GeoId));
+                }
+
+                if (request.Priority.HasValue)
+                {
+                    query = query.Where(x => x.Priority == request.Priority);
+                }
+
+                if (request.Weight.HasValue)
+                {
+                    query = query.Where(x => x.Weight == request.Weight);
+                }
+
+                if (request.CapType.HasValue)
+                {
+                    query = query.Where(x => x.CapType == request.CapType);
+                }
+
+                if (request.DailyCapValue.HasValue)
+                {
+                    query = query.Where(x => x.DailyCapValue == request.DailyCapValue);
+                }
+
+                if (request.EnableTraffic.HasValue)
+                {
+                    query = query.Where(x => x.EnableTraffic == request.EnableTraffic);
                 }
 
                 var total = query.Count();

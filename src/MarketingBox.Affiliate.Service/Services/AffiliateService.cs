@@ -341,7 +341,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 await ctx.SaveChangesAsync();
 
                 await CreateOrUpdateUser(affiliateExisting);
-                
+
                 var affiliateMessage = _mapper.Map<AffiliateMessage>(affiliateExisting);
                 var nosql = AffiliateNoSql.Create(affiliateMessage);
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
@@ -431,7 +431,7 @@ namespace MarketingBox.Affiliate.Service.Services
             try
             {
                 request.ValidateEntity();
-                
+
                 await using var ctx = _databaseContextFactory.Create();
 
                 var query = ctx.Affiliates
@@ -467,6 +467,16 @@ namespace MarketingBox.Affiliate.Service.Services
                 if (request.CreatedAt.HasValue)
                 {
                     query = query.Where(x => x.CreatedAt.Date == request.CreatedAt.Value.Date);
+                }
+
+                if (request.State.HasValue)
+                {
+                    query = query.Where(x => x.State == request.State);
+                }
+
+                if (!string.IsNullOrEmpty(request.Phone))
+                {
+                    query = query.Where(x => x.Phone.Contains(request.Phone));
                 }
 
                 var total = query.Count();
