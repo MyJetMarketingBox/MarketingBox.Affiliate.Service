@@ -134,6 +134,11 @@ public class OfferAffiliatesRepository : IOfferAffiliatesRepository
             await using var context = new DatabaseContext(_dbContextOptionsBuilder.Options);
             var query = context.OfferAffiliates.AsQueryable();
 
+            if (request.OfferId.HasValue)
+            {
+                query = query.Where(x => x.OfferId == request.OfferId);
+            }
+
             var total = query.Count();
 
             if (request.Asc)
