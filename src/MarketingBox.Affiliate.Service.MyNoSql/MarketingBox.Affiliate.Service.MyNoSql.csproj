@@ -18,17 +18,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MarketingBox.Affiliate.Service.Domain.Models\MarketingBox.Affiliate.Service.Domain.Models.csproj" />
+    <ProjectReference Include="..\MarketingBox.Affiliate.Service.Domain\MarketingBox.Affiliate.Service.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="MyJetWallet.Sdk.Service" Version="2.1.7" />
     <PackageReference Include="MyJetWallet.Sdk.ServiceBus" Version="2.2.2" />
     <PackageReference Include="MyNoSqlServer.Abstractions" Version="1.2.6" />
-    <PackageReference Include="MyNoSqlServer.DataWriter" Version="1.7.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Common\" />
   </ItemGroup>
 
 </Project>

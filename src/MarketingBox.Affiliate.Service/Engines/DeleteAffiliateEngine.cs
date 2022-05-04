@@ -5,12 +5,10 @@ using MarketingBox.Affiliate.Postgres;
 using MarketingBox.Affiliate.Service.Messages.Affiliates;
 using MarketingBox.Affiliate.Service.MyNoSql.Affiliates;
 using MarketingBox.Auth.Service.Grpc;
-using MarketingBox.Auth.Service.Grpc.Models.Users.Requests;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MyJetWallet.Sdk.ServiceBus;
 using MyNoSqlServer.Abstractions;
-using Z.EntityFramework.Plus;
 
 namespace MarketingBox.Affiliate.Service.Engines
 {
@@ -40,14 +38,14 @@ namespace MarketingBox.Affiliate.Service.Engines
             await using var ctx = _databaseContextFactory.Create();
             try
             {
-                var partnerEntity = await ctx.Affiliates.FirstOrDefaultAsync(x => x.AffiliateId == affiliateId);
+                var partnerEntity = await ctx.Affiliates.FirstOrDefaultAsync(x => x.Id == affiliateId);
                 if (partnerEntity == null)
                     return;
                 try
                 {
                     await _myNoSqlServerDataWriter.DeleteAsync(
                         AffiliateNoSql.GeneratePartitionKey(partnerEntity.TenantId),
-                        AffiliateNoSql.GenerateRowKey(partnerEntity.AffiliateId));
+                        AffiliateNoSql.GenerateRowKey(partnerEntity.Id));
                 }
                 catch (Exception serializationException)
                 {
@@ -55,13 +53,11 @@ namespace MarketingBox.Affiliate.Service.Engines
                 }
                 await _publisherPartnerRemoved.PublishAsync(new AffiliateRemoved()
                 {
-                    AffiliateId = partnerEntity.AffiliateId,
-                    Sequence = partnerEntity.Sequence,
+                    AffiliateId = partnerEntity.Id,
                     TenantId = partnerEntity.TenantId
                 });
-                await _userService.DeleteAsync(new DeleteUserRequest() { TenantId = partnerEntity.TenantId, ExternalUserId = affiliateId.ToString() });
-                await ctx.AffiliateAccess.Where(e => e.AffiliateId == affiliateId).DeleteFromQueryAsync();
-                await ctx.Affiliates.Where(x => x.AffiliateId == partnerEntity.AffiliateId).DeleteFromQueryAsync();
+                await _userService.DeleteAsync(new () { TenantId = partnerEntity.TenantId, ExternalUserId = affiliateId.ToString() });
+                await ctx.Affiliates.Where(x => x.Id == partnerEntity.Id).DeleteFromQueryAsync();
             }
             catch (Exception e)
             {

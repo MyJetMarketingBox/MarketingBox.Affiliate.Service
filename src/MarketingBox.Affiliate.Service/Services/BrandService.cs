@@ -1,24 +1,21 @@
-﻿using DotNetCoreDecorators;
-using MarketingBox.Affiliate.Postgres;
-using MarketingBox.Affiliate.Service.Domain.Extensions;
-using MarketingBox.Affiliate.Service.Grpc;
-using MarketingBox.Affiliate.Service.Grpc.Models.Common;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using MyNoSqlServer.Abstractions;
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using MarketingBox.Affiliate.Postgres.Entities.Brands;
-using MarketingBox.Affiliate.Service.Domain.Brands;
-using MarketingBox.Affiliate.Service.Grpc.Models.Brands;
-using MarketingBox.Affiliate.Service.Grpc.Models.Brands.Requests;
+using AutoMapper;
+using MarketingBox.Affiliate.Postgres;
+using MarketingBox.Affiliate.Service.Domain.Models.Brands;
+using MarketingBox.Affiliate.Service.Grpc;
+using MarketingBox.Affiliate.Service.Grpc.Requests.Brands;
 using MarketingBox.Affiliate.Service.Messages.Brands;
 using MarketingBox.Affiliate.Service.MyNoSql.Brands;
+using MarketingBox.Sdk.Common.Exceptions;
+using MarketingBox.Sdk.Common.Extensions;
+using MarketingBox.Sdk.Common.Models.Grpc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using MyJetWallet.Sdk.ServiceBus;
-using Z.EntityFramework.Plus;
-using Payout = MarketingBox.Affiliate.Postgres.Entities.Brands.Payout;
-using Revenue = MarketingBox.Affiliate.Postgres.Entities.Brands.Revenue;
+using MyNoSqlServer.Abstractions;
 
 namespace MarketingBox.Affiliate.Service.Services
 {
@@ -26,213 +23,267 @@ namespace MarketingBox.Affiliate.Service.Services
     {
         private readonly ILogger<BrandService> _logger;
         private readonly DbContextOptionsBuilder<DatabaseContext> _dbContextOptionsBuilder;
-        private readonly IServiceBusPublisher<BrandUpdated> _publisherBrandUpdated;
+        private readonly IServiceBusPublisher<BrandMessage> _publisherBrandUpdated;
         private readonly IMyNoSqlServerDataWriter<BrandNoSql> _myNoSqlServerDataWriter;
         private readonly IServiceBusPublisher<BrandRemoved> _publisherBrandRemoved;
+        private readonly IMapper _mapper;
 
-        public BrandService(ILogger<BrandService> logger,
+        private static async Task EnsureBrandPayout(
+            ICollection<long> brandPayoutIds,
+            DatabaseContext ctx,
+            Brand brand)
+        {
+            if (!brandPayoutIds.Any())
+            {
+                brand.Payouts.Clear();
+                return;
+            }
+
+            var brandPayouts = await ctx.BrandPayouts
+                .Include(x => x.Geo)
+                .Where(x => brandPayoutIds.Contains(x.Id))
+                .ToListAsync();
+            var notFoundIds = brandPayoutIds.Except(brandPayouts.Select(x => x.Id)).ToList();
+            if (notFoundIds.Any())
+            {
+                throw new NotFoundException(
+                    $"The following brand payout ids were not found:{string.Join(',', notFoundIds)}");
+            }
+
+            brand.Payouts = brandPayouts;
+        }
+
+        private static async Task EnsureIntegration(long? integrationId, DatabaseContext ctx, Brand brand)
+        {
+            if (integrationId.HasValue)
+            {
+                var integration = await ctx.Integrations
+                    .FirstOrDefaultAsync(x => x.Id == integrationId);
+                if (integration is null)
+                {
+                    throw new NotFoundException(nameof(integrationId), integrationId);
+                }
+
+                brand.Integration = integration;
+            }
+            else
+            {
+                brand.Integration = null;
+            }
+        }
+
+        public BrandService(
+            ILogger<BrandService> logger,
             DbContextOptionsBuilder<DatabaseContext> dbContextOptionsBuilder,
-            IServiceBusPublisher<BrandUpdated> publisherBrandUpdated,
+            IServiceBusPublisher<BrandMessage> publisherBrandUpdated,
             IMyNoSqlServerDataWriter<BrandNoSql> myNoSqlServerDataWriter,
-            IServiceBusPublisher<BrandRemoved> publisherBrandRemoved)
+            IServiceBusPublisher<BrandRemoved> publisherBrandRemoved,
+            IMapper mapper)
         {
             _logger = logger;
             _dbContextOptionsBuilder = dbContextOptionsBuilder;
             _publisherBrandUpdated = publisherBrandUpdated;
             _myNoSqlServerDataWriter = myNoSqlServerDataWriter;
             _publisherBrandRemoved = publisherBrandRemoved;
+            _mapper = mapper;
         }
 
-        public async Task<BrandResponse> CreateAsync(BrandCreateRequest request)
+        public async Task<Response<Brand>> CreateAsync(BrandCreateRequest request)
         {
-            _logger.LogInformation("Creating new Brand {@context}", request);
-            using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
-
             try
             {
-                var brandEntity = new BrandEntity()
-                {
-                    TenantId = request.TenantId,
-                    IntegrationId = request.IntegrationId,
-                    Name = request.Name,
-                    Sequence = 0,
-                    Payout = new Payout()
-                    {
-                        Currency = request.Payout.Currency.MapEnum<Domain.Common.Currency>(),
-                        Amount = request.Payout.Amount,
-                        Plan = request.Payout.Plan.MapEnum<Plan>(),
-                    },
-                    Privacy = request.Privacy.MapEnum<BrandPrivacy>(),
-                    Revenue = new Revenue()
-                    {
-                        Amount = request.Revenue.Amount,
-                        Plan = request.Payout.Plan.MapEnum<Plan>(),
-                        Currency = request.Payout.Currency.MapEnum<Domain.Common.Currency>(),
-                    },
-                    Status = request.Status.MapEnum<BrandStatus>(),
-                };
+                request.ValidateEntity();
 
-                ctx.Brands.Add(brandEntity);
+                _logger.LogInformation("Creating new Brand {@context}", request);
+                await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+
+                var brand = _mapper.Map<Brand>(request);
+                await EnsureBrandPayout(
+                    request.BrandPayoutIds.Distinct().ToList(),
+                    ctx,
+                    brand);
+
+                await EnsureIntegration(request.IntegrationId, ctx, brand);
+
+                ctx.Brands.Add(brand);
                 await ctx.SaveChangesAsync();
 
-                var nosql = MapToNoSql(brandEntity);
+                var brandMessage = _mapper.Map<BrandMessage>(brand);
+                var nosql = BrandNoSql.Create(brandMessage);
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 _logger.LogInformation("Sent brand update to MyNoSql {@context}", request);
 
-                await _publisherBrandUpdated.PublishAsync(MapToMessage(brandEntity));
+                await _publisherBrandUpdated.PublishAsync(brandMessage);
                 _logger.LogInformation("Sent brand update to service bus {@context}", request);
 
-                return MapToGrpc(brandEntity);
+                return new Response<Brand>
+                {
+                    Status = ResponseStatus.Ok,
+                    Data = brand
+                };
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Error creating brand {@context}", request);
 
-                return new BrandResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+                return e.FailedResponse<Brand>();
             }
         }
 
-        public async Task<BrandResponse> UpdateAsync(BrandUpdateRequest request)
+        public async Task<Response<Brand>> UpdateAsync(BrandUpdateRequest request)
         {
-            _logger.LogInformation("Updating a Brand {@context}", request);
-            await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
-
             try
             {
-                var brandEntity = new BrandEntity()
-                {
-                    TenantId = request.TenantId,
-                    IntegrationId = request.IntegrationId,
-                    Name = request.Name,
-                    Sequence = request.Sequence + 1,
-                    Payout = new Payout()
-                    {
-                        Currency = request.Payout.Currency.MapEnum<Domain.Common.Currency>(),
-                        Amount = request.Payout.Amount,
-                        Plan = request.Payout.Plan.MapEnum<Plan>(),
-                    },
-                    Privacy = request.Privacy.MapEnum<BrandPrivacy>(),
-                    Revenue = new Revenue()
-                    {
-                        Amount = request.Revenue.Amount,
-                        Plan = request.Payout.Plan.MapEnum<Plan>(),
-                        Currency = request.Payout.Currency.MapEnum<Domain.Common.Currency>(),
-                    },
-                    Status = request.Status.MapEnum<BrandStatus>(),
-                    Id = request.Id
-                };
+                request.ValidateEntity();
 
-                var affectedRows = ctx.Brands
-                    .Where(x => x.Id == brandEntity.Id &&
-                                x.Sequence < brandEntity.Sequence)
-                    .ToList();
+                _logger.LogInformation("Updating a Brand {@context}", request);
+                await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
-                if (affectedRows.Any())
+                var brand = await ctx.Brands
+                    .Include(x => x.Payouts)
+                    .ThenInclude(x => x.Geo)
+                    .Include(x => x.CampaignRows)
+                    .ThenInclude(x => x.Geo)
+                    .Include(x => x.LinkParameters)
+                    .Include(x => x.Integration)
+                    .FirstOrDefaultAsync(x => x.Id == request.BrandId);
+
+                if (brand is null)
                 {
-                    foreach (var affectedRow in affectedRows)
-                    {
-                        affectedRow.TenantId = brandEntity.TenantId;
-                        affectedRow.IntegrationId = brandEntity.IntegrationId;
-                        affectedRow.Name = brandEntity.Name;
-                        affectedRow.Payout = brandEntity.Payout;
-                        affectedRow.Privacy = brandEntity.Privacy;
-                        affectedRow.Revenue = brandEntity.Revenue;
-                        affectedRow.Status = brandEntity.Status;
-                        affectedRow.Sequence = brandEntity.Sequence;
-                    }
+                    throw new NotFoundException($"Brand with {nameof(request.BrandId)}", request.BrandId);
                 }
-                else
-                {
-                    await ctx.Brands.AddAsync(brandEntity);
-                }
+
+                await EnsureBrandPayout(
+                    request.BrandPayoutIds.Distinct().ToList(),
+                    ctx,
+                    brand);
+
+                await EnsureIntegration(request.IntegrationId, ctx, brand);
+
+                brand.Name = request.Name;
+                brand.IntegrationType = request.IntegrationType.Value;
+                brand.LinkParameters = request.LinkParameters;
+                brand.Link = request.Link;
                 await ctx.SaveChangesAsync();
-
-                var nosql = MapToNoSql(brandEntity);
+                
+                var brandMessage = _mapper.Map<BrandMessage>(brand);
+                var nosql = BrandNoSql.Create(brandMessage);
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 _logger.LogInformation("Sent brand update to MyNoSql {@context}", request);
 
-                await _publisherBrandUpdated.PublishAsync(MapToMessage(brandEntity));
+                await _publisherBrandUpdated.PublishAsync(brandMessage);
                 _logger.LogInformation("Sent brand update to service bus {@context}", request);
 
-                return MapToGrpc(brandEntity);
+                return new Response<Brand>
+                {
+                    Status = ResponseStatus.Ok,
+                    Data = brand
+                };
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Error updating brand {@context}", request);
 
-                return new BrandResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+                return e.FailedResponse<Brand>();
             }
         }
 
-        public async Task<BrandResponse> GetAsync(BrandGetRequest request)
+        public async Task<Response<Brand>> GetAsync(BrandByIdRequest request)
         {
-            using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
-
             try
             {
-                var brandEntity = await ctx.Brands.FirstOrDefaultAsync(x => x.Id == request.BrandId);
+                request.ValidateEntity();
 
-                return brandEntity != null ? MapToGrpc(brandEntity) : new BrandResponse();
+                await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+
+                var brand = await ctx.Brands
+                    .Include(x => x.Payouts)
+                    .ThenInclude(x => x.Geo)
+                    .Include(x => x.CampaignRows)
+                    .ThenInclude(x => x.Geo)
+                    .Include(x => x.LinkParameters)
+                    .Include(x => x.Integration)
+                    .FirstOrDefaultAsync(x => x.Id == request.BrandId);
+                if (brand is null) throw new NotFoundException(nameof(request.BrandId), request.BrandId);
+
+                return new Response<Brand>
+                {
+                    Status = ResponseStatus.Ok,
+                    Data = brand
+                };
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Error getting brand {@context}", request);
 
-                return new BrandResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+                return e.FailedResponse<Brand>();
             }
         }
 
-        public async Task<BrandResponse> DeleteAsync(BrandDeleteRequest request)
+        public async Task<Response<bool>> DeleteAsync(BrandByIdRequest request)
         {
-            using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
-
             try
             {
-                var brandEntity = await ctx.Brands.FirstOrDefaultAsync(x => x.Id == request.BrandId);
+                request.ValidateEntity();
 
-                if (brandEntity == null)
-                    return new BrandResponse();
+                await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+
+                var brand = await ctx.Brands.FirstOrDefaultAsync(x => x.Id == request.BrandId);
+
+                if (brand == null)
+                    throw new NotFoundException(nameof(request.BrandId), request.BrandId);
+                ctx.Brands.Remove(brand);
+                await ctx.SaveChangesAsync();
 
                 await _myNoSqlServerDataWriter.DeleteAsync(
-                    BrandNoSql.GeneratePartitionKey(brandEntity.TenantId),
-                    BrandNoSql.GenerateRowKey(brandEntity.Id));
+                    BrandNoSql.GeneratePartitionKey(brand.TenantId),
+                    BrandNoSql.GenerateRowKey(brand.Id));
 
-                await _publisherBrandRemoved.PublishAsync(new BrandRemoved()
+                await _publisherBrandRemoved.PublishAsync(new BrandRemoved
                 {
-                    BrandId = brandEntity.Id,
-                    Sequence = brandEntity.Sequence,
-                    TenantId = brandEntity.TenantId
+                    BrandId = brand.Id,
+                    TenantId = brand.TenantId
                 });
 
-                await ctx.Brands.Where(x => x.Id == brandEntity.Id).DeleteFromQueryAsync();
 
-                return new BrandResponse();
+                return new Response<bool>
+                {
+                    Status = ResponseStatus.Ok,
+                    Data = true
+                };
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Error deleting brand {@context}", request);
 
-                return new BrandResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+                return e.FailedResponse<bool>();
             }
         }
 
-        public async Task<BrandSearchResponse> SearchAsync(BrandSearchRequest request)
+        public async Task<Response<IReadOnlyCollection<Brand>>> SearchAsync(BrandSearchRequest request)
         {
-            using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
-
             try
             {
-                var query = ctx.Brands.AsQueryable();
+                request.ValidateEntity();
+
+                await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+
+                var query = ctx.Brands
+                    .Include(x => x.Payouts)
+                    .ThenInclude(x => x.Geo)
+                    .Include(x => x.CampaignRows)
+                    .ThenInclude(x => x.Geo)
+                    .Include(x => x.LinkParameters)
+                    .Include(x => x.Integration)
+                    .AsQueryable();
 
                 if (!string.IsNullOrEmpty(request.TenantId))
-                {
                     query = query.Where(x => x.TenantId == request.TenantId);
-                }
 
                 if (!string.IsNullOrEmpty(request.Name))
-                {
-                    query = query.Where(x => x.Name.Contains(request.Name));
-                }
+                    query = query.Where(x => x.Name
+                        .ToLower()
+                        .Contains(request.Name.ToLowerInvariant()));
 
                 if (request.BrandId.HasValue)
                 {
@@ -244,135 +295,50 @@ namespace MarketingBox.Affiliate.Service.Services
                     query = query.Where(x => x.IntegrationId == request.IntegrationId.Value);
                 }
 
-                if (request.Status.HasValue)
+                if (request.IntegrationType.HasValue)
                 {
-                    query = query.Where(x => x.Status == request.Status.MapEnum<BrandStatus>());
+                    query = query.Where(x => x.IntegrationType == request.IntegrationType.Value);
                 }
 
-                var limit = request.Take <= 0 ? 1000 : request.Take;
+                var total = query.Count();
+
                 if (request.Asc)
                 {
                     if (request.Cursor != null)
-                    {
                         query = query.Where(x => x.Id > request.Cursor);
-                    }
 
                     query = query.OrderBy(x => x.Id);
                 }
                 else
                 {
                     if (request.Cursor != null)
-                    {
                         query = query.Where(x => x.Id < request.Cursor);
-                    }
 
                     query = query.OrderByDescending(x => x.Id);
                 }
 
-                query = query.Take(limit);
+                if (request.Take.HasValue)
+                {
+                    query = query.Take(request.Take.Value);
+                }
 
                 await query.LoadAsync();
 
-                var response = query
-                    .AsEnumerable()
-                    .Select(MapToGrpcInner)
-                    .ToArray();
+                var response = query.ToArray();
 
-                return new BrandSearchResponse()
+                return new Response<IReadOnlyCollection<Brand>>
                 {
-                    Campaigns = response
+                    Status = ResponseStatus.Ok,
+                    Data = response,
+                    Total = total
                 };
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Error searching for brands {@context}", request);
 
-                return new BrandSearchResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+                return e.FailedResponse<IReadOnlyCollection<Brand>>();
             }
-        }
-
-        private static BrandResponse MapToGrpc(BrandEntity brandEntity)
-        {
-            return new BrandResponse()
-            {
-                Brand = MapToGrpcInner(brandEntity)
-            };
-        }
-
-        private static Brand MapToGrpcInner(BrandEntity brandEntity)
-        {
-            return new Brand()
-            {
-                TenantId = brandEntity.TenantId,
-                Id = brandEntity.Id,
-                Name = brandEntity.Name,
-                IntegrationId = brandEntity.IntegrationId,
-                Sequence = brandEntity.Sequence,
-                Revenue = new Grpc.Models.Brands.Revenue()
-                {
-                    Currency = brandEntity.Revenue.Currency.MapEnum<Domain.Models.Common.Currency>(),
-                    Plan = brandEntity.Revenue.Plan.MapEnum<Domain.Models.Brands.Plan>(),
-                    Amount = brandEntity.Revenue.Amount
-                },
-                Payout = new Grpc.Models.Brands.Payout()
-                {
-                    Currency = brandEntity.Payout.Currency.MapEnum<Domain.Models.Common.Currency>(),
-                    Plan = brandEntity.Payout.Plan.MapEnum<Domain.Models.Brands.Plan>(),
-                    Amount = brandEntity.Payout.Amount
-                },
-                Privacy = brandEntity.Privacy.MapEnum<Domain.Models.Brands.BrandPrivacy>(),
-                Status = brandEntity.Status.MapEnum<Domain.Models.Brands.BrandStatus>(),
-            };
-        }
-
-        private static BrandUpdated MapToMessage(BrandEntity brandEntity)
-        {
-            return new BrandUpdated()
-            {
-                TenantId = brandEntity.TenantId,
-                Revenue = new Messages.Brands.Revenue()
-                {
-                    Currency = brandEntity.Revenue.Currency.MapEnum<Domain.Models.Common.Currency>(),
-                    Plan = brandEntity.Revenue.Plan.MapEnum<Domain.Models.Brands.Plan>(),
-                    Amount = brandEntity.Revenue.Amount
-                },
-                IntegrationId = brandEntity.IntegrationId,
-                Id = brandEntity.Id,
-                Name = brandEntity.Name,
-                Sequence = brandEntity.Sequence,
-                Payout = new Messages.Brands.Payout()
-                {
-                    Currency = brandEntity.Payout.Currency.MapEnum<Domain.Models.Common.Currency>(),
-                    Plan = brandEntity.Payout.Plan.MapEnum<Domain.Models.Brands.Plan>(),
-                    Amount = brandEntity.Payout.Amount
-                },
-                Privacy = brandEntity.Privacy.MapEnum<Domain.Models.Brands.BrandPrivacy>(),
-                Status = brandEntity.Status.MapEnum<Domain.Models.Brands.BrandStatus>()
-            };
-        }
-
-        private static BrandNoSql MapToNoSql(BrandEntity brandEntity)
-        {
-            return BrandNoSql.Create(
-                brandEntity.TenantId,
-                brandEntity.Id,
-                brandEntity.Name,
-                brandEntity.IntegrationId,
-                new MyNoSql.Brands.Payout()
-                {
-                    Amount = brandEntity.Payout.Amount,
-                    Currency = brandEntity.Payout.Currency.MapEnum<Domain.Models.Common.Currency>(),
-                    Plan = brandEntity.Payout.Plan.MapEnum<Domain.Models.Brands.Plan>(),
-                },
-                new MyNoSql.Brands.Revenue()
-                {
-                    Amount = brandEntity.Revenue.Amount,
-                    Currency = brandEntity.Revenue.Currency.MapEnum<Domain.Models.Common.Currency>(),
-                    Plan = brandEntity.Revenue.Plan.MapEnum<Domain.Models.Brands.Plan>(),
-                },
-                brandEntity.Status.MapEnum<Domain.Models.Brands.BrandStatus>(),
-                brandEntity.Privacy.MapEnum<Domain.Models.Brands.BrandPrivacy>(),
-                brandEntity.Sequence);
         }
     }
 }

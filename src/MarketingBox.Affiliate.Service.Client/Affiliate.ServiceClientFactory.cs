@@ -13,8 +13,6 @@ namespace MarketingBox.Affiliate.Service.Client
 
         public IAffiliateService GetAffiliateService() => CreateGrpcService<IAffiliateService>();
 
-        public IAffiliateAccessService GetAffiliateAccessService() => CreateGrpcService<IAffiliateAccessService>();
-
         public ICampaignService GetCampaignService() => CreateGrpcService<ICampaignService>();
 
         public IIntegrationService GetIntegrationService() => CreateGrpcService<IIntegrationService>();
@@ -22,5 +20,17 @@ namespace MarketingBox.Affiliate.Service.Client
         public IBrandService GetBrandService() => CreateGrpcService<IBrandService>();
 
         public ICampaignRowService GetCampaignRowService() => CreateGrpcService<ICampaignRowService>();
+        
+        public ICountryService GetCountryService() => CreateGrpcService<ICountryService>();
+        
+        public IGeoService GetGeoService() => CreateGrpcService<IGeoService>();
+
+        public IBrandPayoutService GetBrandPayoutService() => CreateGrpcService<IBrandPayoutService>();
+        
+        public IAffiliatePayoutService GetAffiliatePayoutService() => CreateGrpcService<IAffiliatePayoutService>();
+        public IOfferService GetOfferService() => CreateGrpcService<IOfferService>();
+        public IOfferAffiliateService GetOfferAffiliateService() => CreateGrpcService<IOfferAffiliateService>();
+        public ILanguageService GetLanguageService() => CreateGrpcService<ILanguageService>();
+        public IBrandBoxService GetBrandBoxService() => CreateGrpcService<IBrandBoxService>();
     }
 }

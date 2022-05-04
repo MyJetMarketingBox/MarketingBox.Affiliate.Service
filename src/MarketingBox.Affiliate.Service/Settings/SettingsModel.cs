@@ -31,5 +31,11 @@ namespace MarketingBox.Affiliate.Service.Settings
 
         [YamlProperty("MarketingBoxAffiliateService.JaegerUrl")]
         public string JaegerUrl { get; set; }
+
+        [YamlProperty("MarketingBoxAffiliateService.ExternalReferenceProxyApiUrl")]
+        public string ExternalReferenceProxyApiUrl { get; set; }
+        
+        [YamlProperty("MarketingBoxAffiliateService.ExternalReferenceProxyApiUrlPath")]
+        public string ExternalReferenceProxyApiUrlPath { get; set; }
     }
 }

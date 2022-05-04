@@ -1,7 +1,9 @@
-﻿using System.ServiceModel;
+﻿using System.Collections.Generic;
+using System.ServiceModel;
 using System.Threading.Tasks;
-using MarketingBox.Affiliate.Service.Grpc.Models.Integrations;
-using MarketingBox.Affiliate.Service.Grpc.Models.Integrations.Requests;
+using MarketingBox.Affiliate.Service.Domain.Models.Integrations;
+using MarketingBox.Affiliate.Service.Grpc.Requests.Integrations;
+using MarketingBox.Sdk.Common.Models.Grpc;
 
 namespace MarketingBox.Affiliate.Service.Grpc
 {
@@ -9,18 +11,18 @@ namespace MarketingBox.Affiliate.Service.Grpc
     public interface IIntegrationService
     {
         [OperationContract]
-        Task<IntegrationResponse> CreateAsync(IntegrationCreateRequest request);
+        Task<Response<Integration>> CreateAsync(IntegrationCreateRequest request);
 
         [OperationContract]
-        Task<IntegrationResponse> UpdateAsync(IntegrationUpdateRequest request);
+        Task<Response<Integration>> UpdateAsync(IntegrationUpdateRequest request);
 
         [OperationContract]
-        Task<IntegrationResponse> GetAsync(IntegrationGetRequest request);
+        Task<Response<Integration>> GetAsync(IntegrationByIdRequest request);
 
         [OperationContract]
-        Task<IntegrationResponse> DeleteAsync(IntegrationDeleteRequest request);
+        Task<Response<bool>> DeleteAsync(IntegrationByIdRequest request);
 
         [OperationContract]
-        Task<IntegrationSearchResponse> SearchAsync(IntegrationSearchRequest request);
+        Task<Response<IReadOnlyCollection<Integration>>> SearchAsync(IntegrationSearchRequest request);
     }
 }
