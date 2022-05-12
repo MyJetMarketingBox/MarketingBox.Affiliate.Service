@@ -64,6 +64,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 }
 
                 var campaignRow = _mapper.Map<CampaignRow>(request);
+                campaignRow.Campaign = campaign;
                 ctx.CampaignRows.Add(campaignRow);
                 await ctx.SaveChangesAsync();
 
@@ -128,7 +129,7 @@ namespace MarketingBox.Affiliate.Service.Services
                         To = new TimeSpan(23, 59, 59),
                         IsActive = true
                     }).ToList();
-                campaignRow.CampaignId = request.CampaignId.Value;
+                campaignRow.Campaign = campaign;
                 campaignRow.BrandId = request.BrandId.Value;
                 campaignRow.CapType = request.CapType.Value;
                 campaignRow.GeoId = request.GeoId.Value;
@@ -168,6 +169,7 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 var campaignRow = await ctx.CampaignRows
                     .Include(x => x.Geo)
+                    .Include(x=>x.Campaign)
                     .FirstOrDefaultAsync(x => x.Id == request.CampaignRowId);
                 if (campaignRow is null)
                 {
@@ -233,6 +235,7 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 var query = ctx.CampaignRows
                     .Include(x => x.Geo)
+                    .Include(x=>x.Campaign)
                     .AsQueryable();
 
                 if (request.BrandId.HasValue)

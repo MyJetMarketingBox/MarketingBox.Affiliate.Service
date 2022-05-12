@@ -142,8 +142,8 @@ namespace MarketingBox.Affiliate.Service.Services
                 var brand = await ctx.Brands
                     .Include(x => x.Payouts)
                     .ThenInclude(x => x.Geo)
-                    .Include(x => x.CampaignRows)
-                    .ThenInclude(x => x.Geo)
+                    .Include(x => x.CampaignRows).ThenInclude(x => x.Geo)
+                    .Include(x => x.CampaignRows).ThenInclude(x => x.Campaign)
                     .Include(x => x.LinkParameters)
                     .Include(x => x.Integration)
                     .FirstOrDefaultAsync(x => x.Id == request.BrandId);
@@ -199,8 +199,8 @@ namespace MarketingBox.Affiliate.Service.Services
                 var brand = await ctx.Brands
                     .Include(x => x.Payouts)
                     .ThenInclude(x => x.Geo)
-                    .Include(x => x.CampaignRows)
-                    .ThenInclude(x => x.Geo)
+                    .Include(x => x.CampaignRows).ThenInclude(x => x.Geo)
+                    .Include(x => x.CampaignRows).ThenInclude(x => x.Campaign)
                     .Include(x => x.LinkParameters)
                     .Include(x => x.Integration)
                     .FirstOrDefaultAsync(x => x.Id == request.BrandId);
@@ -271,8 +271,8 @@ namespace MarketingBox.Affiliate.Service.Services
                 var query = ctx.Brands
                     .Include(x => x.Payouts)
                     .ThenInclude(x => x.Geo)
-                    .Include(x => x.CampaignRows)
-                    .ThenInclude(x => x.Geo)
+                    .Include(x => x.CampaignRows).ThenInclude(x => x.Geo)
+                    .Include(x => x.CampaignRows).ThenInclude(x => x.Campaign)
                     .Include(x => x.LinkParameters)
                     .Include(x => x.Integration)
                     .AsQueryable();

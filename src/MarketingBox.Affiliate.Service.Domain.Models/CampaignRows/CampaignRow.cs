@@ -10,8 +10,8 @@ namespace MarketingBox.Affiliate.Service.Domain.Models.CampaignRows
     public class CampaignRow
     {
         [DataMember(Order = 1)] public long Id { get; set; }
-        [DataMember(Order = 2)] public long CampaignId { get; set; }
-        public Campaign Campaign { get; set; }
+        public long CampaignId { get; set; }
+        [DataMember(Order = 3)] public Campaign Campaign { get; set; }
         [DataMember(Order = 4)] public long BrandId { get; set; }
         public Brand Brand { get; set; }
         public int GeoId { get; set; }
