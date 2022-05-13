@@ -1,4 +1,5 @@
 ﻿using Autofac;
+using MarketingBox.Affiliate.Service.Client.Interfaces;
 using MarketingBox.Affiliate.Service.Grpc;
 using MarketingBox.Affiliate.Service.MyNoSql.Country;
 using MyJetWallet.Sdk.NoSql;
