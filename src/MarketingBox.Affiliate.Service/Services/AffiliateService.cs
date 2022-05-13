@@ -456,6 +456,11 @@ namespace MarketingBox.Affiliate.Service.Services
                 {
                     query = query.Where(x => x.Id == request.AffiliateId.Value);
                 }
+                
+                if (request.MasterAffiliateId.HasValue)
+                {
+                    query = query.Where(x => x.CreatedBy == request.MasterAffiliateId.Value);
+                }
 
                 if (!string.IsNullOrEmpty(request.Email))
                 {
