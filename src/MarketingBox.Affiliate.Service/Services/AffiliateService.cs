@@ -382,6 +382,11 @@ namespace MarketingBox.Affiliate.Service.Services
                     throw new NotFoundException(nameof(request.AffiliateId), request.AffiliateId);
                 }
 
+                var affiliateMessage = _mapper.Map<AffiliateMessage>(affiliate);
+                var nosql = AffiliateNoSql.Create(affiliateMessage);
+                await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
+                _logger.LogInformation("Sent partner to MyNoSql {@context}", request);
+                
                 return new Response<GrpcModels.Affiliate>
                 {
                     Status = ResponseStatus.Ok,

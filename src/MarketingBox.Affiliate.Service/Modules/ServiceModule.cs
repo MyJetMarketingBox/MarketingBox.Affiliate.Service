@@ -23,6 +23,7 @@ using MarketingBox.Affiliate.Service.Repositories.Interfaces;
 using MarketingBox.Affiliate.Service.Services;
 using MarketingBox.Affiliate.Service.Subscribers;
 using MarketingBox.Auth.Service.Client;
+using Microsoft.Extensions.Logging;
 using MyJetWallet.Sdk.NoSql;
 using MyJetWallet.Sdk.ServiceBus;
 using MyServiceBus.Abstractions;
@@ -181,7 +182,9 @@ namespace MarketingBox.Affiliate.Service.Modules
                     Program.LogFactory);
 
             builder.RegisterAuthServiceClient(Program.Settings.AuthServiceUrl);
-            var noSqlClient = builder.CreateNoSqlClient(Program.ReloadedSettings(e => e.MyNoSqlReaderHostPort));
+            var noSqlClient = builder.CreateNoSqlClient(
+                Program.ReloadedSettings(e => e.MyNoSqlReaderHostPort).Invoke(),
+                new LoggerFactory());
             
             SetupAffiliates(builder, serviceBusClient);
             SetupCampaigns(builder, serviceBusClient);

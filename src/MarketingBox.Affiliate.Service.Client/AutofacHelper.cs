@@ -1,5 +1,7 @@
 ﻿using Autofac;
+using MarketingBox.Affiliate.Service.Client.Interfaces;
 using MarketingBox.Affiliate.Service.Grpc;
+using MarketingBox.Affiliate.Service.MyNoSql.Affiliates;
 using MarketingBox.Affiliate.Service.MyNoSql.Country;
 using MyJetWallet.Sdk.NoSql;
 using MyNoSqlServer.DataReader;
@@ -37,6 +39,16 @@ namespace MarketingBox.Affiliate.Service.Client
             builder.RegisterInstance(factory.GetCountryService()).As<ICountryService>().SingleInstance();
             builder.RegisterType<CountryClient>().As<ICountryClient>().SingleInstance();
             builder.RegisterMyNoSqlReader<CountriesNoSql>(noSqlClient, CountriesNoSql.TableName);
+        }
+        public static void RegisterAffiliateClient(
+            this ContainerBuilder builder,
+            string grpcServiceUrl,
+            IMyNoSqlSubscriber noSqlClient)
+        {
+            var factory = new AffiliateServiceClientFactory(grpcServiceUrl);
+            builder.RegisterInstance(factory.GetAffiliateService()).As<IAffiliateService>().SingleInstance();
+            builder.RegisterType<AffiliateClient>().As<IAffiliateClient>().SingleInstance();
+            builder.RegisterMyNoSqlReader<AffiliateNoSql>(noSqlClient, AffiliateNoSql.TableName);
         }
     }
 }
