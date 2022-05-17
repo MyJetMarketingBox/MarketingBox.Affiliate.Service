@@ -77,7 +77,8 @@ namespace MarketingBox.Affiliate.Service.Services
             {
                 request.ValidateEntity();
 
-                var result = await _offerRepository.GetAsync(request.Id.Value, request.AffiliateId.Value);
+                var result =
+                    await _offerRepository.GetAsync(request.Id.Value, request.AffiliateId.Value, request.TenantId);
                 return new Response<Offer>
                 {
                     Status = ResponseStatus.Ok,
@@ -96,11 +97,12 @@ namespace MarketingBox.Affiliate.Service.Services
             {
                 request.ValidateEntity();
 
-                await _offerRepository.DeleteAsync(request.Id.Value, request.AffiliateId.Value);
+                var uniqueId =
+                    await _offerRepository.DeleteAsync(request.Id.Value, request.AffiliateId.Value, request.TenantId);
 
                 await _myNoSqlServerDataWriter.DeleteAsync(
                     OfferNoSql.GeneratePartitionKey(),
-                    OfferNoSql.GenerateRowKey(request.Id.Value));
+                    OfferNoSql.GenerateRowKey(uniqueId));
                 return new Response<bool>
                 {
                     Status = ResponseStatus.Ok,
@@ -138,8 +140,9 @@ namespace MarketingBox.Affiliate.Service.Services
             try
             {
                 request.ValidateEntity();
-                
-                var result = await _offerRepository.GetUrlAsync(request.OfferId.Value, request.AffiliateId.Value);
+
+                var result = await _offerRepository.GetUrlAsync(request.OfferId.Value, request.AffiliateId.Value,
+                    request.TenantId);
                 return new Response<string>()
                 {
                     Data = result,

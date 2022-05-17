@@ -5,9 +5,7 @@ using System.Threading.Tasks;
 using MarketingBox.Affiliate.Postgres;
 using MarketingBox.Affiliate.Service.Domain.Models.Country;
 using MarketingBox.Affiliate.Service.Grpc.Requests;
-using MarketingBox.Affiliate.Service.Grpc.Requests.Country;
 using MarketingBox.Affiliate.Service.Repositories.Interfaces;
-using MarketingBox.Sdk.Common.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 

@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using MarketingBox.Affiliate.Service.Domain.Models.Brands;
-using MarketingBox.Affiliate.Service.Domain.Models.Common;
 using MarketingBox.Affiliate.Service.Domain.Models.Country;
 using MarketingBox.Affiliate.Service.Domain.Models.Languages;
+using MarketingBox.Sdk.Common.Enums;
 
 namespace MarketingBox.Affiliate.Service.Domain.Models.Offers
 {
@@ -32,5 +32,6 @@ namespace MarketingBox.Affiliate.Service.Domain.Models.Offers
         public Brand Brand { get; set; }
         
         public string UniqueId { get; } = Guid.NewGuid().ToString("N");
+        [DataMember(Order = 11)] public string TenantId { get; set; }
     }
 }

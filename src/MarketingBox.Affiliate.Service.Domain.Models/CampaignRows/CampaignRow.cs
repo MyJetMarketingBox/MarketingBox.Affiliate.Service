@@ -23,5 +23,6 @@ namespace MarketingBox.Affiliate.Service.Domain.Models.CampaignRows
         [DataMember(Order = 12)] public List<ActivityHours> ActivityHours { get; set; }
         [DataMember(Order = 13)] public string Information { get; set; }
         [DataMember(Order = 14)] public bool EnableTraffic { get; set; }
+        [DataMember(Order = 15)] public string TenantId { get; set; }
     }
 }

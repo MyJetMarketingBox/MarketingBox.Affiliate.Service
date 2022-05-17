@@ -13,6 +13,7 @@ using MarketingBox.Sdk.Common.Enums;
 using MarketingBox.Sdk.Common.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using SimpleTrading.Telemetry;
 
 namespace MarketingBox.Affiliate.Service.Repositories
 {
@@ -23,7 +24,7 @@ namespace MarketingBox.Affiliate.Service.Repositories
         private readonly IMapper _mapper;
         private const long AdminId = 999;
 
-        private static async Task EnsureBrand(long brandId, DatabaseContext context)
+        private static async Task EnsureBrand(long brandId, string tenantId, DatabaseContext context)
         {
             var existingBrand = await context.Brands.FirstOrDefaultAsync(x => x.Id == brandId);
 
@@ -38,7 +39,7 @@ namespace MarketingBox.Affiliate.Service.Repositories
             }
         }
 
-        private static async Task<List<Geo>> EnsureGeos(List<int> geoIds, DatabaseContext context)
+        private static async Task<List<Geo>> EnsureGeos(List<int> geoIds, string tenantId, DatabaseContext context)
         {
             var geosIds = geoIds.Distinct();
             var existingGeos = await context.Geos
@@ -66,11 +67,12 @@ namespace MarketingBox.Affiliate.Service.Repositories
         }
 
 
-        private static void ValidateAccess(long affiliateId, Offer offerEntity)
+        private static void ValidateAccess(long affiliateId, string tenantId, Offer offerEntity)
         {
             if (affiliateId != AdminId &&
+                offerEntity.TenantId.Equals(tenantId) &&
                 offerEntity.Privacy == OfferPrivacy.Private &&
-                offerEntity.OfferAffiliates.All(z => z.AffiliateId != affiliateId))
+                offerEntity.OfferAffiliates.All(z => z.AffiliateId != affiliateId && z.TenantId.Equals(tenantId)))
             {
                 throw new ForbiddenException("Offer is private and current user has no access to this offer.");
             }
@@ -93,9 +95,9 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 _logger.LogInformation("Creating offer by request {@CreateOfferRequest}", request);
 
                 await using var context = new DatabaseContext(_dbContextOptionsBuilder.Options);
-                await EnsureBrand(request.BrandId.Value, context);
+                await EnsureBrand(request.BrandId.Value, request.TenantId, context);
 
-                var existingGeos = await EnsureGeos(request.GeoIds, context);
+                var existingGeos = await EnsureGeos(request.GeoIds, request.TenantId, context);
 
                 var offerEntity = _mapper.Map<Offer>(request);
                 offerEntity.Geos = existingGeos;
@@ -112,7 +114,7 @@ namespace MarketingBox.Affiliate.Service.Repositories
             }
         }
 
-        public async Task<Offer> GetAsync(long id, long affiliateId)
+        public async Task<Offer> GetAsync(long id, long affiliateId, string tenantId)
         {
             try
             {
@@ -123,14 +125,15 @@ namespace MarketingBox.Affiliate.Service.Repositories
                     .Include(x => x.OfferAffiliates)
                     .Include(x => x.Language)
                     .Include(x => x.Geos)
-                    .FirstOrDefaultAsync(x => x.Id == id);
+                    .FirstOrDefaultAsync(x => x.TenantId.Equals(tenantId) &&
+                                              x.Id == id);
 
                 if (offerEntity is null)
                 {
                     throw new NotFoundException(nameof(Offer.Id), id);
                 }
 
-                ValidateAccess(affiliateId, offerEntity);
+                ValidateAccess(affiliateId, tenantId, offerEntity);
 
                 return offerEntity;
             }
@@ -141,7 +144,7 @@ namespace MarketingBox.Affiliate.Service.Repositories
             }
         }
 
-        public async Task DeleteAsync(long id, long affiliateId)
+        public async Task<string> DeleteAsync(long id, long affiliateId, string tenantId)
         {
             try
             {
@@ -150,17 +153,18 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 await using var context = new DatabaseContext(_dbContextOptionsBuilder.Options);
                 var offerEntity = await context.Offers
                     .Include(x => x.OfferAffiliates)
-                    .FirstOrDefaultAsync(x => x.Id == id);
+                    .FirstOrDefaultAsync(x => x.TenantId.Equals(tenantId) && x.Id == id);
 
                 if (offerEntity is null)
                 {
                     throw new NotFoundException(nameof(Offer.Id), id);
                 }
 
-                ValidateAccess(affiliateId, offerEntity);
+                ValidateAccess(affiliateId, tenantId, offerEntity);
 
                 context.Offers.Remove(offerEntity);
                 await context.SaveChangesAsync();
+                return offerEntity.UniqueId;
             }
             catch (Exception e)
             {
@@ -180,17 +184,17 @@ namespace MarketingBox.Affiliate.Service.Repositories
                     .Include(x => x.OfferAffiliates)
                     .Include(x => x.Language)
                     .Include(x => x.Geos)
-                    .FirstOrDefaultAsync(x => x.Id == request.OfferId);
+                    .FirstOrDefaultAsync(x => x.TenantId.Equals(request.TenantId) && x.Id == request.OfferId);
                 if (offerEntity is null)
                 {
                     throw new NotFoundException(nameof(request.OfferId), request.OfferId);
                 }
 
 
-                ValidateAccess(request.AffiliateId.Value, offerEntity);
+                ValidateAccess(request.AffiliateId.Value, request.TenantId, offerEntity);
 
-                await EnsureBrand(request.BrandId.Value, context);
-                var existingGeos = await EnsureGeos(request.GeoIds, context);
+                await EnsureBrand(request.BrandId.Value, request.TenantId, context);
+                var existingGeos = await EnsureGeos(request.GeoIds,request.TenantId, context);
 
                 offerEntity.Currency = request.Currency.Value;
                 offerEntity.Privacy = request.Privacy ?? OfferPrivacy.Public;
@@ -263,6 +267,11 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 {
                     query = query.Where(x => x.Name.ToLower().Contains(request.OfferName.ToLowerInvariant()));
                 }
+                
+                if (!string.IsNullOrEmpty(request.TenantId))
+                {
+                    query = query.Where(x => x.TenantId.Equals(request.TenantId));
+                }
 
                 var total = query.Count();
 
@@ -303,7 +312,7 @@ namespace MarketingBox.Affiliate.Service.Repositories
             }
         }
 
-        public async Task<string> GetUrlAsync(long offerId, long affiliateId)
+        public async Task<string> GetUrlAsync(long offerId, long affiliateId, string tenantId)
         {
             try
             {
@@ -316,7 +325,8 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 var offerEntity =
                     await context.Offers
                         .Include(x => x.OfferAffiliates)
-                        .FirstOrDefaultAsync(x => x.Id == offerId);
+                        .FirstOrDefaultAsync(x => x.TenantId.Equals(tenantId) &&
+                                                  x.Id == offerId);
                 if (offerEntity is null)
                 {
                     throw new NotFoundException(nameof(offerId), offerId);
@@ -329,9 +339,11 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 }
                 else
                 {
-                    ValidateAccess(affiliateId, offerEntity);
+                    ValidateAccess(affiliateId, tenantId, offerEntity);
 
-                    var offerAffiliate = offerEntity.OfferAffiliates.FirstOrDefault(x => x.AffiliateId == affiliateId);
+                    var offerAffiliate = offerEntity.OfferAffiliates
+                        .FirstOrDefault(x => x.TenantId.Equals(tenantId) &&
+                                             x.AffiliateId == affiliateId);
                     if (offerAffiliate is null)
                     {
                         throw new NotFoundException($"OfferAffiliate for offer {offerId} for affiliate", affiliateId);

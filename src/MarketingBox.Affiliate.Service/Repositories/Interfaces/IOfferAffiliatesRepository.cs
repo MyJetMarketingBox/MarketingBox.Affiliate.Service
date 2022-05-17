@@ -10,9 +10,9 @@ public interface IOfferAffiliatesRepository
 {
     Task<OfferAffiliate> CreateAsync(OfferAffiliateCreateRequest request);
     
-    Task<OfferAffiliate> GetAsync(long id);
+    Task<OfferAffiliate> GetAsync(long id, string tenantId);
     
-    Task<string> DeleteAsync(long id);
+    Task<string> DeleteAsync(long id, string tenantId);
     
     Task<(IReadOnlyCollection<OfferAffiliate>, int)> SearchAsync(OfferAffiliateSearchRequest request);
 }

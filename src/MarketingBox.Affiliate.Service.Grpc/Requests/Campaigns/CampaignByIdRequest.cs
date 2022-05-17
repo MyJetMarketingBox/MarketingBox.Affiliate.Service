@@ -10,5 +10,8 @@ namespace MarketingBox.Affiliate.Service.Grpc.Requests.Campaigns
     {
         [DataMember(Order = 1), Required, AdvancedCompare(ComparisonType.GreaterThanOrEqual, 1)]
         public long? CampaignId { get; set; }
+        
+        [DataMember(Order = 2), Required]
+        public string TenantId { get; set; }
     }
 }

@@ -18,4 +18,10 @@ public class OfferAffiliateSearchRequest : ValidatableEntity
 
     [DataMember(Order = 4)]
     public long? OfferId { get; set; }
+        
+    [DataMember(Order = 5)]
+    public string TenantId { get; set; }
+        
+    [DataMember(Order = 6)]
+    public string UniqueId { get; set; }
 }

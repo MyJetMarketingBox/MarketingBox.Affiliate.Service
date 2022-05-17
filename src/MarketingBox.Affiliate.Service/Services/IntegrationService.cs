@@ -102,14 +102,14 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 var existingIntegration = await ctx.Integrations
                     .Include(x => x.Brands)
-                    .FirstOrDefaultAsync(x => x.Id == request.IntegrationId);
+                    .FirstOrDefaultAsync(x =>  x.TenantId.Equals(request.TenantId) &&
+                                               x.Id == request.IntegrationId);
 
                 if (existingIntegration is null)
                 {
                     throw new NotFoundException(nameof(request.IntegrationId), request.IntegrationId);
                 }
 
-                existingIntegration.TenantId = request.TenantId;
                 existingIntegration.Name = request.Name;
 
                 await ctx.SaveChangesAsync();
@@ -145,7 +145,8 @@ namespace MarketingBox.Affiliate.Service.Services
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
                 var integration = await ctx.Integrations
                     .Include(x => x.Brands)
-                    .FirstOrDefaultAsync(x => x.Id == request.IntegrationId);
+                    .FirstOrDefaultAsync(x =>  x.TenantId.Equals(request.TenantId) &&
+                                               x.Id == request.IntegrationId);
                 if (integration is null)
                 {
                     throw new NotFoundException(nameof(request.IntegrationId), request.IntegrationId);
@@ -173,12 +174,15 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
-                var integration = await ctx.Integrations.FirstOrDefaultAsync(x => x.Id == request.IntegrationId);
+                var integration = await ctx.Integrations.FirstOrDefaultAsync(x => 
+                    x.TenantId.Equals(request.TenantId) &&
+                    x.Id == request.IntegrationId);
 
                 if (integration == null)
                     throw new NotFoundException(nameof(request.IntegrationId), request.IntegrationId);
                 var brands = await ctx.Brands
-                    .Where(x => x.IntegrationId == request.IntegrationId)
+                    .Where(x =>  x.TenantId.Equals(request.TenantId) &&
+                                 x.IntegrationId == request.IntegrationId)
                     .Select(x => x.Id)
                     .ToListAsync();
                 if (brands.Any())
@@ -205,8 +209,9 @@ namespace MarketingBox.Affiliate.Service.Services
                     TenantId = integration.TenantId
                 });
 
-                await ctx.Integrations.Where(x => x.Id == integration.Id).DeleteFromQueryAsync();
-
+                ctx.Integrations.Remove(integration);
+                await ctx.SaveChangesAsync();
+                
                 return new Response<bool>
                 {
                     Status = ResponseStatus.Ok,

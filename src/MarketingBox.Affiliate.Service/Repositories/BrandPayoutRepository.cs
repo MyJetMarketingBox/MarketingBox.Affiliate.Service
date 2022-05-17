@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 using AutoMapper;
 using MarketingBox.Affiliate.Postgres;
 using MarketingBox.Affiliate.Service.Domain.Models.Brands;
-using MarketingBox.Affiliate.Service.Domain.Models.Common;
 using MarketingBox.Affiliate.Service.Grpc.Requests.Payout;
 using MarketingBox.Affiliate.Service.Repositories.Interfaces;
+using MarketingBox.Sdk.Common.Enums;
 using MarketingBox.Sdk.Common.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -23,10 +23,12 @@ namespace MarketingBox.Affiliate.Service.Repositories
 
         private static async Task EnsureGeo(
             long? geoId,
+            string tenantId,
             DatabaseContext ctx,
             BrandPayout brandPayout)
         {
-            var existingGeo = await ctx.Geos.FirstOrDefaultAsync(x => x.Id == geoId);
+            var existingGeo = await ctx.Geos.FirstOrDefaultAsync(x => x.TenantId.Equals(tenantId) &&
+                                                                      x.Id == geoId);
             if (existingGeo is null)
             {
                 throw new NotFoundException(nameof(geoId), geoId);
@@ -57,7 +59,7 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 brandPayout.ModifiedAt = date;
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
-                await EnsureGeo(request.GeoId, ctx, brandPayout);
+                await EnsureGeo(request.GeoId,request.TenantId, ctx, brandPayout);
 
                 ctx.BrandPayouts.Add(brandPayout);
                 await ctx.SaveChangesAsync();
@@ -79,7 +81,8 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
                 var brandPayout = await ctx.BrandPayouts
                     .Include(x => x.Geo)
-                    .FirstOrDefaultAsync(x => x.Id == request.PayoutId);
+                    .FirstOrDefaultAsync(x => x.TenantId.Equals(request.TenantId) &&
+                                              x.Id == request.PayoutId);
                 if (brandPayout is null)
                 {
                     throw new NotFoundException(nameof(request.PayoutId), request.PayoutId);
@@ -102,7 +105,8 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
                 var rows = await ctx.BrandPayouts
-                    .Where(x => x.Id == request.PayoutId)
+                    .Where(x => x.TenantId.Equals(request.TenantId) &&
+                                x.Id == request.PayoutId)
                     .DeleteAsync();
                 if (rows == 0)
                 {
@@ -125,7 +129,8 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
                 var brandPayout = await ctx.BrandPayouts
                     .Include(x => x.Geo)
-                    .FirstOrDefaultAsync(x => x.Id == request.Id);
+                    .FirstOrDefaultAsync(x => x.TenantId.Equals(request.TenantId) &&
+                                              x.Id == request.Id);
                 if (brandPayout is null)
                 {
                     throw new NotFoundException(nameof(request.Id), request.Id);
@@ -133,7 +138,7 @@ namespace MarketingBox.Affiliate.Service.Repositories
 
                 if (brandPayout.GeoId != request.GeoId)
                 {
-                    await EnsureGeo(request.GeoId, ctx, brandPayout);
+                    await EnsureGeo(request.GeoId, request.TenantId, ctx, brandPayout);
                 }
 
                 brandPayout.Amount = request.Currency == Currency.BTC
@@ -173,6 +178,11 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 if (!string.IsNullOrEmpty(request.Name))
                 {
                     query = query.Where(x => x.Name.ToLower().Contains(request.Name.ToLowerInvariant()));
+                }
+                
+                if (!string.IsNullOrEmpty(request.TenantId))
+                {
+                    query = query.Where(x => x.TenantId.Equals(request.TenantId));
                 }
 
                 if (request.GeoIds.Any())

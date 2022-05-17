@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Runtime.Serialization;
-using MarketingBox.Affiliate.Service.Domain.Models.Common;
 using MarketingBox.Affiliate.Service.Domain.Models.Offers;
 using MarketingBox.Sdk.Common.Attributes;
+using MarketingBox.Sdk.Common.Enums;
 using MarketingBox.Sdk.Common.Models;
 
 namespace MarketingBox.Affiliate.Service.Grpc.Requests.Offers;
@@ -32,4 +32,7 @@ public class OfferUpdateRequest : ValidatableEntity
 
     [DataMember(Order = 9), Required, AdvancedCompare(ComparisonType.GreaterThanOrEqual, 1)]
     public long? AffiliateId { get; set; }
+        
+    [DataMember(Order = 10), Required]
+    public string TenantId { get; set; }
 }

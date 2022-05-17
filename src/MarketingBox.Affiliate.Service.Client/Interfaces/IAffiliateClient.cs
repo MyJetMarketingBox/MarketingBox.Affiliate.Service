@@ -5,5 +5,6 @@ namespace MarketingBox.Affiliate.Service.Client.Interfaces;
 
 public interface IAffiliateClient
 {
-    Task<AffiliateMessage> GetAffiliate(string tenantId, long affiliateId);
+    Task<AffiliateMessage> GetAffiliateByTenantAndId(string tenantId, long affiliateId);
+    Task<AffiliateMessage> GetAffiliateByApiKeyAndId(string apiKey, long affiliateId);
 }

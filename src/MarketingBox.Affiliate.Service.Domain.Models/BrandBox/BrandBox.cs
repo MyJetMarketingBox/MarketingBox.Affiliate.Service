@@ -12,4 +12,5 @@ public class BrandBox
     [DataMember(Order = 3)] public List<long> BrandIds { get; set; }
     [DataMember(Order = 4)] public DateTime CreatedAt { get; set; }
     [DataMember(Order = 5)] public long CreatedBy { get; set; }
+    [DataMember(Order = 6)] public string TenantId { get; set; }
 }

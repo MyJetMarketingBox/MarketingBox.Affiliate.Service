@@ -3,7 +3,7 @@ using System.Runtime.Serialization;
 using MarketingBox.Sdk.Common.Attributes;
 using MarketingBox.Sdk.Common.Models;
 
-namespace MarketingBox.Affiliate.Service.Grpc.Requests.Country;
+namespace MarketingBox.Affiliate.Service.Grpc.Requests.Geo;
 
 [DataContract]
 public class GeoSearchRequest : ValidatableEntity
@@ -21,4 +21,7 @@ public class GeoSearchRequest : ValidatableEntity
     [DataMember(Order = 5)] public string Name { get; set; }
 
     [DataMember(Order = 6)] public List<int> CountryIds { get; set; } = new();
+        
+    [DataMember(Order = 7)]
+    public string TenantId { get; set; }
 }

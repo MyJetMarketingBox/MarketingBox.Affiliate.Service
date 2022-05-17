@@ -3,6 +3,8 @@ using MarketingBox.Affiliate.Service.Client.Interfaces;
 using MarketingBox.Affiliate.Service.Grpc;
 using MarketingBox.Affiliate.Service.MyNoSql.Affiliates;
 using MarketingBox.Affiliate.Service.MyNoSql.Country;
+using MarketingBox.Affiliate.Service.MyNoSql.Offer;
+using MarketingBox.Affiliate.Service.MyNoSql.OfferAffiliates;
 using MyJetWallet.Sdk.NoSql;
 using MyNoSqlServer.DataReader;
 
@@ -40,6 +42,7 @@ namespace MarketingBox.Affiliate.Service.Client
             builder.RegisterType<CountryClient>().As<ICountryClient>().SingleInstance();
             builder.RegisterMyNoSqlReader<CountriesNoSql>(noSqlClient, CountriesNoSql.TableName);
         }
+        
         public static void RegisterAffiliateClient(
             this ContainerBuilder builder,
             string grpcServiceUrl,
@@ -49,6 +52,28 @@ namespace MarketingBox.Affiliate.Service.Client
             builder.RegisterInstance(factory.GetAffiliateService()).As<IAffiliateService>().SingleInstance();
             builder.RegisterType<AffiliateClient>().As<IAffiliateClient>().SingleInstance();
             builder.RegisterMyNoSqlReader<AffiliateNoSql>(noSqlClient, AffiliateNoSql.TableName);
+        }
+        
+        public static void RegisterOfferClient(
+            this ContainerBuilder builder,
+            string grpcServiceUrl,
+            IMyNoSqlSubscriber noSqlClient)
+        {
+            var factory = new AffiliateServiceClientFactory(grpcServiceUrl);
+            builder.RegisterInstance(factory.GetOfferService()).As<IOfferService>().SingleInstance();
+            builder.RegisterType<OfferClient>().As<IOfferClient>().SingleInstance();
+            builder.RegisterMyNoSqlReader<OfferNoSql>(noSqlClient, OfferNoSql.TableName);
+        }
+        
+        public static void RegisterOfferAffiliateClient(
+            this ContainerBuilder builder,
+            string grpcServiceUrl,
+            IMyNoSqlSubscriber noSqlClient)
+        {
+            var factory = new AffiliateServiceClientFactory(grpcServiceUrl);
+            builder.RegisterInstance(factory.GetOfferAffiliateService()).As<IOfferAffiliateService>().SingleInstance();
+            builder.RegisterType<OfferAffiliateClient>().As<IOfferAffiliateClient>().SingleInstance();
+            builder.RegisterMyNoSqlReader<OfferAffiliateNoSql>(noSqlClient, OfferAffiliateNoSql.TableName);
         }
     }
 }

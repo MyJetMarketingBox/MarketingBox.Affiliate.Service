@@ -13,4 +13,7 @@ public class GetUrlRequest : ValidatableEntity
     
     [DataMember(Order = 2), Required, AdvancedCompare(ComparisonType.GreaterThanOrEqual, 1)]
     public long? AffiliateId { get; set; }
+        
+    [DataMember(Order = 3), Required]
+    public string TenantId { get; set; }
 }

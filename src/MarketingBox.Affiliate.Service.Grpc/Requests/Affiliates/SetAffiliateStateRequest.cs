@@ -13,5 +13,6 @@ namespace MarketingBox.Affiliate.Service.Grpc.Requests.Affiliates
         public long? AffiliateId { get; set; }
 
         [DataMember(Order = 2), Required, IsEnum] public State? State { get; set; }
+        [DataMember(Order = 3), Required] public string TenantId { get; set; }
     }
 }

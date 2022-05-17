@@ -30,6 +30,7 @@ namespace MarketingBox.Affiliate.Service.Services
 
         private static async Task EnsureBrandPayout(
             ICollection<long> brandPayoutIds,
+            string tenantId,
             DatabaseContext ctx,
             Brand brand)
         {
@@ -41,7 +42,7 @@ namespace MarketingBox.Affiliate.Service.Services
 
             var brandPayouts = await ctx.BrandPayouts
                 .Include(x => x.Geo)
-                .Where(x => brandPayoutIds.Contains(x.Id))
+                .Where(x => x.TenantId.Equals(tenantId) && brandPayoutIds.Contains(x.Id))
                 .ToListAsync();
             var notFoundIds = brandPayoutIds.Except(brandPayouts.Select(x => x.Id)).ToList();
             if (notFoundIds.Any())
@@ -53,12 +54,13 @@ namespace MarketingBox.Affiliate.Service.Services
             brand.Payouts = brandPayouts;
         }
 
-        private static async Task EnsureIntegration(long? integrationId, DatabaseContext ctx, Brand brand)
+        private static async Task EnsureIntegration(long? integrationId, string tenantId, DatabaseContext ctx, Brand brand)
         {
             if (integrationId.HasValue)
             {
                 var integration = await ctx.Integrations
-                    .FirstOrDefaultAsync(x => x.Id == integrationId);
+                    .FirstOrDefaultAsync(x => x.TenantId.Equals(tenantId) &&
+                                              x.Id == integrationId);
                 if (integration is null)
                 {
                     throw new NotFoundException(nameof(integrationId), integrationId);
@@ -100,10 +102,11 @@ namespace MarketingBox.Affiliate.Service.Services
                 var brand = _mapper.Map<Brand>(request);
                 await EnsureBrandPayout(
                     request.BrandPayoutIds.Distinct().ToList(),
+                    request.TenantId,
                     ctx,
                     brand);
 
-                await EnsureIntegration(request.IntegrationId, ctx, brand);
+                await EnsureIntegration(request.IntegrationId, request.TenantId, ctx, brand);
 
                 ctx.Brands.Add(brand);
                 await ctx.SaveChangesAsync();
@@ -146,7 +149,8 @@ namespace MarketingBox.Affiliate.Service.Services
                     .Include(x => x.CampaignRows).ThenInclude(x => x.Campaign)
                     .Include(x => x.LinkParameters)
                     .Include(x => x.Integration)
-                    .FirstOrDefaultAsync(x => x.Id == request.BrandId);
+                    .FirstOrDefaultAsync(x => x.TenantId.Equals(request.TenantId) &&
+                                              x.Id == request.BrandId);
 
                 if (brand is null)
                 {
@@ -155,10 +159,11 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 await EnsureBrandPayout(
                     request.BrandPayoutIds.Distinct().ToList(),
+                    request.TenantId,
                     ctx,
                     brand);
 
-                await EnsureIntegration(request.IntegrationId, ctx, brand);
+                await EnsureIntegration(request.IntegrationId, request.TenantId, ctx, brand);
 
                 brand.Name = request.Name;
                 brand.IntegrationType = request.IntegrationType.Value;
@@ -203,7 +208,8 @@ namespace MarketingBox.Affiliate.Service.Services
                     .Include(x => x.CampaignRows).ThenInclude(x => x.Campaign)
                     .Include(x => x.LinkParameters)
                     .Include(x => x.Integration)
-                    .FirstOrDefaultAsync(x => x.Id == request.BrandId);
+                    .FirstOrDefaultAsync(x => x.TenantId.Equals(request.TenantId) &&
+                                              x.Id == request.BrandId);
                 if (brand is null) throw new NotFoundException(nameof(request.BrandId), request.BrandId);
 
                 return new Response<Brand>
@@ -228,8 +234,8 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
-                var brand = await ctx.Brands.FirstOrDefaultAsync(x => x.Id == request.BrandId);
-
+                var brand = await ctx.Brands.FirstOrDefaultAsync(x => x.TenantId.Equals(request.TenantId) &&
+                                                                      x.Id == request.BrandId);
                 if (brand == null)
                     throw new NotFoundException(nameof(request.BrandId), request.BrandId);
                 ctx.Brands.Remove(brand);
@@ -244,7 +250,6 @@ namespace MarketingBox.Affiliate.Service.Services
                     BrandId = brand.Id,
                     TenantId = brand.TenantId
                 });
-
 
                 return new Response<bool>
                 {
@@ -278,7 +283,7 @@ namespace MarketingBox.Affiliate.Service.Services
                     .AsQueryable();
 
                 if (!string.IsNullOrEmpty(request.TenantId))
-                    query = query.Where(x => x.TenantId == request.TenantId);
+                    query = query.Where(x => x.TenantId.Equals(request.TenantId));
 
                 if (!string.IsNullOrEmpty(request.Name))
                     query = query.Where(x => x.Name

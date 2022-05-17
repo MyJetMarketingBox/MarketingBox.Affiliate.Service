@@ -38,5 +38,8 @@ namespace MarketingBox.Affiliate.Service.Grpc.Requests.CampaignRows
         [DataMember(Order = 10)] public bool? EnableTraffic { get; set; }
 
         [DataMember(Order = 11)] public long? CampaignRowId { get; set; }
+        
+        [DataMember(Order = 12), Required]
+        public string TenantId { get; set; }
     }
 }

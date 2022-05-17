@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using Destructurama.Attributed;
-using MarketingBox.Affiliate.Service.Domain.Models.Common;
 using MarketingBox.Affiliate.Service.Domain.Models.OfferAffiliates;
+using MarketingBox.Sdk.Common.Enums;
 
 namespace MarketingBox.Affiliate.Service.Domain.Models.Affiliates
 {

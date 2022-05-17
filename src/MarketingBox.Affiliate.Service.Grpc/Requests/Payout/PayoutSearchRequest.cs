@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Runtime.Serialization;
-using MarketingBox.Affiliate.Service.Domain.Models.Common;
 using MarketingBox.Sdk.Common.Attributes;
+using MarketingBox.Sdk.Common.Enums;
 using MarketingBox.Sdk.Common.Models;
 
 namespace MarketingBox.Affiliate.Service.Grpc.Requests.Payout;
@@ -21,7 +21,10 @@ public class PayoutSearchRequest : ValidatableEntity
 
     [DataMember(Order = 5)] public string Name { get; set; }
 
-    [DataMember(Order = 6)] public List<PayoutType> PayoutTypes { get; set; } = new();
+    [DataMember(Order = 6)] public List<Plan> PayoutTypes { get; set; } = new();
 
     [DataMember(Order = 7)] public List<long> GeoIds { get; set; } = new();
+        
+    [DataMember(Order = 8)]
+    public string TenantId { get; set; }
 }

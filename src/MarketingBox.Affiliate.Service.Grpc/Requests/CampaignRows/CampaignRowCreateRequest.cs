@@ -37,5 +37,8 @@ namespace MarketingBox.Affiliate.Service.Grpc.Requests.CampaignRows
         [DataMember(Order = 9)] public string Information { get; set; }
 
         [DataMember(Order = 10)] public bool EnableTraffic { get; set; }
+        
+        [DataMember(Order = 11), Required]
+        public string TenantId { get; set; }
     }
 }

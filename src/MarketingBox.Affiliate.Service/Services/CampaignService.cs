@@ -27,7 +27,6 @@ namespace MarketingBox.Affiliate.Service.Services
         private readonly IServiceBusPublisher<CampaignMessage> _publisherCampaignUpdated;
         private readonly IMyNoSqlServerDataWriter<CampaignNoSql> _myNoSqlServerDataWriter;
         private readonly IServiceBusPublisher<CampaignRemoved> _publisherCampaignRemoved;
-        private readonly IMyNoSqlServerDataWriter<CampaignIndexNoSql> _myNoSqlIndexServerDataWriter;
         private readonly IMapper _mapper;
 
         public CampaignService(ILogger<CampaignService> logger,
@@ -35,7 +34,6 @@ namespace MarketingBox.Affiliate.Service.Services
             IServiceBusPublisher<CampaignMessage> publisherCampaignUpdated,
             IMyNoSqlServerDataWriter<CampaignNoSql> myNoSqlServerDataWriter,
             IServiceBusPublisher<CampaignRemoved> publisherCampaignRemoved,
-            IMyNoSqlServerDataWriter<CampaignIndexNoSql> myNoSqlIndexServerDataWriter,
             IMapper mapper)
         {
             _logger = logger;
@@ -43,7 +41,6 @@ namespace MarketingBox.Affiliate.Service.Services
             _publisherCampaignUpdated = publisherCampaignUpdated;
             _myNoSqlServerDataWriter = myNoSqlServerDataWriter;
             _publisherCampaignRemoved = publisherCampaignRemoved;
-            _myNoSqlIndexServerDataWriter = myNoSqlIndexServerDataWriter;
             _mapper = mapper;
         }
 
@@ -70,9 +67,7 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 var campaignMessage = _mapper.Map<CampaignMessage>(campaign);
                 var nosql = CampaignNoSql.Create(campaignMessage);
-                var nosqlIndexies = CampaignIndexNoSql.Create(campaignMessage);
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
-                await _myNoSqlIndexServerDataWriter.InsertOrReplaceAsync(nosqlIndexies);
                 _logger.LogInformation("Sent campaign update to MyNoSql {@context}", request);
 
                 await _publisherCampaignUpdated.PublishAsync(campaignMessage);
@@ -102,7 +97,8 @@ namespace MarketingBox.Affiliate.Service.Services
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
                 var existingCampaign = await ctx.Campaigns
-                    .FirstOrDefaultAsync(x => x.Id == request.CampaignId);
+                    .FirstOrDefaultAsync(x => x.TenantId.Equals(request.TenantId) &&
+                                              x.Id == request.CampaignId);
 
                 if (existingCampaign is null)
                 {
@@ -110,7 +106,6 @@ namespace MarketingBox.Affiliate.Service.Services
                 }
 
                 existingCampaign.Name = request.Name;
-                existingCampaign.TenantId = request.TenantId;
 
                 await ctx.SaveChangesAsync();
 
@@ -146,7 +141,8 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 var campaign = await ctx.Campaigns
                     .Include(x => x.CampaignRows)
-                    .FirstOrDefaultAsync(x => x.Id == request.CampaignId);
+                    .FirstOrDefaultAsync(x => x.TenantId.Equals(request.TenantId) &&
+                                              x.Id == request.CampaignId);
                 if (campaign is null)
                 {
                     throw new NotFoundException(nameof(request.CampaignId), request.CampaignId);
@@ -174,7 +170,8 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
-                var campaign = await ctx.Campaigns.FirstOrDefaultAsync(x => x.Id == request.CampaignId);
+                var campaign = await ctx.Campaigns.FirstOrDefaultAsync(x =>  x.TenantId.Equals(request.TenantId) &&
+                                                                             x.Id == request.CampaignId);
 
                 if (campaign == null)
                     throw new NotFoundException(nameof(request.CampaignId), request.CampaignId);
@@ -209,7 +206,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 request.ValidateEntity();
 
                 _logger.LogInformation(
-                    "CampaignService.SearchAsync start with request : {@Context}",request);
+                    "CampaignService.SearchAsync start with request : {@Context}", request);
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
                 var query = ctx.Campaigns
                     .Include(x => x.CampaignRows)
@@ -217,7 +214,7 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 if (!string.IsNullOrWhiteSpace(request.TenantId))
                 {
-                    query = query.Where(x => x.TenantId == request.TenantId);
+                    query = query.Where(x => x.TenantId.Equals(request.TenantId));
                 }
 
                 if (!string.IsNullOrWhiteSpace(request.Name))
@@ -232,7 +229,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 {
                     query = query.Where(x => x.Id == request.CampaignId);
                 }
-                
+
                 var total = query.Count();
 
                 if (request.Asc)
@@ -258,7 +255,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 {
                     query = query.Take(request.Take.Value);
                 }
-                
+
                 await query.LoadAsync();
 
                 var response = query

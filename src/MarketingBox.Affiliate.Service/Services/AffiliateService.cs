@@ -12,11 +12,11 @@ using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using MarketingBox.Affiliate.Service.Domain.Models.Affiliates;
-using MarketingBox.Affiliate.Service.Domain.Models.Common;
 using MarketingBox.Affiliate.Service.Grpc.Requests.Affiliates;
 using MarketingBox.Affiliate.Service.Messages.Affiliates;
 using MarketingBox.Affiliate.Service.MyNoSql.Affiliates;
 using MarketingBox.Auth.Service.Grpc.Models;
+using MarketingBox.Sdk.Common.Enums;
 using MarketingBox.Sdk.Common.Exceptions;
 using MarketingBox.Sdk.Common.Extensions;
 using MarketingBox.Sdk.Common.Models.Grpc;
@@ -60,6 +60,7 @@ namespace MarketingBox.Affiliate.Service.Services
 
         private static async Task EnsureAndDoAffiliatePayout(
             ICollection<long> affiliatePayoutIds,
+            string tenantId,
             DatabaseContext ctx,
             GrpcModels.Affiliate affiliate)
         {
@@ -72,7 +73,7 @@ namespace MarketingBox.Affiliate.Service.Services
             var affiliatePayouts =
                 await ctx.AffiliatePayouts
                     .Include(x => x.Geo)
-                    .Where(x => affiliatePayoutIds.Contains(x.Id))
+                    .Where(x => x.TenantId.Equals(tenantId) && affiliatePayoutIds.Contains(x.Id))
                     .ToListAsync();
             var notFoundIds = affiliatePayoutIds.Except(affiliatePayouts.Select(x => x.Id)).ToList();
             if (notFoundIds.Any())
@@ -168,7 +169,8 @@ namespace MarketingBox.Affiliate.Service.Services
                 request.ValidateEntity();
                 _logger.LogInformation("SetAffiliateStateAsync {@context}", request);
                 await using var ctx = _databaseContextFactory.Create();
-                var affiliate = ctx.Affiliates.FirstOrDefault(e => e.Id == request.AffiliateId);
+                var affiliate = ctx.Affiliates.FirstOrDefault(e => e.TenantId.Equals(request.TenantId) && 
+                                                                   e.Id == request.AffiliateId);
 
                 if (affiliate == null)
                     throw new NotFoundException(nameof(request.AffiliateId), request.AffiliateId);
@@ -258,6 +260,7 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 await EnsureAndDoAffiliatePayout(
                     request.AffiliatePayoutIds.Distinct().ToList(),
+                    request.TenantId,
                     ctx,
                     affiliate);
 
@@ -307,7 +310,8 @@ namespace MarketingBox.Affiliate.Service.Services
                     .Include(x => x.Payouts)
                     .ThenInclude(x => x.Geo)
                     .Include(x => x.OfferAffiliates)
-                    .FirstOrDefaultAsync(x => x.Id == request.AffiliateId);
+                    .FirstOrDefaultAsync(x => x.TenantId.Equals(request.TenantId) && 
+                                              x.Id == request.AffiliateId);
 
                 if (affiliateExisting is null)
                 {
@@ -323,6 +327,7 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 await EnsureAndDoAffiliatePayout(
                     request.AffiliatePayoutIds.Distinct().ToList(),
+                    request.TenantId,
                     ctx,
                     affiliateExisting);
 
@@ -376,7 +381,8 @@ namespace MarketingBox.Affiliate.Service.Services
                     .Include(x => x.Payouts)
                     .ThenInclude(x => x.Geo)
                     .Include(x => x.OfferAffiliates)
-                    .FirstOrDefaultAsync(x => x.Id == request.AffiliateId);
+                    .FirstOrDefaultAsync(x => x.TenantId.Equals(request.TenantId) &&
+                                              x.Id == request.AffiliateId);
                 if (affiliate is null)
                 {
                     throw new NotFoundException(nameof(request.AffiliateId), request.AffiliateId);
@@ -410,7 +416,8 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 await using var ctx = _databaseContextFactory.Create();
                 var paramList = ctx.AffiliateSubParams
-                    .Where(x => x.AffiliateId == request.AffiliateId)
+                    .Where(x => x.TenantId.Equals(request.TenantId) &&
+                                x.AffiliateId == request.AffiliateId)
                     .ToList();
                 if (paramList.Count == 0)
                 {
@@ -447,7 +454,12 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 if (!string.IsNullOrEmpty(request.TenantId))
                 {
-                    query = query.Where(x => x.TenantId == request.TenantId);
+                    query = query.Where(x => x.TenantId.Equals(request.TenantId));
+                }
+                
+                if (!string.IsNullOrEmpty(request.ApiKey))
+                {
+                    query = query.Where(x => x.ApiKey.Equals(request.ApiKey));
                 }
 
                 if (!string.IsNullOrEmpty(request.Username))

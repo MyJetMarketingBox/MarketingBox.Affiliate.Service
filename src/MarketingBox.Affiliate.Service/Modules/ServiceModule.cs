@@ -81,10 +81,6 @@ namespace MarketingBox.Affiliate.Service.Modules
             // register writer (IMyNoSqlServerDataWriter<CampaignNoSql>)
             builder.RegisterMyNoSqlWriter<CampaignNoSql>(Program.ReloadedSettings(e => e.MyNoSqlWriterUrl),
                 CampaignNoSql.TableName);
-
-            // register writer (IMyNoSqlServerDataWriter<CampaignIndexNoSql>)
-            builder.RegisterMyNoSqlWriter<CampaignIndexNoSql>(Program.ReloadedSettings(e => e.MyNoSqlWriterUrl),
-                CampaignIndexNoSql.TableName);
         }
 
         private static void SetupAffiliates(ContainerBuilder builder, MyServiceBusTcpClient serviceBusClient)

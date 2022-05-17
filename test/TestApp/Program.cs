@@ -2,8 +2,8 @@
 using System.Threading.Tasks;
 using MarketingBox.Affiliate.Service.Client;
 using MarketingBox.Affiliate.Service.Domain.Models.Affiliates;
-using MarketingBox.Affiliate.Service.Domain.Models.Common;
 using MarketingBox.Affiliate.Service.Grpc.Requests.Affiliates;
+using MarketingBox.Sdk.Common.Enums;
 using ProtoBuf.Grpc.Client;
 
 namespace TestApp

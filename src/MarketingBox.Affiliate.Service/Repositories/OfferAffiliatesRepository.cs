@@ -41,14 +41,17 @@ public class OfferAffiliatesRepository : IOfferAffiliatesRepository
 
             var existingOffer = await context.Offers
                 .Include(x=>x.Brand)
-                .FirstOrDefaultAsync(x => x.Id == request.OfferId);
+                .FirstOrDefaultAsync(x => x.TenantId.Equals(request.TenantId) &&
+                                          x.Id == request.OfferId);
 
             if (existingOffer is null)
             {
                 throw new NotFoundException(nameof(request.OfferId), request.OfferId);
             }
 
-            var existingAffiliate = await context.Affiliates.AnyAsync(x => x.Id == request.AffiliateId);
+            var existingAffiliate = await context.Affiliates.AnyAsync(x => 
+                x.TenantId.Equals(request.TenantId) &&
+                x.Id == request.AffiliateId);
 
             if (!existingAffiliate)
             {
@@ -56,7 +59,9 @@ public class OfferAffiliatesRepository : IOfferAffiliatesRepository
             }
 
             var existOfferAffiliate = await context.OfferAffiliates.AnyAsync(x =>
-                x.OfferId == request.OfferId && x.AffiliateId == request.AffiliateId);
+                x.TenantId.Equals(request.TenantId) &&
+                x.OfferId == request.OfferId &&
+                x.AffiliateId == request.AffiliateId);
             if (existOfferAffiliate)
             {
                 throw new AlreadyExistsException(
@@ -76,7 +81,7 @@ public class OfferAffiliatesRepository : IOfferAffiliatesRepository
         }
     }
 
-    public async Task<OfferAffiliate> GetAsync(long id)
+    public async Task<OfferAffiliate> GetAsync(long id, string tenantId)
     {
         try
         {
@@ -84,7 +89,8 @@ public class OfferAffiliatesRepository : IOfferAffiliatesRepository
 
             await using var context = new DatabaseContext(_dbContextOptionsBuilder.Options);
             var offerAffiliate = await context.OfferAffiliates
-                .FirstOrDefaultAsync(x => x.Id == id);
+                .FirstOrDefaultAsync(x => x.TenantId.Equals(tenantId) &&
+                                          x.Id == id);
 
             if (offerAffiliate is null)
             {
@@ -100,7 +106,7 @@ public class OfferAffiliatesRepository : IOfferAffiliatesRepository
         }
     }
 
-    public async Task<string> DeleteAsync(long id)
+    public async Task<string> DeleteAsync(long id, string tenantId)
     {
         try
         {
@@ -108,7 +114,7 @@ public class OfferAffiliatesRepository : IOfferAffiliatesRepository
 
             await using var context = new DatabaseContext(_dbContextOptionsBuilder.Options);
             var offerAffiliate = await context.OfferAffiliates
-                .FirstOrDefaultAsync(x => x.Id == id);
+                .FirstOrDefaultAsync(x => x.TenantId.Equals(tenantId) && x.Id == id);
 
             if (offerAffiliate is null)
             {
@@ -137,6 +143,10 @@ public class OfferAffiliatesRepository : IOfferAffiliatesRepository
             if (request.OfferId.HasValue)
             {
                 query = query.Where(x => x.OfferId == request.OfferId);
+            }
+            if (!string.IsNullOrEmpty(request.TenantId))
+            {
+                query = query.Where(x => x.TenantId.Equals(request.TenantId));
             }
 
             var total = query.Count();

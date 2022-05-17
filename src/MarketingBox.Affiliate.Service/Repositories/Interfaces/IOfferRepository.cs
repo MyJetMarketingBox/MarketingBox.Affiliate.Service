@@ -8,10 +8,10 @@ namespace MarketingBox.Affiliate.Service.Repositories.Interfaces
     public interface IOfferRepository
     {
         Task<Offer> CreateAsync(OfferCreateRequest request);
-        Task<Offer> GetAsync(long id, long affiliateId);
-        Task DeleteAsync(long id, long affiliateId);
+        Task<Offer> GetAsync(long id, long affiliateId, string tenantId);
+        Task<string> DeleteAsync(long id, long affiliateId, string tenantId);
         Task<Offer> UpdateAsync(OfferUpdateRequest request);
         Task<(IReadOnlyCollection<Offer>, int)> SearchAsync(OfferSearchRequest request);
-        Task<string> GetUrlAsync(long offerId, long affiliateId);
+        Task<string> GetUrlAsync(long offerId, long affiliateId, string tenantId);
     }
 }

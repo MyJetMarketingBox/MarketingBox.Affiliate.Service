@@ -4,8 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using MarketingBox.Affiliate.Postgres;
 using MarketingBox.Affiliate.Service.Domain.Models.Country;
-using MarketingBox.Affiliate.Service.Grpc.Requests;
-using MarketingBox.Affiliate.Service.Grpc.Requests.Country;
+using MarketingBox.Affiliate.Service.Grpc.Requests.Geo;
 using MarketingBox.Affiliate.Service.Repositories.Interfaces;
 using MarketingBox.Sdk.Common.Exceptions;
 using Microsoft.EntityFrameworkCore;
@@ -20,7 +19,8 @@ namespace MarketingBox.Affiliate.Service.Repositories
 
         private static async Task ValidateExistingNames(Geo request, DatabaseContext context, int? id = null)
         {
-            var geoWithName = await context.Geos.FirstOrDefaultAsync(x => x.Name == request.Name);
+            var geoWithName = await context.Geos.FirstOrDefaultAsync(x => x.TenantId.Equals(request.TenantId)
+                                                                          && x.Name == request.Name);
             if ((id.HasValue && geoWithName != null && geoWithName.Id != id) ||
                 (!id.HasValue && geoWithName != null))
             {
@@ -47,6 +47,10 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 if (!string.IsNullOrEmpty(request.Name))
                 {
                     query = query.Where(x => x.Name.ToLower().Contains(request.Name.ToLowerInvariant()));
+                }                
+                if (!string.IsNullOrEmpty(request.TenantId))
+                {
+                    query = query.Where(x => x.TenantId.Equals(request.TenantId));
                 }
                 
                 if (request.GeoId.HasValue)
@@ -98,14 +102,15 @@ namespace MarketingBox.Affiliate.Service.Repositories
             }
         }
 
-        public async Task<Geo> GetAsync(long id)
+        public async Task<Geo> GetAsync(long id, string tenantId)
         {
             try
             {
                 await using var context = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
                 var result = await context.Geos
-                    .FirstOrDefaultAsync(x => x.Id == id);
+                    .FirstOrDefaultAsync(x => x.TenantId.Equals(tenantId) &&
+                                              x.Id == id);
                 if (result is null)
                 {
                     throw new NotFoundException("Geo with id", id);
@@ -120,13 +125,14 @@ namespace MarketingBox.Affiliate.Service.Repositories
             }
         }
 
-        public async Task DeleteAsync(long id)
+        public async Task DeleteAsync(long id, string tenantId)
         {
             try
             {
                 await using var context = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
-                var result = await context.Geos.FirstOrDefaultAsync(x => x.Id == id);
+                var result = await context.Geos.FirstOrDefaultAsync(x => x.TenantId.Equals(tenantId) &&
+                                                                         x.Id == id);
                 if (result is null)
                 {
                     throw new NotFoundException("Geo with id", id);
@@ -162,14 +168,15 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 {
                     CreatedAt = DateTime.UtcNow,
                     CountryIds = request.CountryIds,
-                    Name = request.Name
+                    Name = request.Name,
+                    TenantId = request.TenantId
                 };
                 await ValidateExistingNames(geo, context);
                 
                 context.Geos.Add(geo);
                 await context.SaveChangesAsync();
-                
-                return await GetAsync(geo.Id);
+
+                return geo;
             }
             catch (Exception e)
             {
@@ -184,7 +191,8 @@ namespace MarketingBox.Affiliate.Service.Repositories
             {
                 await using var context = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
-                var result = await context.Geos.FirstOrDefaultAsync(x => x.Id == request.Id);
+                var result = await context.Geos.FirstOrDefaultAsync(x => x.TenantId.Equals(request.TenantId) &&
+                                                                         x.Id == request.Id);
                 if (result is null)
                 {
                     throw new NotFoundException("Geo with id", request.Id);
