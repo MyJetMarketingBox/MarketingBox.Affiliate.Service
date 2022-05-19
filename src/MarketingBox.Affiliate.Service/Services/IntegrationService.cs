@@ -102,8 +102,7 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 var existingIntegration = await ctx.Integrations
                     .Include(x => x.Brands)
-                    .FirstOrDefaultAsync(x =>  x.TenantId.Equals(request.TenantId) &&
-                                               x.Id == request.IntegrationId);
+                    .FirstOrDefaultAsync(x => x.Id == request.IntegrationId);
 
                 if (existingIntegration is null)
                 {
@@ -145,8 +144,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
                 var integration = await ctx.Integrations
                     .Include(x => x.Brands)
-                    .FirstOrDefaultAsync(x =>  x.TenantId.Equals(request.TenantId) &&
-                                               x.Id == request.IntegrationId);
+                    .FirstOrDefaultAsync(x => x.Id == request.IntegrationId);
                 if (integration is null)
                 {
                     throw new NotFoundException(nameof(request.IntegrationId), request.IntegrationId);
@@ -175,14 +173,12 @@ namespace MarketingBox.Affiliate.Service.Services
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
                 var integration = await ctx.Integrations.FirstOrDefaultAsync(x => 
-                    x.TenantId.Equals(request.TenantId) &&
                     x.Id == request.IntegrationId);
 
                 if (integration == null)
                     throw new NotFoundException(nameof(request.IntegrationId), request.IntegrationId);
                 var brands = await ctx.Brands
-                    .Where(x =>  x.TenantId.Equals(request.TenantId) &&
-                                 x.IntegrationId == request.IntegrationId)
+                    .Where(x => x.IntegrationId == request.IntegrationId)
                     .Select(x => x.Id)
                     .ToListAsync();
                 if (brands.Any())

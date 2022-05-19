@@ -85,38 +85,38 @@ public class DatabaseContext : MyDbContext
         base.OnModelCreating(modelBuilder);
     }
 
-    
+
     private static void SetBrandBox(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<BrandBox>().ToTable(BrandBoxTableName);
         modelBuilder.Entity<BrandBox>().HasKey(x => x.Id);
-        modelBuilder.Entity<BrandBox>().HasIndex(x => new {x.TenantId, x.Id});
-        modelBuilder.Entity<BrandBox>().HasIndex(x => new {x.TenantId,x.Name}).IsUnique();
+        modelBuilder.Entity<BrandBox>().HasIndex(x => x.TenantId);
+        modelBuilder.Entity<BrandBox>().HasIndex(x => new {x.TenantId, x.Name}).IsUnique();
         modelBuilder.Entity<BrandBox>().HasIndex(x => x.CreatedAt);
         modelBuilder.Entity<BrandBox>().Property(x => x.Name).IsRequired();
     }
-    
+
     private static void SetOfferAffiliate(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<OfferAffiliate>().ToTable(OfferAffiliatesTableName);
         modelBuilder.Entity<OfferAffiliate>().HasKey(x => x.Id);
-        modelBuilder.Entity<OfferAffiliate>().HasIndex(x => new {x.TenantId, x.Id});
+        modelBuilder.Entity<OfferAffiliate>().HasIndex(x => x.TenantId);
 
         modelBuilder
             .Entity<OfferAffiliate>()
-            .HasIndex(x => new {x.TenantId, x.OfferId, x.AffiliateId, x.UniqueId})
+            .HasIndex(x => new {x.OfferId, x.AffiliateId, x.UniqueId})
             .IsUnique();
-        
+
         modelBuilder
             .Entity<OfferAffiliate>()
             .Property(x => x.UniqueId)
             .IsRequired();
-        
+
         modelBuilder.Entity<OfferAffiliate>()
             .HasOne(x => x.Affiliate)
             .WithMany(x => x.OfferAffiliates)
             .HasForeignKey(x => x.AffiliateId);
-        
+
         modelBuilder.Entity<OfferAffiliate>()
             .HasOne(x => x.Offer)
             .WithMany(x => x.OfferAffiliates)
@@ -127,7 +127,7 @@ public class DatabaseContext : MyDbContext
     {
         modelBuilder.Entity<AffiliatePayout>().ToTable(AffiliatePayoutTableName);
         modelBuilder.Entity<AffiliatePayout>().HasKey(x => x.Id);
-        modelBuilder.Entity<AffiliatePayout>().HasIndex(x => new {x.TenantId, x.Id});
+        modelBuilder.Entity<AffiliatePayout>().HasIndex(x => x.TenantId);
         modelBuilder.Entity<AffiliatePayout>().HasIndex(x => x.CreatedAt);
         modelBuilder.Entity<AffiliatePayout>().HasIndex(x => x.ModifiedAt);
         modelBuilder.Entity<AffiliatePayout>().HasIndex(x => x.PayoutType);
@@ -143,7 +143,7 @@ public class DatabaseContext : MyDbContext
     {
         modelBuilder.Entity<BrandPayout>().ToTable(BrandPayoutTableName);
         modelBuilder.Entity<BrandPayout>().HasKey(x => x.Id);
-        modelBuilder.Entity<BrandPayout>().HasIndex(x => new {x.TenantId, x.Id});
+        modelBuilder.Entity<BrandPayout>().HasIndex(x => x.TenantId);
         modelBuilder.Entity<BrandPayout>().HasIndex(x => x.CreatedAt);
         modelBuilder.Entity<BrandPayout>().HasIndex(x => x.ModifiedAt);
         modelBuilder.Entity<BrandPayout>().HasIndex(x => x.PayoutType);
@@ -159,8 +159,8 @@ public class DatabaseContext : MyDbContext
     {
         modelBuilder.Entity<Geo>().ToTable(GeoTableName);
         modelBuilder.Entity<Geo>().HasKey(x => x.Id);
-        modelBuilder.Entity<Geo>().HasIndex(x => new {x.TenantId, x.Id});
-        modelBuilder.Entity<Geo>().HasIndex(x => new{x.TenantId, x.Name}).IsUnique();
+        modelBuilder.Entity<Geo>().HasIndex(x => x.TenantId);
+        modelBuilder.Entity<Geo>().HasIndex(x => new {x.TenantId, x.Name}).IsUnique();
         modelBuilder.Entity<Geo>().Property(x => x.Name).IsRequired();
         modelBuilder.Entity<Geo>().HasIndex(x => x.CreatedAt);
     }
@@ -197,8 +197,8 @@ public class DatabaseContext : MyDbContext
     {
         modelBuilder.Entity<Offer>().ToTable(OfferTableName);
         modelBuilder.Entity<Offer>().HasKey(x => x.Id);
-        
-        modelBuilder.Entity<Offer>().HasIndex(x => new {x.TenantId, x.Id});
+
+        modelBuilder.Entity<Offer>().HasIndex(x => x.TenantId);
         modelBuilder.Entity<Offer>().HasIndex(x => x.Name);
         modelBuilder.Entity<Offer>().HasIndex(x => x.Currency);
         modelBuilder.Entity<Offer>().HasIndex(x => x.State);
@@ -250,7 +250,7 @@ public class DatabaseContext : MyDbContext
     {
         modelBuilder.Entity<Brand>().ToTable(BrandTableName);
         modelBuilder.Entity<Brand>().HasKey(e => e.Id);
-        
+
         modelBuilder.Entity<Brand>()
             .OwnsOne(e => e.LinkParameters);
 
@@ -267,7 +267,7 @@ public class DatabaseContext : MyDbContext
     {
         modelBuilder.Entity<CampaignRow>().ToTable(CampaignRowTableName);
         modelBuilder.Entity<CampaignRow>().HasKey(e => e.Id);
-        
+
         modelBuilder.Entity<CampaignRow>()
             .HasOne(x => x.Campaign)
             .WithMany(x => x.CampaignRows)
@@ -290,7 +290,7 @@ public class DatabaseContext : MyDbContext
                     JsonConvert.DeserializeObject<List<ActivityHours>>(v,
                         JsonSerializingSettings));
 
-        modelBuilder.Entity<CampaignRow>().HasIndex(x => new {x.TenantId, x.Id});
+        modelBuilder.Entity<CampaignRow>().HasIndex(x => x.TenantId);
         modelBuilder.Entity<CampaignRow>().HasIndex(e => e.CampaignId);
         modelBuilder.Entity<CampaignRow>().HasIndex(e => e.BrandId);
     }

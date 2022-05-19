@@ -54,7 +54,7 @@ public class BrandBoxService : IBrandBoxService
         {
             request.ValidateEntity();
 
-            var (result, total) = await _repository.GetByIdsAsync(request.BrandBoxIds, request.TenantId);
+            var (result, total) = await _repository.GetByIdsAsync(request.BrandBoxIds);
             return new Response<IReadOnlyCollection<BrandBox>>
             {
                 Status = ResponseStatus.Ok,
@@ -75,7 +75,7 @@ public class BrandBoxService : IBrandBoxService
         {
             request.ValidateEntity();
 
-            await _repository.DeleteAsync(request.BrandBoxId.Value, request.TenantId);
+            await _repository.DeleteAsync(request.BrandBoxId.Value);
             return new Response<bool>
             {
                 Status = ResponseStatus.Ok,
@@ -95,7 +95,7 @@ public class BrandBoxService : IBrandBoxService
         {
             request.ValidateEntity();
 
-            var result = await _repository.GetAsync(request.BrandBoxId.Value, request.TenantId);
+            var result = await _repository.GetAsync(request.BrandBoxId.Value);
             return new Response<BrandBox>
             {
                 Status = ResponseStatus.Ok,

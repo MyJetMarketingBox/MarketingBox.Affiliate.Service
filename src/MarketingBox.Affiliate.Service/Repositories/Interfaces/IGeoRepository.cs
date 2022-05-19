@@ -9,8 +9,8 @@ namespace MarketingBox.Affiliate.Service.Repositories.Interfaces
     public interface IGeoRepository
     {
         Task<(IReadOnlyCollection<Geo>, int)> SearchAsync(GeoSearchRequest request);
-        Task<Geo> GetAsync(long id, string tenantId);
-        Task DeleteAsync(long id, string tenantId);
+        Task<Geo> GetAsync(long id);
+        Task DeleteAsync(long id);
         Task<Geo> CreateAsync(GeoCreateRequest request);
         Task<Geo> UpdateAsync(GeoUpdateRequest request);
     }

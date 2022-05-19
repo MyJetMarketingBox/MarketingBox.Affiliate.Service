@@ -32,7 +32,6 @@ public class BrandBoxRepository : IBrandBoxRepository
 
     private static async Task EnsureAndChangeBrandIds(
         ICollection<long> brandIds,
-        string tenantId,
         DatabaseContext ctx,
         BrandBox brandBox)
     {
@@ -44,8 +43,7 @@ public class BrandBoxRepository : IBrandBoxRepository
 
         var existingBrandIds =
             await ctx.Brands
-                .Where(x => x.TenantId.Equals(tenantId) &&
-                            brandIds.Contains(x.Id))
+                .Where(x => brandIds.Contains(x.Id))
                 .Select(x => x.Id)
                 .ToListAsync();
         var notFoundIds = brandIds.Except(existingBrandIds).ToList();
@@ -65,14 +63,13 @@ public class BrandBoxRepository : IBrandBoxRepository
         _logger = logger;
     }
 
-    public async Task<BrandBox> GetAsync(long id, string tenantId)
+    public async Task<BrandBox> GetAsync(long id)
     {
         try
         {
             await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
-            var brandBox = await ctx.BrandBoxes.FirstOrDefaultAsync(x => x.TenantId.Equals(tenantId) &&
-                                                                         x.Id == id);
+            var brandBox = await ctx.BrandBoxes.FirstOrDefaultAsync(x => x.Id == id);
             if (brandBox is null)
             {
                 throw new NotFoundException("BrandBox with id", id);
@@ -87,14 +84,13 @@ public class BrandBoxRepository : IBrandBoxRepository
         }
     }
 
-    public async Task DeleteAsync(long id, string tenantId)
+    public async Task DeleteAsync(long id)
     {
         try
         {
             await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
-            var rows = await ctx.BrandBoxes.Where(x => x.TenantId.Equals(tenantId) &&
-                                                       x.Id == id).DeleteAsync();
+            var rows = await ctx.BrandBoxes.Where(x => x.Id == id).DeleteAsync();
             if (rows == 0)
             {
                 throw new NotFoundException("BrandBox with id", id);
@@ -115,7 +111,7 @@ public class BrandBoxRepository : IBrandBoxRepository
             var brandIds = request.BrandIds.Distinct().ToList();
 
             await ValidateExistingNames(request.Name, request.TenantId, ctx);
-            await EnsureAndChangeBrandIds(brandIds, request.TenantId, ctx, request);
+            await EnsureAndChangeBrandIds(brandIds, ctx, request);
 
             ctx.BrandBoxes.Add(request);
             await ctx.SaveChangesAsync();
@@ -135,8 +131,7 @@ public class BrandBoxRepository : IBrandBoxRepository
             await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
             var existingBrandBox = await ctx.BrandBoxes.FirstOrDefaultAsync(
-                x => x.TenantId.Equals(request.TenantId) &&
-                     x.Id == request.Id.Value);
+                x => x.Id == request.Id.Value);
             if (existingBrandBox is null)
             {
                 throw new NotFoundException("BrandBox with id", request.Id);
@@ -145,7 +140,7 @@ public class BrandBoxRepository : IBrandBoxRepository
             var brandIds = request.BrandIds.Distinct().ToList();
 
             await ValidateExistingNames(request.Name, request.TenantId, ctx, existingBrandBox.Id);
-            await EnsureAndChangeBrandIds(brandIds, request.TenantId, ctx, existingBrandBox);
+            await EnsureAndChangeBrandIds(brandIds, ctx, existingBrandBox);
 
             existingBrandBox.Name = request.Name;
 
@@ -215,13 +210,12 @@ public class BrandBoxRepository : IBrandBoxRepository
         }
     }
 
-    public async Task<(IReadOnlyCollection<BrandBox>, int)> GetByIdsAsync(List<long> ids, string tenantId)
+    public async Task<(IReadOnlyCollection<BrandBox>, int)> GetByIdsAsync(List<long> ids)
     {
         try
         {
             await using var context = new DatabaseContext(_dbContextOptionsBuilder.Options);
-            var result = await context.BrandBoxes.Where(x => x.TenantId.Equals(tenantId) &&
-                                                             ids.Contains(x.Id)).ToListAsync();
+            var result = await context.BrandBoxes.Where(x => ids.Contains(x.Id)).ToListAsync();
 
             return (result, result.Count);
         }

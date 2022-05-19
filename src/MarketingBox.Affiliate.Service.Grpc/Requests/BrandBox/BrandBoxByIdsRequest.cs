@@ -10,5 +10,4 @@ public class BrandBoxByIdsRequest : ValidatableEntity
 {
     [DataMember(Order = 1), Required]
     public List<long> BrandBoxIds { get; set; }
-    [DataMember(Order = 2), Required] public string TenantId { get; set; }
 }

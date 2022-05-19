@@ -23,12 +23,10 @@ namespace MarketingBox.Affiliate.Service.Repositories
 
         private static async Task EnsureGeo(
             long? geoId,
-            string tenantId,
             DatabaseContext ctx,
             AffiliatePayout affiliatePayout)
         {
-            var existingGeo = await ctx.Geos.FirstOrDefaultAsync(x => x.TenantId.Equals(tenantId) &&
-                                                                      x.Id == geoId);
+            var existingGeo = await ctx.Geos.FirstOrDefaultAsync(x => x.Id == geoId);
             if (existingGeo is null)
             {
                 throw new NotFoundException(nameof(geoId), geoId);
@@ -56,7 +54,7 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 var affiliatePayout = _mapper.Map<AffiliatePayout>(request);
 
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
-                await EnsureGeo(request.GeoId,request.TenantId, ctx, affiliatePayout);
+                await EnsureGeo(request.GeoId, ctx, affiliatePayout);
 
                 var date = DateTime.UtcNow;
                 affiliatePayout.CreatedAt = date;
@@ -83,8 +81,7 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 var affiliatePayout =
                     await ctx.AffiliatePayouts
                         .Include(x => x.Geo)
-                        .FirstOrDefaultAsync(x => x.TenantId.Equals(request.TenantId) &&
-                                                  x.Id == request.PayoutId);
+                        .FirstOrDefaultAsync(x => x.Id == request.PayoutId);
                 if (affiliatePayout is null)
                 {
                     throw new NotFoundException(nameof(request.PayoutId), request.PayoutId);
@@ -107,8 +104,7 @@ namespace MarketingBox.Affiliate.Service.Repositories
                     request.PayoutId);
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
                 var rows = await ctx.AffiliatePayouts
-                    .Where(x => x.TenantId.Equals(request.TenantId) &&
-                                x.Id == request.PayoutId)
+                    .Where(x => x.Id == request.PayoutId)
                     .DeleteAsync();
                 if (rows == 0)
                 {
@@ -132,8 +128,7 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 var affiliatePayout =
                     await ctx.AffiliatePayouts
                         .Include(c => c.Geo)
-                        .FirstOrDefaultAsync(x => x.TenantId.Equals(request.TenantId) &&
-                                                  x.Id == request.Id);
+                        .FirstOrDefaultAsync(x => x.Id == request.Id);
                 if (affiliatePayout is null)
                 {
                     throw new NotFoundException(nameof(request.Id), request.Id);
@@ -141,7 +136,7 @@ namespace MarketingBox.Affiliate.Service.Repositories
 
                 if (affiliatePayout.GeoId != request.GeoId)
                 {
-                    await EnsureGeo(request.GeoId,request.TenantId, ctx, affiliatePayout);
+                    await EnsureGeo(request.GeoId, ctx, affiliatePayout);
                 }
 
                 affiliatePayout.Amount = request.Currency == Currency.BTC

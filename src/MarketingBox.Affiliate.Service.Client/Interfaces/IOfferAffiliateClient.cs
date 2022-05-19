@@ -5,5 +5,5 @@ namespace MarketingBox.Affiliate.Service.Client.Interfaces;
 
 public interface IOfferAffiliateClient
 {
-    Task<OfferAffiliate> GetOfferAffiliateByUniqueId(string uniqueId);
+    ValueTask<OfferAffiliate> GetOfferAffiliateByUniqueId(string uniqueId, bool checkInService = false);
 }

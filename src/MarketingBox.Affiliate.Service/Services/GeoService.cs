@@ -53,7 +53,7 @@ namespace MarketingBox.Affiliate.Service.Services
             {
                 request.ValidateEntity();
 
-                await _repository.DeleteAsync(request.GeoId.Value, request.TenantId);
+                await _repository.DeleteAsync(request.GeoId.Value);
                 return new Response<bool>
                 {
                     Status = ResponseStatus.Ok,

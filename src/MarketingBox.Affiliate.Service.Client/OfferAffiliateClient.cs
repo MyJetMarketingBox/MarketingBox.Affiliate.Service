@@ -27,32 +27,35 @@ public class OfferAffiliateClient : IOfferAffiliateClient
         _noSqlReader = noSqlReader;
         _logger = logger;
     }
-    
-    public async Task<OfferAffiliate> GetOfferAffiliateByUniqueId(string uniqueId)
+
+    public async ValueTask<OfferAffiliate> GetOfferAffiliateByUniqueId(string uniqueId, bool checkInService = false)
     {
         try
         {
             _logger.LogInformation("Getting OfferAffiliate from nosql server.");
-            var noSqlResult = _noSqlReader.Get(x =>
-                x.OfferAffiliate.UniqueId.Equals(uniqueId.ToLowerInvariant())).FirstOrDefault();
-            if (noSqlResult != null)
+            var offerAffiliate = _noSqlReader.Get(x =>
+                x.OfferAffiliate.UniqueId.Equals(uniqueId.ToLowerInvariant())).FirstOrDefault()?.OfferAffiliate;
+            if (offerAffiliate != null)
             {
-                return noSqlResult.OfferAffiliate;
+                return offerAffiliate;
             }
 
-            _logger.LogInformation("Getting OfferAffiliate from grpc service.");
-            var result = await _offerAffiliateService.SearchAsync(new OfferAffiliateSearchRequest()
+            if (checkInService)
             {
-                UniqueId = uniqueId
-            });
-            var offer = result.Process()?.FirstOrDefault();
+                _logger.LogInformation("Getting OfferAffiliate from grpc service.");
+                var result = await _offerAffiliateService.GetByUniqueIdAsync(new OfferAffiliateByUniqueIdRequest()
+                {
+                    UniqueId = uniqueId
+                });
+                offerAffiliate = result.Process();
+            }
 
-            if (offer is null)
+            if (offerAffiliate is null)
             {
                 throw new NotFoundException("OfferAffiliate with uniqueId", uniqueId);
             }
 
-            return offer;
+            return offerAffiliate;
         }
         catch (Exception e)
         {

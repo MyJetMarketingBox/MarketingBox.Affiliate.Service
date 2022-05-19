@@ -45,22 +45,19 @@ namespace MarketingBox.Affiliate.Service.Services
                 _logger.LogInformation("Creating new CampaignRow {@Context}", request);
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
-                var geo = ctx.Geos.FirstOrDefault(x => x.TenantId.Equals(request.TenantId) &&
-                                                       x.Id == request.GeoId);
+                var geo = ctx.Geos.FirstOrDefault(x => x.Id == request.GeoId);
                 if (geo is null)
                 {
                     throw new NotFoundException(nameof(request.GeoId), request.GeoId);
                 }
 
-                var campaign = ctx.Campaigns.FirstOrDefault(x => x.TenantId.Equals(request.TenantId) &&
-                                                                 x.Id == request.CampaignId);
+                var campaign = ctx.Campaigns.FirstOrDefault(x => x.Id == request.CampaignId);
                 if (campaign is null)
                 {
                     throw new NotFoundException(nameof(request.CampaignId), request.CampaignId);
                 }
 
-                var brand = ctx.Brands.FirstOrDefault(x => x.TenantId.Equals(request.TenantId) &&
-                                                           x.Id == request.BrandId);
+                var brand = ctx.Brands.FirstOrDefault(x => x.Id == request.BrandId);
                 if (brand is null)
                 {
                     throw new NotFoundException(nameof(request.BrandId), request.BrandId);
@@ -98,30 +95,26 @@ namespace MarketingBox.Affiliate.Service.Services
                 _logger.LogInformation("Updating a CampaignRow {@Context}", request);
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
-                var geo = ctx.Geos.FirstOrDefault(x => x.TenantId.Equals(request.TenantId) &&
-                                                       x.Id == request.GeoId);
+                var geo = ctx.Geos.FirstOrDefault(x => x.Id == request.GeoId);
                 if (geo is null)
                 {
                     throw new NotFoundException(nameof(request.GeoId), request.GeoId);
                 }
 
-                var campaign = ctx.Campaigns.FirstOrDefault(x => x.TenantId.Equals(request.TenantId) &&
-                                                                 x.Id == request.CampaignId);
+                var campaign = ctx.Campaigns.FirstOrDefault(x => x.Id == request.CampaignId);
                 if (campaign is null)
                 {
                     throw new NotFoundException(nameof(request.CampaignId), request.CampaignId);
                 }
 
-                var brand = ctx.Brands.FirstOrDefault(x => x.TenantId.Equals(request.TenantId) &&
-                                                           x.Id == request.BrandId);
+                var brand = ctx.Brands.FirstOrDefault(x => x.Id == request.BrandId);
                 if (brand is null)
                 {
                     throw new NotFoundException(nameof(request.BrandId), request.BrandId);
                 }
 
                 var campaignRow = await ctx.CampaignRows
-                    .FirstOrDefaultAsync(x => x.TenantId.Equals(request.TenantId) &&
-                                              x.Id == request.CampaignRowId);
+                    .FirstOrDefaultAsync(x => x.Id == request.CampaignRowId);
 
                 if (campaignRow is null)
                 {
@@ -177,8 +170,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 var campaignRow = await ctx.CampaignRows
                     .Include(x => x.Geo)
                     .Include(x => x.Campaign)
-                    .FirstOrDefaultAsync(x => x.TenantId.Equals(request.TenantId) &&
-                                              x.Id == request.CampaignRowId);
+                    .FirstOrDefaultAsync(x => x.Id == request.CampaignRowId);
                 if (campaignRow is null)
                 {
                     throw new NotFoundException(nameof(request.CampaignRowId), request.CampaignRowId);
@@ -207,15 +199,13 @@ namespace MarketingBox.Affiliate.Service.Services
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
                 var campaignRow =
-                    await ctx.CampaignRows.FirstOrDefaultAsync(x => x.TenantId.Equals(request.TenantId) &&
-                                                                    x.Id == request.CampaignRowId);
+                    await ctx.CampaignRows.FirstOrDefaultAsync(x => x.Id == request.CampaignRowId);
 
                 if (campaignRow == null)
                     throw new NotFoundException(nameof(request.CampaignRowId), request.CampaignRowId);
 
 
-                await ctx.CampaignRows.Where(x => x.TenantId.Equals(request.TenantId) &&
-                                                  x.Id == campaignRow.Id)
+                await ctx.CampaignRows.Where(x => x.Id == campaignRow.Id)
                     .DeleteFromQueryAsync();
                 await _myNoSqlServerDataWriter.DeleteAsync(
                     CampaignRowNoSql.GeneratePartitionKey(campaignRow.CampaignId),

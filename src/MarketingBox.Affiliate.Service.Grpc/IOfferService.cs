@@ -17,10 +17,16 @@ public interface IOfferService
     Task<Response<Offer>> UpdateAsync(OfferUpdateRequest request);
 
     [OperationContract]
+    Task<Response<Offer>> GetByIdWithAccessAsync(OfferRequestByIdAndAffiliate request);
+
+    [OperationContract]
     Task<Response<Offer>> GetAsync(OfferRequestById request);
 
     [OperationContract]
-    Task<Response<bool>> DeleteAsync(OfferRequestById request);
+    Task<Response<Offer>> GetByUniqueIdAsync(OfferRequestByUniqueId request);
+
+    [OperationContract]
+    Task<Response<bool>> DeleteAsync(OfferRequestByIdAndAffiliate request);
 
     [OperationContract]
     Task<Response<IReadOnlyCollection<Offer>>> SearchAsync(OfferSearchRequest request);

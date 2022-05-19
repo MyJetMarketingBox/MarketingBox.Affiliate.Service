@@ -30,7 +30,6 @@ namespace MarketingBox.Affiliate.Service.Services
 
         private static async Task EnsureBrandPayout(
             ICollection<long> brandPayoutIds,
-            string tenantId,
             DatabaseContext ctx,
             Brand brand)
         {
@@ -42,7 +41,7 @@ namespace MarketingBox.Affiliate.Service.Services
 
             var brandPayouts = await ctx.BrandPayouts
                 .Include(x => x.Geo)
-                .Where(x => x.TenantId.Equals(tenantId) && brandPayoutIds.Contains(x.Id))
+                .Where(x => brandPayoutIds.Contains(x.Id))
                 .ToListAsync();
             var notFoundIds = brandPayoutIds.Except(brandPayouts.Select(x => x.Id)).ToList();
             if (notFoundIds.Any())
@@ -59,8 +58,7 @@ namespace MarketingBox.Affiliate.Service.Services
             if (integrationId.HasValue)
             {
                 var integration = await ctx.Integrations
-                    .FirstOrDefaultAsync(x => x.TenantId.Equals(tenantId) &&
-                                              x.Id == integrationId);
+                    .FirstOrDefaultAsync(x => x.Id == integrationId);
                 if (integration is null)
                 {
                     throw new NotFoundException(nameof(integrationId), integrationId);
@@ -102,7 +100,6 @@ namespace MarketingBox.Affiliate.Service.Services
                 var brand = _mapper.Map<Brand>(request);
                 await EnsureBrandPayout(
                     request.BrandPayoutIds.Distinct().ToList(),
-                    request.TenantId,
                     ctx,
                     brand);
 
@@ -149,8 +146,7 @@ namespace MarketingBox.Affiliate.Service.Services
                     .Include(x => x.CampaignRows).ThenInclude(x => x.Campaign)
                     .Include(x => x.LinkParameters)
                     .Include(x => x.Integration)
-                    .FirstOrDefaultAsync(x => x.TenantId.Equals(request.TenantId) &&
-                                              x.Id == request.BrandId);
+                    .FirstOrDefaultAsync(x => x.Id == request.BrandId);
 
                 if (brand is null)
                 {
@@ -159,7 +155,6 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 await EnsureBrandPayout(
                     request.BrandPayoutIds.Distinct().ToList(),
-                    request.TenantId,
                     ctx,
                     brand);
 
@@ -208,10 +203,14 @@ namespace MarketingBox.Affiliate.Service.Services
                     .Include(x => x.CampaignRows).ThenInclude(x => x.Campaign)
                     .Include(x => x.LinkParameters)
                     .Include(x => x.Integration)
-                    .FirstOrDefaultAsync(x => x.TenantId.Equals(request.TenantId) &&
-                                              x.Id == request.BrandId);
+                    .FirstOrDefaultAsync(x => x.Id == request.BrandId);
+                
                 if (brand is null) throw new NotFoundException(nameof(request.BrandId), request.BrandId);
 
+                var brandMessage = _mapper.Map<BrandMessage>(brand);
+                var nosql = BrandNoSql.Create(brandMessage);
+                await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
+                _logger.LogInformation("Sent brand update to MyNoSql {@context}", request);
                 return new Response<Brand>
                 {
                     Status = ResponseStatus.Ok,
@@ -234,8 +233,7 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
-                var brand = await ctx.Brands.FirstOrDefaultAsync(x => x.TenantId.Equals(request.TenantId) &&
-                                                                      x.Id == request.BrandId);
+                var brand = await ctx.Brands.FirstOrDefaultAsync(x => x.Id == request.BrandId);
                 if (brand == null)
                     throw new NotFoundException(nameof(request.BrandId), request.BrandId);
                 ctx.Brands.Remove(brand);

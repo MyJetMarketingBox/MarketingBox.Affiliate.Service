@@ -97,8 +97,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
                 var existingCampaign = await ctx.Campaigns
-                    .FirstOrDefaultAsync(x => x.TenantId.Equals(request.TenantId) &&
-                                              x.Id == request.CampaignId);
+                    .FirstOrDefaultAsync(x => x.Id == request.CampaignId);
 
                 if (existingCampaign is null)
                 {
@@ -141,8 +140,7 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 var campaign = await ctx.Campaigns
                     .Include(x => x.CampaignRows)
-                    .FirstOrDefaultAsync(x => x.TenantId.Equals(request.TenantId) &&
-                                              x.Id == request.CampaignId);
+                    .FirstOrDefaultAsync(x => x.Id == request.CampaignId);
                 if (campaign is null)
                 {
                     throw new NotFoundException(nameof(request.CampaignId), request.CampaignId);
@@ -170,8 +168,7 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
-                var campaign = await ctx.Campaigns.FirstOrDefaultAsync(x =>  x.TenantId.Equals(request.TenantId) &&
-                                                                             x.Id == request.CampaignId);
+                var campaign = await ctx.Campaigns.FirstOrDefaultAsync(x => x.Id == request.CampaignId);
 
                 if (campaign == null)
                     throw new NotFoundException(nameof(request.CampaignId), request.CampaignId);

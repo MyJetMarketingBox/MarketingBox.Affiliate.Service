@@ -58,7 +58,28 @@ public class OfferAffiliateService : IOfferAffiliateService
         {
             request.ValidateEntity();
 
-            var response = await _repository.GetAsync(request.OfferAffiliateId.Value, request.TenantId);
+            var response = await _repository.GetAsync(request.OfferAffiliateId.Value);
+            return new Response<OfferAffiliate>()
+            {
+                Status = ResponseStatus.Ok,
+                Data = response
+            };
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, e.Message);
+            return e.FailedResponse<OfferAffiliate>();
+        }
+    }
+
+    public async Task<Response<OfferAffiliate>> GetByUniqueIdAsync(OfferAffiliateByUniqueIdRequest request)
+    {
+        try
+        {
+            request.ValidateEntity();
+
+            var response = await _repository.GetAsync(request.UniqueId);
+            await _noSqlServerDataWriter.InsertOrReplaceAsync(OfferAffiliateNoSql.Create(response));
             return new Response<OfferAffiliate>()
             {
                 Status = ResponseStatus.Ok,
@@ -78,7 +99,7 @@ public class OfferAffiliateService : IOfferAffiliateService
         {
             request.ValidateEntity();
 
-            var uniqueId = await _repository.DeleteAsync(request.OfferAffiliateId.Value, request.TenantId);
+            var uniqueId = await _repository.DeleteAsync(request.OfferAffiliateId.Value);
             await _noSqlServerDataWriter.DeleteAsync(
                 OfferAffiliateNoSql.GeneratePartitionKey(),
                 OfferAffiliateNoSql.GenerateRowKey(uniqueId));

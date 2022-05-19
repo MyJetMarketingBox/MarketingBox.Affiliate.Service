@@ -10,5 +10,4 @@ public class BrandBoxByIdRequest : ValidatableEntity
 {
     [DataMember(Order = 1), Required, AdvancedCompare(ComparisonType.GreaterThan, 0)]
     public long? BrandBoxId { get; set; }
-    [DataMember(Order = 2), Required] public string TenantId { get; set; }
 }

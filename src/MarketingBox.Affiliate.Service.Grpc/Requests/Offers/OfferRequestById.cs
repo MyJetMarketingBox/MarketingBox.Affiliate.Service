@@ -8,13 +8,7 @@ namespace MarketingBox.Affiliate.Service.Grpc.Requests.Offers
     [DataContract]
     public class OfferRequestById : ValidatableEntity
     {
-        [DataMember(Order = 1), Required, AdvancedCompare(ComparisonType.GreaterThanOrEqual, 1)]
+        [DataMember(Order = 1), Required, AdvancedCompare(ComparisonType.GreaterThan, 0)]
         public long? Id { get; set; }
-
-        [DataMember(Order = 2), Required, AdvancedCompare(ComparisonType.GreaterThanOrEqual, 1)]
-        public long? AffiliateId { get; set; }
-        
-        [DataMember(Order = 3), Required]
-        public string TenantId { get; set; }
     }
 }

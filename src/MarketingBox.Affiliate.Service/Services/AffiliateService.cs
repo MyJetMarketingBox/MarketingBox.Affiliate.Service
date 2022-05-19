@@ -60,7 +60,6 @@ namespace MarketingBox.Affiliate.Service.Services
 
         private static async Task EnsureAndDoAffiliatePayout(
             ICollection<long> affiliatePayoutIds,
-            string tenantId,
             DatabaseContext ctx,
             GrpcModels.Affiliate affiliate)
         {
@@ -73,7 +72,7 @@ namespace MarketingBox.Affiliate.Service.Services
             var affiliatePayouts =
                 await ctx.AffiliatePayouts
                     .Include(x => x.Geo)
-                    .Where(x => x.TenantId.Equals(tenantId) && affiliatePayoutIds.Contains(x.Id))
+                    .Where(x => affiliatePayoutIds.Contains(x.Id))
                     .ToListAsync();
             var notFoundIds = affiliatePayoutIds.Except(affiliatePayouts.Select(x => x.Id)).ToList();
             if (notFoundIds.Any())
@@ -169,8 +168,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 request.ValidateEntity();
                 _logger.LogInformation("SetAffiliateStateAsync {@context}", request);
                 await using var ctx = _databaseContextFactory.Create();
-                var affiliate = ctx.Affiliates.FirstOrDefault(e => e.TenantId.Equals(request.TenantId) && 
-                                                                   e.Id == request.AffiliateId);
+                var affiliate = ctx.Affiliates.FirstOrDefault(e => e.Id == request.AffiliateId);
 
                 if (affiliate == null)
                     throw new NotFoundException(nameof(request.AffiliateId), request.AffiliateId);
@@ -260,7 +258,6 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 await EnsureAndDoAffiliatePayout(
                     request.AffiliatePayoutIds.Distinct().ToList(),
-                    request.TenantId,
                     ctx,
                     affiliate);
 
@@ -310,8 +307,7 @@ namespace MarketingBox.Affiliate.Service.Services
                     .Include(x => x.Payouts)
                     .ThenInclude(x => x.Geo)
                     .Include(x => x.OfferAffiliates)
-                    .FirstOrDefaultAsync(x => x.TenantId.Equals(request.TenantId) && 
-                                              x.Id == request.AffiliateId);
+                    .FirstOrDefaultAsync(x => x.Id == request.AffiliateId);
 
                 if (affiliateExisting is null)
                 {
@@ -327,7 +323,6 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 await EnsureAndDoAffiliatePayout(
                     request.AffiliatePayoutIds.Distinct().ToList(),
-                    request.TenantId,
                     ctx,
                     affiliateExisting);
 
@@ -381,15 +376,47 @@ namespace MarketingBox.Affiliate.Service.Services
                     .Include(x => x.Payouts)
                     .ThenInclude(x => x.Geo)
                     .Include(x => x.OfferAffiliates)
-                    .FirstOrDefaultAsync(x => x.TenantId.Equals(request.TenantId) &&
-                                              x.Id == request.AffiliateId);
+                    .FirstOrDefaultAsync(x => x.Id == request.AffiliateId);
                 if (affiliate is null)
                 {
                     throw new NotFoundException(nameof(request.AffiliateId), request.AffiliateId);
                 }
 
-                var affiliateMessage = _mapper.Map<AffiliateMessage>(affiliate);
-                var nosql = AffiliateNoSql.Create(affiliateMessage);
+                var nosql = AffiliateNoSql.Create(affiliate.MapToMessage());
+                await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
+                _logger.LogInformation("Sent partner to MyNoSql {@context}", request);
+                
+                return new Response<GrpcModels.Affiliate>
+                {
+                    Status = ResponseStatus.Ok,
+                    Data = affiliate
+                };
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error getting partner {@context}", request);
+
+                return e.FailedResponse<GrpcModels.Affiliate>();
+            }
+        }
+
+        public async Task<Response<GrpcModels.Affiliate>> GetByApiKeyAsync(AffiliateByApiKeyRequest request)
+        {            try
+            {
+                request.ValidateEntity();
+
+                await using var ctx = _databaseContextFactory.Create();
+                var affiliate = await ctx.Affiliates
+                    .Include(x => x.Payouts)
+                    .ThenInclude(x => x.Geo)
+                    .Include(x => x.OfferAffiliates)
+                    .FirstOrDefaultAsync(x => x.ApiKey.ToLower().Equals(request.ApiKey.ToLowerInvariant()));
+                if (affiliate is null)
+                {
+                    throw new NotFoundException(nameof(request.ApiKey), request.ApiKey);
+                }
+
+                var nosql = AffiliateNoSql.Create(affiliate.MapToMessage());
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 _logger.LogInformation("Sent partner to MyNoSql {@context}", request);
                 
@@ -416,8 +443,7 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 await using var ctx = _databaseContextFactory.Create();
                 var paramList = ctx.AffiliateSubParams
-                    .Where(x => x.TenantId.Equals(request.TenantId) &&
-                                x.AffiliateId == request.AffiliateId)
+                    .Where(x => x.AffiliateId == request.AffiliateId)
                     .ToList();
                 if (paramList.Count == 0)
                 {

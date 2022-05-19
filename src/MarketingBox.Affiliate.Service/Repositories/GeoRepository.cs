@@ -102,15 +102,14 @@ namespace MarketingBox.Affiliate.Service.Repositories
             }
         }
 
-        public async Task<Geo> GetAsync(long id, string tenantId)
+        public async Task<Geo> GetAsync(long id)
         {
             try
             {
                 await using var context = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
                 var result = await context.Geos
-                    .FirstOrDefaultAsync(x => x.TenantId.Equals(tenantId) &&
-                                              x.Id == id);
+                    .FirstOrDefaultAsync(x => x.Id == id);
                 if (result is null)
                 {
                     throw new NotFoundException("Geo with id", id);
@@ -125,14 +124,13 @@ namespace MarketingBox.Affiliate.Service.Repositories
             }
         }
 
-        public async Task DeleteAsync(long id, string tenantId)
+        public async Task DeleteAsync(long id)
         {
             try
             {
                 await using var context = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
-                var result = await context.Geos.FirstOrDefaultAsync(x => x.TenantId.Equals(tenantId) &&
-                                                                         x.Id == id);
+                var result = await context.Geos.FirstOrDefaultAsync(x => x.Id == id);
                 if (result is null)
                 {
                     throw new NotFoundException("Geo with id", id);
@@ -191,8 +189,7 @@ namespace MarketingBox.Affiliate.Service.Repositories
             {
                 await using var context = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
-                var result = await context.Geos.FirstOrDefaultAsync(x => x.TenantId.Equals(request.TenantId) &&
-                                                                         x.Id == request.Id);
+                var result = await context.Geos.FirstOrDefaultAsync(x => x.Id == request.Id);
                 if (result is null)
                 {
                     throw new NotFoundException("Geo with id", request.Id);

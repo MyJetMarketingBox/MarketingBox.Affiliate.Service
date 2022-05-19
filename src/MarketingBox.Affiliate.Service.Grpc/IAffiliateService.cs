@@ -21,6 +21,8 @@ namespace MarketingBox.Affiliate.Service.Grpc
 
         [OperationContract]
         Task<Response<Domain.Models.Affiliates.Affiliate>> GetAsync(AffiliateByIdRequest request);
+        [OperationContract]
+        Task<Response<Domain.Models.Affiliates.Affiliate>> GetByApiKeyAsync(AffiliateByApiKeyRequest request);
 
         [OperationContract]
         Task<Response<IReadOnlyCollection<AffiliateSubParam>>> GetSubParamsAsync(AffiliateByIdRequest request);

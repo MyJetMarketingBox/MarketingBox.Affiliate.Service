@@ -6,8 +6,8 @@ using MarketingBox.Sdk.Common.Models;
 namespace MarketingBox.Affiliate.Service.Grpc.Requests.OfferAffiliate;
 
 [DataContract]
-public class OfferAffiliateByIdRequest : ValidatableEntity
+public class OfferAffiliateByUniqueIdRequest : ValidatableEntity
 {
-    [DataMember(Order = 1), Required, AdvancedCompare(ComparisonType.GreaterThanOrEqual, 1)]
-    public long? OfferAffiliateId { get; set; }
+    [DataMember(Order = 1), Required, StringLength(50)]
+    public string UniqueId { get; set; }
 }
