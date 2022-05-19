@@ -2,6 +2,7 @@
 using MarketingBox.Affiliate.Service.Client.Interfaces;
 using MarketingBox.Affiliate.Service.Grpc;
 using MarketingBox.Affiliate.Service.MyNoSql.Affiliates;
+using MarketingBox.Affiliate.Service.MyNoSql.Brands;
 using MarketingBox.Affiliate.Service.MyNoSql.Country;
 using MarketingBox.Affiliate.Service.MyNoSql.Offer;
 using MarketingBox.Affiliate.Service.MyNoSql.OfferAffiliates;
@@ -52,6 +53,17 @@ namespace MarketingBox.Affiliate.Service.Client
             builder.RegisterInstance(factory.GetAffiliateService()).As<IAffiliateService>().SingleInstance();
             builder.RegisterType<AffiliateClient>().As<IAffiliateClient>().SingleInstance();
             builder.RegisterMyNoSqlReader<AffiliateNoSql>(noSqlClient, AffiliateNoSql.TableName);
+        }
+        
+        public static void RegisterBrandClient(
+            this ContainerBuilder builder,
+            string grpcServiceUrl,
+            IMyNoSqlSubscriber noSqlClient)
+        {
+            var factory = new AffiliateServiceClientFactory(grpcServiceUrl);
+            builder.RegisterInstance(factory.GetBrandService()).As<IBrandService>().SingleInstance();
+            builder.RegisterType<BrandClient>().As<IBrandClient>().SingleInstance();
+            builder.RegisterMyNoSqlReader<BrandNoSql>(noSqlClient, BrandNoSql.TableName);
         }
         
         public static void RegisterOfferClient(
