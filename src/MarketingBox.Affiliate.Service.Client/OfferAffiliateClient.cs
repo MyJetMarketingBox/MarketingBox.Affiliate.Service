@@ -33,8 +33,8 @@ public class OfferAffiliateClient : IOfferAffiliateClient
         try
         {
             _logger.LogInformation("Getting OfferAffiliate from nosql server.");
-            var offerAffiliate = _noSqlReader.Get(x =>
-                x.OfferAffiliate.UniqueId.Equals(uniqueId.ToLowerInvariant())).FirstOrDefault()?.OfferAffiliate;
+            var offerAffiliate = _noSqlReader.Get(OfferAffiliateNoSql.GeneratePartitionKey(),
+                OfferAffiliateNoSql.GenerateRowKey(uniqueId)).OfferAffiliate;
             if (offerAffiliate != null)
             {
                 return offerAffiliate;
