@@ -146,6 +146,10 @@ namespace MarketingBox.Affiliate.Service.Services
                     throw new NotFoundException(nameof(request.CampaignId), request.CampaignId);
                 }
 
+                var nosql = CampaignNoSql.Create(campaign.MapToMessage());
+                await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
+                _logger.LogInformation("Sent campaign to MyNoSql {@context}", request);
+                
                 return new Response<Campaign>()
                 {
                     Status = ResponseStatus.Ok,
