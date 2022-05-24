@@ -514,7 +514,9 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 if (request.CreatedAt.HasValue)
                 {
-                    query = query.Where(x => x.CreatedAt.Date == request.CreatedAt.Value.Date);
+                    query = query.Where(x =>
+                        x.CreatedAt >= request.CreatedAt.Value.Date &&
+                        x.CreatedAt < request.CreatedAt.Value.Date.AddDays(1));
                 }
 
                 if (request.State.HasValue)
