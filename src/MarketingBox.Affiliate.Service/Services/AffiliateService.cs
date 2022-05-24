@@ -200,6 +200,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 await using var ctx = _databaseContextFactory.Create();
                 var masterAffiliate = await ctx.Affiliates
                     .FirstOrDefaultAsync(e => e.Id == request.MasterAffiliateId);
+                var tenantId = masterAffiliate.TenantId;
 
                 if (masterAffiliate == null ||
                     !masterAffiliate.ApiKey.Equals(request.MasterAffiliateApiKey))
@@ -211,7 +212,7 @@ namespace MarketingBox.Affiliate.Service.Services
                     request.Password = GeneratePassword();
 
                 var createRequest = _mapper.Map<AffiliateCreateRequest>(request);
-                createRequest.TenantId = masterAffiliate.TenantId;
+                createRequest.TenantId = tenantId;
 
                 var createResponse = await CreateAsync(createRequest);
 
@@ -226,7 +227,8 @@ namespace MarketingBox.Affiliate.Service.Services
                     {
                         AffiliateId = createResponse.Data.Id,
                         ParamName = e.SubName,
-                        ParamValue = e.SubValue
+                        ParamValue = e.SubValue,
+                        TenantId = tenantId
                     }));
                 }
 
@@ -385,7 +387,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 var nosql = AffiliateNoSql.Create(affiliate.MapToMessage());
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 _logger.LogInformation("Sent partner to MyNoSql {@context}", request);
-                
+
                 return new Response<GrpcModels.Affiliate>
                 {
                     Status = ResponseStatus.Ok,
@@ -401,7 +403,8 @@ namespace MarketingBox.Affiliate.Service.Services
         }
 
         public async Task<Response<GrpcModels.Affiliate>> GetByApiKeyAsync(AffiliateByApiKeyRequest request)
-        {            try
+        {
+            try
             {
                 request.ValidateEntity();
 
@@ -419,7 +422,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 var nosql = AffiliateNoSql.Create(affiliate.MapToMessage());
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 _logger.LogInformation("Sent partner to MyNoSql {@context}", request);
-                
+
                 return new Response<GrpcModels.Affiliate>
                 {
                     Status = ResponseStatus.Ok,
@@ -482,7 +485,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 {
                     query = query.Where(x => x.TenantId.Equals(request.TenantId));
                 }
-                
+
                 if (!string.IsNullOrEmpty(request.ApiKey))
                 {
                     query = query.Where(x => x.ApiKey.Equals(request.ApiKey));
@@ -499,7 +502,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 {
                     query = query.Where(x => x.Id == request.AffiliateId.Value);
                 }
-                
+
                 if (request.MasterAffiliateId.HasValue)
                 {
                     query = query.Where(x => x.CreatedBy == request.MasterAffiliateId.Value);
