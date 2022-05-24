@@ -61,6 +61,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
                 var campaign = _mapper.Map<Campaign>(request);
+                campaign.CreatedAt = DateTime.UtcNow;
 
                 ctx.Campaigns.Add(campaign);
                 await ctx.SaveChangesAsync();
