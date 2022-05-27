@@ -99,6 +99,7 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 var existingGeos = await EnsureGeos(request.GeoIds, context);
 
                 var offerEntity = _mapper.Map<Offer>(request);
+                offerEntity.CreatedAt = DateTime.UtcNow;
                 offerEntity.Geos = existingGeos;
                 offerEntity.Language = await EnsureLanguage(request.LanguageId.Value, context);
                 await context.AddAsync(offerEntity);
