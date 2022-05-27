@@ -34,7 +34,7 @@ public class OfferClient : IOfferClient
         {
             _logger.LogInformation("Getting offer from nosql server.");
             var offer = _noSqlReader.Get(x =>
-                x.UniqueId.Equals(uniqueId)).FirstOrDefault()?.Offer;
+                x.UniqueId == uniqueId).FirstOrDefault()?.Offer;
             if (offer != null)
             {
                 return offer;
@@ -64,7 +64,8 @@ public class OfferClient : IOfferClient
         }
     }
 
-    public async ValueTask<Offer> GetOfferByTenantAndId(long offerId, string tenantId = null, bool checkInService = false)
+    public async ValueTask<Offer> GetOfferByTenantAndId(long offerId, string tenantId = null,
+        bool checkInService = false)
     {
         try
         {
