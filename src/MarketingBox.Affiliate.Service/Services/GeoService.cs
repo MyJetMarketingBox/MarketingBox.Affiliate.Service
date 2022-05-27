@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using MarketingBox.Affiliate.Service.Domain.Models.Country;
 using MarketingBox.Affiliate.Service.Grpc;
-using MarketingBox.Affiliate.Service.Grpc.Requests;
 using MarketingBox.Affiliate.Service.Grpc.Requests.Geo;
 using MarketingBox.Affiliate.Service.Repositories.Interfaces;
 using MarketingBox.Sdk.Common.Extensions;
