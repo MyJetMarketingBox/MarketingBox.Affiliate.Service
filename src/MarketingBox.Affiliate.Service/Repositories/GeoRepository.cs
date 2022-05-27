@@ -20,14 +20,14 @@ namespace MarketingBox.Affiliate.Service.Repositories
         private static async Task ValidateExistingNames(Geo request, DatabaseContext context, int? id = null)
         {
             var geoWithName = await context.Geos.FirstOrDefaultAsync(x => x.TenantId.Equals(request.TenantId)
-                                                                          && x.Name == request.Name);
+                                                                          && x.Name.Equals(request.Name));
             if ((id.HasValue && geoWithName != null && geoWithName.Id != id) ||
                 (!id.HasValue && geoWithName != null))
             {
                 throw new AlreadyExistsException(nameof(request.Name), request.Name);
             }
         }
-        
+
         public GeoRepository(
             ILogger<GeoRepository> logger,
             DbContextOptionsBuilder<DatabaseContext> dbContextOptionsBuilder)
@@ -43,26 +43,27 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 await using var context = new DatabaseContext(_dbContextOptionsBuilder.Options);
                 var query = context.Geos
                     .AsQueryable();
-                
+
                 if (!string.IsNullOrEmpty(request.Name))
                 {
                     query = query.Where(x => x.Name.ToLower().Contains(request.Name.ToLowerInvariant()));
-                }                
+                }
+
                 if (!string.IsNullOrEmpty(request.TenantId))
                 {
                     query = query.Where(x => x.TenantId.Equals(request.TenantId));
                 }
-                
+
                 if (request.GeoId.HasValue)
                 {
                     query = query.Where(x => x.Id == request.GeoId);
                 }
-                
+
                 if (request.CountryIds.Any())
                 {
-                    query = query.Where(x => request.CountryIds.Intersect(x.CountryIds).Any());
+                    query = query.Where(x => x.CountryIds.Any(z => request.CountryIds.Contains(z)));
                 }
-                
+
                 var total = query.Count();
 
                 if (request.Asc)
@@ -90,14 +91,14 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 }
 
                 await query.LoadAsync();
-                
+
                 var result = query.ToList();
 
                 return (result, total);
             }
             catch (Exception e)
             {
-                _logger.LogError(e,e.Message);
+                _logger.LogError(e, e.Message);
                 throw;
             }
         }
@@ -170,7 +171,7 @@ namespace MarketingBox.Affiliate.Service.Repositories
                     TenantId = request.TenantId
                 };
                 await ValidateExistingNames(geo, context);
-                
+
                 context.Geos.Add(geo);
                 await context.SaveChangesAsync();
 
@@ -194,7 +195,7 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 {
                     throw new NotFoundException("Geo with id", request.Id);
                 }
-                
+
                 result.Name = request.Name;
                 result.CountryIds = request.CountryIds;
 

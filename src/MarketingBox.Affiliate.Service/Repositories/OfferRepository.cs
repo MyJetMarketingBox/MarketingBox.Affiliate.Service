@@ -13,7 +13,6 @@ using MarketingBox.Sdk.Common.Enums;
 using MarketingBox.Sdk.Common.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using SimpleTrading.Telemetry;
 
 namespace MarketingBox.Affiliate.Service.Repositories
 {
@@ -290,7 +289,7 @@ namespace MarketingBox.Affiliate.Service.Repositories
 
                 if (request.GeoIds.Any())
                 {
-                    query = query.Where(x => request.GeoIds.Intersect(x.Geos.Select(x => x.Id)).Any());
+                    query = query.Where(x => x.Geos.Any(z => request.GeoIds.Contains(z.Id)));
                 }
 
                 if (request.LanguageIds.Any())
