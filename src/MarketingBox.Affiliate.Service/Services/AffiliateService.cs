@@ -34,19 +34,6 @@ namespace MarketingBox.Affiliate.Service.Services
         private readonly IUserService _userService;
         private readonly IMapper _mapper;
 
-        private async Task CreateOrUpdateUser(Domain.Models.Affiliates.Affiliate affiliate)
-        {
-            var response = await _userService.UpdateAsync(new UpsertUserRequest()
-            {
-                Email = affiliate.Email,
-                ExternalUserId = affiliate.Id.ToString(),
-                Password = affiliate.Password,
-                TenantId = affiliate.TenantId,
-                Username = affiliate.Username
-            });
-            response.Process();
-        }
-
         private static AffiliateUpdated MapToMessage(AffiliateMessage affiliate,
             AffiliateUpdatedEventType type)
         {
@@ -267,7 +254,15 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 await ctx.SaveChangesAsync();
 
-                await CreateOrUpdateUser(affiliate);
+                var response = await _userService.CreateAsync(new CreateUserRequest()
+                {
+                    Email = affiliate.Email,
+                    Password = request.GeneralInfo.Password,
+                    ExternalUserId = affiliate.Id.ToString(),
+                    TenantId = affiliate.TenantId,
+                    Username = affiliate.Username
+                });
+                response.Process();
 
                 var affiliateMassage = _mapper.Map<AffiliateMessage>(affiliate);
                 var nosql = AffiliateNoSql.Create(affiliateMassage);
@@ -329,7 +324,6 @@ namespace MarketingBox.Affiliate.Service.Services
                     affiliateExisting);
 
                 affiliateExisting.Username = request.GeneralInfo.Username;
-                affiliateExisting.Password = request.GeneralInfo.Password;
                 affiliateExisting.Email = request.GeneralInfo.Email;
                 affiliateExisting.Phone = request.GeneralInfo.Phone;
                 affiliateExisting.Skype = request.GeneralInfo.Skype;
@@ -342,7 +336,14 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 await ctx.SaveChangesAsync();
 
-                await CreateOrUpdateUser(affiliateExisting);
+                var response = await _userService.UpdateAsync(new UpdateUserRequest()
+                {
+                    Email = affiliateExisting.Email,
+                    ExternalUserId = affiliateExisting.Id.ToString(),
+                    TenantId = affiliateExisting.TenantId,
+                    Username = affiliateExisting.Username
+                });
+                response.Process();
 
                 var affiliateMessage = _mapper.Map<AffiliateMessage>(affiliateExisting);
                 var nosql = AffiliateNoSql.Create(affiliateMessage);

@@ -13,7 +13,7 @@ public class GeneralInfoRequest : ValidatableEntity
 {
     [DataMember(Order = 1), Required, StringLength(128,MinimumLength = 1)] public string Username { get; set; }
 
-    [DataMember(Order = 2), Required, IsValidPassword, StringLength(128,MinimumLength = 1)]
+    [DataMember(Order = 2), IsValidPassword, StringLength(128,MinimumLength = 1)]
     [LogMasked(PreserveLength = false)]
     public string Password { get; set; }
 

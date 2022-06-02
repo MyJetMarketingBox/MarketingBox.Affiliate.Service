@@ -19,9 +19,6 @@ namespace MarketingBox.Affiliate.Service.Domain.Models.Affiliates
         [DataMember(Order = 3)]
         public string Username { get; set; }
 
-        [DataMember(Order = 4)] [LogMasked(PreserveLength = false)]
-        public string Password { get; set; }
-
         [DataMember(Order = 5)] [LogMasked(PreserveLength = true, ShowFirst = 1, ShowLast = 1)]
         public string Email { get; set; }
 
