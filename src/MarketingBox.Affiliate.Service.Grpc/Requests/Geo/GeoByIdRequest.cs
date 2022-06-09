@@ -3,7 +3,7 @@ using System.Runtime.Serialization;
 using MarketingBox.Sdk.Common.Attributes;
 using MarketingBox.Sdk.Common.Models;
 
-namespace MarketingBox.Affiliate.Service.Grpc.Requests.Country;
+namespace MarketingBox.Affiliate.Service.Grpc.Requests.Geo;
 
 [DataContract]
 public class GeoByIdRequest : ValidatableEntity

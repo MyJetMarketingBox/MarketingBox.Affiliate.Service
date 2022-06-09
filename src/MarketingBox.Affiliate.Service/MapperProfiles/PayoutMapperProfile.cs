@@ -2,8 +2,8 @@ using System;
 using AutoMapper;
 using MarketingBox.Affiliate.Service.Domain.Models.Affiliates;
 using MarketingBox.Affiliate.Service.Domain.Models.Brands;
-using MarketingBox.Affiliate.Service.Domain.Models.Common;
 using MarketingBox.Affiliate.Service.Grpc.Requests.Payout;
+using MarketingBox.Sdk.Common.Enums;
 
 namespace MarketingBox.Affiliate.Service.MapperProfiles
 {

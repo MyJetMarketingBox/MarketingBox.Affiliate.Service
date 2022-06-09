@@ -1,6 +1,6 @@
 using System;
 using System.Runtime.Serialization;
-using MarketingBox.Affiliate.Service.Domain.Models.Common;
+using MarketingBox.Sdk.Common.Enums;
 
 namespace MarketingBox.Affiliate.Service.Domain.Models.Affiliates
 {

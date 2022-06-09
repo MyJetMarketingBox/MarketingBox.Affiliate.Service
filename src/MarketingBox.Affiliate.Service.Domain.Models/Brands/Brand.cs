@@ -21,5 +21,31 @@ namespace MarketingBox.Affiliate.Service.Domain.Models.Brands
         [DataMember(Order = 10)] public string Link { get; set; }
         [DataMember(Order = 11)] public LinkParameters LinkParameters { get; set; }
         public List<Offer> Offers { get; set; } = new();
+
+        public BrandMessage MapToMessage()
+        {
+            var linkParameters = LinkParameters is null
+                ? null
+                : new LinkParameters()
+                {
+                    Language = LinkParameters.Language,
+                    ClickId = LinkParameters.ClickId,
+                    MPC_1 = LinkParameters.MPC_1,
+                    MPC_2 = LinkParameters.MPC_2,
+                    MPC_3 = LinkParameters.MPC_3,
+                    MPC_4 = LinkParameters.MPC_4
+                };
+            return new BrandMessage()
+            {
+                Id = Id,
+                Link = Link,
+                Name = Name,
+                IntegrationId = IntegrationId,
+                IntegrationType = IntegrationType,
+                TenantId = TenantId,
+                Payouts = new List<BrandPayout>(Payouts),
+                LinkParameters = linkParameters 
+            };
+        }
     }
 }

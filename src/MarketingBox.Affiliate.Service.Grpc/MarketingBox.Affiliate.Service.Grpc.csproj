@@ -6,7 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="Destructurama.Attributed" Version="3.0.0" />
-    <PackageReference Include="MarketingBox.Sdk.Common" Version="1.0.15" />
+    <PackageReference Include="MarketingBox.Sdk.Common" Version="1.0.18" />
     <PackageReference Include="System.ServiceModel.Primitives" Version="4.9.0" />
   </ItemGroup>
 
@@ -18,10 +18,6 @@
     <Reference Include="MyJetWallet.Sdk.Common, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>C:\Users\mezol\.nuget\packages\myjetwallet.sdk.common\1.0.0\lib\net6.0\MyJetWallet.Sdk.Common.dll</HintPath>
     </Reference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Remove="Requests\OfferAffiliate\OfferAffiliateByUniqueId.cs" />
   </ItemGroup>
 
   <PropertyGroup>

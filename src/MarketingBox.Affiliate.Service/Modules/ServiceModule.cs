@@ -24,7 +24,6 @@ using MarketingBox.Affiliate.Service.Services;
 using MarketingBox.Affiliate.Service.Subscribers;
 using MarketingBox.Auth.Service.Client;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using MyJetWallet.Sdk.NoSql;
 using MyJetWallet.Sdk.ServiceBus;
 using MyServiceBus.Abstractions;
@@ -82,10 +81,6 @@ namespace MarketingBox.Affiliate.Service.Modules
             // register writer (IMyNoSqlServerDataWriter<CampaignNoSql>)
             builder.RegisterMyNoSqlWriter<CampaignNoSql>(Program.ReloadedSettings(e => e.MyNoSqlWriterUrl),
                 CampaignNoSql.TableName);
-
-            // register writer (IMyNoSqlServerDataWriter<CampaignIndexNoSql>)
-            builder.RegisterMyNoSqlWriter<CampaignIndexNoSql>(Program.ReloadedSettings(e => e.MyNoSqlWriterUrl),
-                CampaignIndexNoSql.TableName);
         }
 
         private static void SetupAffiliates(ContainerBuilder builder, MyServiceBusTcpClient serviceBusClient)

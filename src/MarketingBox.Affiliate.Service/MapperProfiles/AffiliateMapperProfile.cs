@@ -1,8 +1,8 @@
 using System;
 using AutoMapper;
 using MarketingBox.Affiliate.Service.Domain.Models.Affiliates;
-using MarketingBox.Affiliate.Service.Domain.Models.Common;
 using MarketingBox.Affiliate.Service.Grpc.Requests.Affiliates;
+using MarketingBox.Sdk.Common.Enums;
 
 namespace MarketingBox.Affiliate.Service.MapperProfiles
 {
@@ -33,8 +33,7 @@ namespace MarketingBox.Affiliate.Service.MapperProfiles
                     x => x.MapFrom(x => State.NotActive));
             CreateMap<Domain.Models.Affiliates.Affiliate, AffiliateMessage>()
                 .ForMember(x => x.AffiliateId, x => x.MapFrom(z => z.Id))
-                .ForMember(x => x.GeneralInfo,
-                    x => x.MapFrom(z => z));
+                .ForMember(x => x.GeneralInfo, x => x.MapFrom(z => z));
             CreateMap<Domain.Models.Affiliates.Affiliate, GeneralInfo>();
         }
     }

@@ -18,9 +18,11 @@ public class BrandBoxRepository : IBrandBoxRepository
     private readonly DbContextOptionsBuilder<DatabaseContext> _dbContextOptionsBuilder;
     private readonly ILogger<BrandBoxRepository> _logger;
 
-    private static async Task ValidateExistingNames(string name, DatabaseContext context, long? id = null)
+    private static async Task ValidateExistingNames(string name, string tenantId, DatabaseContext context,
+        long? id = null)
     {
-        var brandBoxWithName = await context.BrandBoxes.FirstOrDefaultAsync(x => x.Name == name);
+        var brandBoxWithName = await context.BrandBoxes.FirstOrDefaultAsync(x =>
+            x.TenantId.Equals(tenantId) && x.Name == name);
         if ((id.HasValue && brandBoxWithName != null && brandBoxWithName.Id != id) ||
             (!id.HasValue && brandBoxWithName != null))
         {
@@ -54,7 +56,8 @@ public class BrandBoxRepository : IBrandBoxRepository
         brandBox.BrandIds = existingBrandIds;
     }
 
-    public BrandBoxRepository(DbContextOptionsBuilder<DatabaseContext> dbContextOptionsBuilder, ILogger<BrandBoxRepository> logger)
+    public BrandBoxRepository(DbContextOptionsBuilder<DatabaseContext> dbContextOptionsBuilder,
+        ILogger<BrandBoxRepository> logger)
     {
         _dbContextOptionsBuilder = dbContextOptionsBuilder;
         _logger = logger;
@@ -95,7 +98,6 @@ public class BrandBoxRepository : IBrandBoxRepository
         }
         catch (Exception e)
         {
-            
             _logger.LogError(e, e.Message);
             throw;
         }
@@ -108,7 +110,7 @@ public class BrandBoxRepository : IBrandBoxRepository
             await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
             var brandIds = request.BrandIds.Distinct().ToList();
 
-            await ValidateExistingNames(request.Name, ctx);
+            await ValidateExistingNames(request.Name, request.TenantId, ctx);
             await EnsureAndChangeBrandIds(brandIds, ctx, request);
 
             ctx.BrandBoxes.Add(request);
@@ -117,7 +119,6 @@ public class BrandBoxRepository : IBrandBoxRepository
         }
         catch (Exception e)
         {
-            
             _logger.LogError(e, e.Message);
             throw;
         }
@@ -129,7 +130,8 @@ public class BrandBoxRepository : IBrandBoxRepository
         {
             await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
-            var existingBrandBox = await ctx.BrandBoxes.FirstOrDefaultAsync(x => x.Id == request.Id.Value);
+            var existingBrandBox = await ctx.BrandBoxes.FirstOrDefaultAsync(
+                x => x.Id == request.Id.Value);
             if (existingBrandBox is null)
             {
                 throw new NotFoundException("BrandBox with id", request.Id);
@@ -137,7 +139,7 @@ public class BrandBoxRepository : IBrandBoxRepository
 
             var brandIds = request.BrandIds.Distinct().ToList();
 
-            await ValidateExistingNames(request.Name, ctx, existingBrandBox.Id);
+            await ValidateExistingNames(request.Name, request.TenantId, ctx, existingBrandBox.Id);
             await EnsureAndChangeBrandIds(brandIds, ctx, existingBrandBox);
 
             existingBrandBox.Name = request.Name;
@@ -162,6 +164,11 @@ public class BrandBoxRepository : IBrandBoxRepository
             if (!string.IsNullOrEmpty(request.Name))
             {
                 query = query.Where(x => x.Name.ToLower().Contains(request.Name.ToLowerInvariant()));
+            }
+            
+            if (!string.IsNullOrEmpty(request.TenantId))
+            {
+                query = query.Where(x => x.TenantId.Equals(request.TenantId));
             }
 
             var total = query.Count();

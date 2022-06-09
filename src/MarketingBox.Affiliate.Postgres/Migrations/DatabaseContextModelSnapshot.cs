@@ -19,7 +19,7 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("affiliate-service")
-                .HasAnnotation("ProductVersion", "6.0.2")
+                .HasAnnotation("ProductVersion", "6.0.5")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -92,9 +92,6 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
                     b.Property<string>("Email")
                         .HasColumnType("text");
 
-                    b.Property<string>("Password")
-                        .HasColumnType("text");
-
                     b.Property<string>("Phone")
                         .HasColumnType("text");
 
@@ -157,6 +154,9 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
                     b.Property<int>("PayoutType")
                         .HasColumnType("integer");
 
+                    b.Property<string>("TenantId")
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedAt");
@@ -168,6 +168,8 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
                     b.HasIndex("ModifiedAt");
 
                     b.HasIndex("PayoutType");
+
+                    b.HasIndex("TenantId");
 
                     b.ToTable("affiliate-payouts", "affiliate-service");
                 });
@@ -191,7 +193,12 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
                         .HasMaxLength(512)
                         .HasColumnType("character varying(512)");
 
+                    b.Property<string>("TenantId")
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("TenantId", "Id");
 
                     b.ToTable("affiliate-subparam", "affiliate-service");
                 });
@@ -217,11 +224,16 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("TenantId")
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedAt");
 
-                    b.HasIndex("Name")
+                    b.HasIndex("TenantId");
+
+                    b.HasIndex("TenantId", "Name")
                         .IsUnique();
 
                     b.ToTable("brandboxes", "affiliate-service");
@@ -290,6 +302,9 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
                     b.Property<int>("PayoutType")
                         .HasColumnType("integer");
 
+                    b.Property<string>("TenantId")
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedAt");
@@ -301,6 +316,8 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
                     b.HasIndex("ModifiedAt");
 
                     b.HasIndex("PayoutType");
+
+                    b.HasIndex("TenantId");
 
                     b.ToTable("brand-payouts", "affiliate-service");
                 });
@@ -340,6 +357,9 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
                     b.Property<int>("Priority")
                         .HasColumnType("integer");
 
+                    b.Property<string>("TenantId")
+                        .HasColumnType("text");
+
                     b.Property<int>("Weight")
                         .HasColumnType("integer");
 
@@ -351,6 +371,8 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
 
                     b.HasIndex("GeoId");
 
+                    b.HasIndex("TenantId");
+
                     b.ToTable("campaign-rows", "affiliate-service");
                 });
 
@@ -361,6 +383,15 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
                         .HasColumnType("bigint");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long?>("CreatedById")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("LastActiveAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Name")
                         .HasColumnType("text");
@@ -433,11 +464,16 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("TenantId")
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedAt");
 
-                    b.HasIndex("Name")
+                    b.HasIndex("TenantId");
+
+                    b.HasIndex("TenantId", "Name")
                         .IsUnique();
 
                     b.ToTable("geos", "affiliate-service");
@@ -512,6 +548,9 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
                     b.Property<long>("OfferId")
                         .HasColumnType("bigint");
 
+                    b.Property<string>("TenantId")
+                        .HasColumnType("text");
+
                     b.Property<string>("UniqueId")
                         .IsRequired()
                         .HasColumnType("text");
@@ -519,6 +558,8 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AffiliateId");
+
+                    b.HasIndex("TenantId");
 
                     b.HasIndex("OfferId", "AffiliateId", "UniqueId")
                         .IsUnique();
@@ -537,6 +578,9 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
                     b.Property<long>("BrandId")
                         .HasColumnType("bigint");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<int>("Currency")
                         .HasColumnType("integer");
 
@@ -551,6 +595,9 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
 
                     b.Property<int>("State")
                         .HasColumnType("integer");
+
+                    b.Property<string>("TenantId")
+                        .HasColumnType("text");
 
                     b.Property<string>("UniqueId")
                         .HasColumnType("text");
@@ -568,6 +615,8 @@ namespace MarketingBox.Affiliate.Postgres.Migrations
                     b.HasIndex("Privacy");
 
                     b.HasIndex("State");
+
+                    b.HasIndex("TenantId");
 
                     b.ToTable("offers", "affiliate-service");
                 });

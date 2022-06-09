@@ -109,7 +109,6 @@ namespace MarketingBox.Affiliate.Service.Services
                     throw new NotFoundException(nameof(request.IntegrationId), request.IntegrationId);
                 }
 
-                existingIntegration.TenantId = request.TenantId;
                 existingIntegration.Name = request.Name;
 
                 await ctx.SaveChangesAsync();
@@ -173,7 +172,8 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
-                var integration = await ctx.Integrations.FirstOrDefaultAsync(x => x.Id == request.IntegrationId);
+                var integration = await ctx.Integrations.FirstOrDefaultAsync(x => 
+                    x.Id == request.IntegrationId);
 
                 if (integration == null)
                     throw new NotFoundException(nameof(request.IntegrationId), request.IntegrationId);
@@ -205,8 +205,9 @@ namespace MarketingBox.Affiliate.Service.Services
                     TenantId = integration.TenantId
                 });
 
-                await ctx.Integrations.Where(x => x.Id == integration.Id).DeleteFromQueryAsync();
-
+                ctx.Integrations.Remove(integration);
+                await ctx.SaveChangesAsync();
+                
                 return new Response<bool>
                 {
                     Status = ResponseStatus.Ok,

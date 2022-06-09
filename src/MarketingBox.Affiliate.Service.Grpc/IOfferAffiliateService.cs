@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.ServiceModel;
 using System.Threading.Tasks;
 using MarketingBox.Affiliate.Service.Domain.Models.OfferAffiliates;
-using MarketingBox.Affiliate.Service.Grpc.Requests;
 using MarketingBox.Affiliate.Service.Grpc.Requests.OfferAffiliate;
 using MarketingBox.Sdk.Common.Models.Grpc;
 
@@ -15,6 +14,9 @@ public interface IOfferAffiliateService
     
     [OperationContract]
     Task<Response<OfferAffiliate>> GetAsync(OfferAffiliateByIdRequest request);
+    
+    [OperationContract]
+    Task<Response<OfferAffiliate>> GetByUniqueIdAsync(OfferAffiliateByUniqueIdRequest request);
     
     [OperationContract]
     Task<Response<bool>> DeleteAsync(OfferAffiliateByIdRequest request);

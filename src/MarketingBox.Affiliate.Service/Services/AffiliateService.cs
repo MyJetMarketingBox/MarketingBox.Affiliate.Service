@@ -12,11 +12,11 @@ using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using MarketingBox.Affiliate.Service.Domain.Models.Affiliates;
-using MarketingBox.Affiliate.Service.Domain.Models.Common;
 using MarketingBox.Affiliate.Service.Grpc.Requests.Affiliates;
 using MarketingBox.Affiliate.Service.Messages.Affiliates;
 using MarketingBox.Affiliate.Service.MyNoSql.Affiliates;
 using MarketingBox.Auth.Service.Grpc.Models;
+using MarketingBox.Sdk.Common.Enums;
 using MarketingBox.Sdk.Common.Exceptions;
 using MarketingBox.Sdk.Common.Extensions;
 using MarketingBox.Sdk.Common.Models.Grpc;
@@ -33,19 +33,6 @@ namespace MarketingBox.Affiliate.Service.Services
         private readonly IMyNoSqlServerDataWriter<AffiliateNoSql> _myNoSqlServerDataWriter;
         private readonly IUserService _userService;
         private readonly IMapper _mapper;
-
-        private async Task CreateOrUpdateUser(Domain.Models.Affiliates.Affiliate affiliate)
-        {
-            var response = await _userService.UpdateAsync(new UpsertUserRequest()
-            {
-                Email = affiliate.Email,
-                ExternalUserId = affiliate.Id.ToString(),
-                Password = affiliate.Password,
-                TenantId = affiliate.TenantId,
-                Username = affiliate.Username
-            });
-            response.Process();
-        }
 
         private static AffiliateUpdated MapToMessage(AffiliateMessage affiliate,
             AffiliateUpdatedEventType type)
@@ -200,6 +187,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 await using var ctx = _databaseContextFactory.Create();
                 var masterAffiliate = await ctx.Affiliates
                     .FirstOrDefaultAsync(e => e.Id == request.MasterAffiliateId);
+                var tenantId = masterAffiliate.TenantId;
 
                 if (masterAffiliate == null ||
                     !masterAffiliate.ApiKey.Equals(request.MasterAffiliateApiKey))
@@ -211,7 +199,7 @@ namespace MarketingBox.Affiliate.Service.Services
                     request.Password = GeneratePassword();
 
                 var createRequest = _mapper.Map<AffiliateCreateRequest>(request);
-                createRequest.TenantId = masterAffiliate.TenantId;
+                createRequest.TenantId = tenantId;
 
                 var createResponse = await CreateAsync(createRequest);
 
@@ -226,7 +214,8 @@ namespace MarketingBox.Affiliate.Service.Services
                     {
                         AffiliateId = createResponse.Data.Id,
                         ParamName = e.SubName,
-                        ParamValue = e.SubValue
+                        ParamValue = e.SubValue,
+                        TenantId = tenantId
                     }));
                 }
 
@@ -265,7 +254,15 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 await ctx.SaveChangesAsync();
 
-                await CreateOrUpdateUser(affiliate);
+                var response = await _userService.CreateAsync(new CreateUserRequest()
+                {
+                    Email = affiliate.Email,
+                    Password = request.GeneralInfo.Password,
+                    ExternalUserId = affiliate.Id.ToString(),
+                    TenantId = affiliate.TenantId,
+                    Username = affiliate.Username
+                });
+                response.Process();
 
                 var affiliateMassage = _mapper.Map<AffiliateMessage>(affiliate);
                 var nosql = AffiliateNoSql.Create(affiliateMassage);
@@ -327,7 +324,6 @@ namespace MarketingBox.Affiliate.Service.Services
                     affiliateExisting);
 
                 affiliateExisting.Username = request.GeneralInfo.Username;
-                affiliateExisting.Password = request.GeneralInfo.Password;
                 affiliateExisting.Email = request.GeneralInfo.Email;
                 affiliateExisting.Phone = request.GeneralInfo.Phone;
                 affiliateExisting.Skype = request.GeneralInfo.Skype;
@@ -340,7 +336,14 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 await ctx.SaveChangesAsync();
 
-                await CreateOrUpdateUser(affiliateExisting);
+                var response = await _userService.UpdateAsync(new UpdateUserRequest()
+                {
+                    Email = affiliateExisting.Email,
+                    ExternalUserId = affiliateExisting.Id.ToString(),
+                    TenantId = affiliateExisting.TenantId,
+                    Username = affiliateExisting.Username
+                });
+                response.Process();
 
                 var affiliateMessage = _mapper.Map<AffiliateMessage>(affiliateExisting);
                 var nosql = AffiliateNoSql.Create(affiliateMessage);
@@ -382,11 +385,45 @@ namespace MarketingBox.Affiliate.Service.Services
                     throw new NotFoundException(nameof(request.AffiliateId), request.AffiliateId);
                 }
 
-                var affiliateMessage = _mapper.Map<AffiliateMessage>(affiliate);
-                var nosql = AffiliateNoSql.Create(affiliateMessage);
+                var nosql = AffiliateNoSql.Create(affiliate.MapToMessage());
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
                 _logger.LogInformation("Sent partner to MyNoSql {@context}", request);
-                
+
+                return new Response<GrpcModels.Affiliate>
+                {
+                    Status = ResponseStatus.Ok,
+                    Data = affiliate
+                };
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error getting partner {@context}", request);
+
+                return e.FailedResponse<GrpcModels.Affiliate>();
+            }
+        }
+
+        public async Task<Response<GrpcModels.Affiliate>> GetByApiKeyAsync(AffiliateByApiKeyRequest request)
+        {
+            try
+            {
+                request.ValidateEntity();
+
+                await using var ctx = _databaseContextFactory.Create();
+                var affiliate = await ctx.Affiliates
+                    .Include(x => x.Payouts)
+                    .ThenInclude(x => x.Geo)
+                    .Include(x => x.OfferAffiliates)
+                    .FirstOrDefaultAsync(x => x.ApiKey.ToLower().Equals(request.ApiKey.ToLowerInvariant()));
+                if (affiliate is null)
+                {
+                    throw new NotFoundException(nameof(request.ApiKey), request.ApiKey);
+                }
+
+                var nosql = AffiliateNoSql.Create(affiliate.MapToMessage());
+                await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
+                _logger.LogInformation("Sent partner to MyNoSql {@context}", request);
+
                 return new Response<GrpcModels.Affiliate>
                 {
                     Status = ResponseStatus.Ok,
@@ -447,7 +484,12 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 if (!string.IsNullOrEmpty(request.TenantId))
                 {
-                    query = query.Where(x => x.TenantId == request.TenantId);
+                    query = query.Where(x => x.TenantId.Equals(request.TenantId));
+                }
+
+                if (!string.IsNullOrEmpty(request.ApiKey))
+                {
+                    query = query.Where(x => x.ApiKey.Equals(request.ApiKey));
                 }
 
                 if (!string.IsNullOrEmpty(request.Username))
@@ -462,6 +504,11 @@ namespace MarketingBox.Affiliate.Service.Services
                     query = query.Where(x => x.Id == request.AffiliateId.Value);
                 }
 
+                if (request.MasterAffiliateId.HasValue)
+                {
+                    query = query.Where(x => x.CreatedBy == request.MasterAffiliateId.Value);
+                }
+
                 if (!string.IsNullOrEmpty(request.Email))
                 {
                     query = query.Where(x => x.Email
@@ -471,7 +518,9 @@ namespace MarketingBox.Affiliate.Service.Services
 
                 if (request.CreatedAt.HasValue)
                 {
-                    query = query.Where(x => x.CreatedAt.Date == request.CreatedAt.Value.Date);
+                    query = query.Where(x =>
+                        x.CreatedAt >= request.CreatedAt.Value.Date &&
+                        x.CreatedAt < request.CreatedAt.Value.Date.AddDays(1));
                 }
 
                 if (request.State.HasValue)

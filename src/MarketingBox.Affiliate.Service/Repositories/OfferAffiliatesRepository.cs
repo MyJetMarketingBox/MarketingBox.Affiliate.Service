@@ -40,7 +40,7 @@ public class OfferAffiliatesRepository : IOfferAffiliatesRepository
             await using var context = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
             var existingOffer = await context.Offers
-                .Include(x=>x.Brand)
+                .Include(x => x.Brand)
                 .FirstOrDefaultAsync(x => x.Id == request.OfferId);
 
             if (existingOffer is null)
@@ -56,13 +56,14 @@ public class OfferAffiliatesRepository : IOfferAffiliatesRepository
             }
 
             var existOfferAffiliate = await context.OfferAffiliates.AnyAsync(x =>
-                x.OfferId == request.OfferId && x.AffiliateId == request.AffiliateId);
+                x.OfferId == request.OfferId &&
+                x.AffiliateId == request.AffiliateId);
             if (existOfferAffiliate)
             {
                 throw new AlreadyExistsException(
                     $"OfferAffiliate with offer {request.OfferId} and affiliate {request.AffiliateId} already exists.");
             }
-            
+
             var offerAffiliate = _mapper.Map<OfferAffiliate>(request);
             await context.AddAsync(offerAffiliate);
             await context.SaveChangesAsync();
@@ -89,6 +90,30 @@ public class OfferAffiliatesRepository : IOfferAffiliatesRepository
             if (offerAffiliate is null)
             {
                 throw new NotFoundException(nameof(OfferAffiliate.Id), id);
+            }
+
+            return offerAffiliate;
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, e.Message);
+            throw;
+        }
+    }
+
+    public async Task<OfferAffiliate> GetAsync(string uniqueId)
+    {
+        try
+        {
+            _logger.LogInformation("Getting OfferAffiliate with unique id {UniqueId}", uniqueId);
+
+            await using var context = new DatabaseContext(_dbContextOptionsBuilder.Options);
+            var offerAffiliate = await context.OfferAffiliates
+                .FirstOrDefaultAsync(x => x.UniqueId == uniqueId);
+
+            if (offerAffiliate is null)
+            {
+                throw new NotFoundException(nameof(OfferAffiliate.UniqueId), uniqueId);
             }
 
             return offerAffiliate;
@@ -137,6 +162,11 @@ public class OfferAffiliatesRepository : IOfferAffiliatesRepository
             if (request.OfferId.HasValue)
             {
                 query = query.Where(x => x.OfferId == request.OfferId);
+            }
+
+            if (!string.IsNullOrEmpty(request.TenantId))
+            {
+                query = query.Where(x => x.TenantId.Equals(request.TenantId));
             }
 
             var total = query.Count();

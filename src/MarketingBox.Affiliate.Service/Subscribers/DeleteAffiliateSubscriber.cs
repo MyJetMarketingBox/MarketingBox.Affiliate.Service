@@ -16,7 +16,8 @@ namespace MarketingBox.Affiliate.Service.Subscribers
         private readonly ILogger<DeleteAffiliateSubscriber> _logger;
         private readonly DeleteAffiliateEngine _deleteAffiliateEngine;
 
-        public DeleteAffiliateSubscriber(ILogger<DeleteAffiliateSubscriber> logger,
+        public DeleteAffiliateSubscriber(
+            ILogger<DeleteAffiliateSubscriber> logger,
             ISubscriber<AffiliateDeleteMessage> subscriber, 
             DeleteAffiliateEngine deleteAffiliateEngine)
         {

@@ -17,4 +17,7 @@ public class BrandBoxSearchRequest : ValidatableEntity
 
     [DataMember(Order = 4)]
     public string Name { get; set; }
+    
+    [DataMember(Order = 5)]
+    public string TenantId { get; set; }
 }

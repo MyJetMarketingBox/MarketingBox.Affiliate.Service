@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 using AutoMapper;
 using MarketingBox.Affiliate.Postgres;
 using MarketingBox.Affiliate.Service.Domain.Models.Affiliates;
-using MarketingBox.Affiliate.Service.Domain.Models.Common;
 using MarketingBox.Affiliate.Service.Grpc.Requests.Payout;
 using MarketingBox.Affiliate.Service.Repositories.Interfaces;
+using MarketingBox.Sdk.Common.Enums;
 using MarketingBox.Sdk.Common.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -176,6 +176,11 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 if (!string.IsNullOrEmpty(request.Name))
                 {
                     query = query.Where(x => x.Name.ToLower().Contains(request.Name.ToLowerInvariant()));
+                }
+
+                if (!string.IsNullOrEmpty(request.TenantId))
+                {
+                    query = query.Where(x => x.TenantId.Equals(request.TenantId));
                 }
 
                 if (request.GeoIds.Any())

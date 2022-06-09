@@ -13,5 +13,6 @@ namespace MarketingBox.Affiliate.Service.Domain.Models.OfferAffiliates
         [DataMember(Order = 3)] public long OfferId { get; set; }
         public Offer Offer { get; set; }
         public string UniqueId { get; } = Guid.NewGuid().ToString("N");
+        [DataMember(Order = 4)] public string TenantId { get; set; }
     }
 }

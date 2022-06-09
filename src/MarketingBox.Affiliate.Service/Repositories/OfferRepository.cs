@@ -21,6 +21,7 @@ namespace MarketingBox.Affiliate.Service.Repositories
         private readonly DbContextOptionsBuilder<DatabaseContext> _dbContextOptionsBuilder;
         private readonly ILogger<OfferRepository> _logger;
         private readonly IMapper _mapper;
+        // todo remove when role management will be implemented
         private const long AdminId = 999;
 
         private static async Task EnsureBrand(long brandId, DatabaseContext context)
@@ -66,11 +67,12 @@ namespace MarketingBox.Affiliate.Service.Repositories
         }
 
 
-        private static void ValidateAccess(long affiliateId, Offer offerEntity)
+        private static void ValidateAccess(long affiliateId, string tenantId, Offer offerEntity)
         {
             if (affiliateId != AdminId &&
+                offerEntity.TenantId.Equals(tenantId) &&
                 offerEntity.Privacy == OfferPrivacy.Private &&
-                offerEntity.OfferAffiliates.All(z => z.AffiliateId != affiliateId))
+                offerEntity.OfferAffiliates.All(z => z.AffiliateId != affiliateId && z.TenantId.Equals(tenantId)))
             {
                 throw new ForbiddenException("Offer is private and current user has no access to this offer.");
             }
@@ -98,6 +100,7 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 var existingGeos = await EnsureGeos(request.GeoIds, context);
 
                 var offerEntity = _mapper.Map<Offer>(request);
+                offerEntity.CreatedAt = DateTime.UtcNow;
                 offerEntity.Geos = existingGeos;
                 offerEntity.Language = await EnsureLanguage(request.LanguageId.Value, context);
                 await context.AddAsync(offerEntity);
@@ -116,6 +119,22 @@ namespace MarketingBox.Affiliate.Service.Repositories
         {
             try
             {
+                var offerEntity = await GetAsync(id);
+                ValidateAccess(affiliateId, offerEntity.TenantId, offerEntity);
+
+                return offerEntity;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, e.Message);
+                throw;
+            }
+        }
+
+        public async Task<Offer> GetAsync(long id)
+        {
+            try
+            {
                 _logger.LogInformation("Getting offer with {OfferId}", id);
 
                 await using var context = new DatabaseContext(_dbContextOptionsBuilder.Options);
@@ -130,7 +149,32 @@ namespace MarketingBox.Affiliate.Service.Repositories
                     throw new NotFoundException(nameof(Offer.Id), id);
                 }
 
-                ValidateAccess(affiliateId, offerEntity);
+                return offerEntity;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, e.Message);
+                throw;
+            }
+        }
+
+        public async Task<Offer> GetAsync(string uniqueId)
+        {
+            try
+            {
+                _logger.LogInformation("Getting offer with {UniqueId}", uniqueId);
+
+                await using var context = new DatabaseContext(_dbContextOptionsBuilder.Options);
+                var offerEntity = await context.Offers
+                    .Include(x => x.OfferAffiliates)
+                    .Include(x => x.Language)
+                    .Include(x => x.Geos)
+                    .FirstOrDefaultAsync(x => x.UniqueId == uniqueId);
+
+                if (offerEntity is null)
+                {
+                    throw new NotFoundException(nameof(Offer.UniqueId), uniqueId);
+                }
 
                 return offerEntity;
             }
@@ -141,7 +185,7 @@ namespace MarketingBox.Affiliate.Service.Repositories
             }
         }
 
-        public async Task DeleteAsync(long id, long affiliateId)
+        public async Task<(string, long)> DeleteAsync(long id, long affiliateId)
         {
             try
             {
@@ -157,10 +201,11 @@ namespace MarketingBox.Affiliate.Service.Repositories
                     throw new NotFoundException(nameof(Offer.Id), id);
                 }
 
-                ValidateAccess(affiliateId, offerEntity);
+                ValidateAccess(affiliateId, offerEntity.TenantId, offerEntity);
 
                 context.Offers.Remove(offerEntity);
                 await context.SaveChangesAsync();
+                return (offerEntity.TenantId, offerEntity.Id);
             }
             catch (Exception e)
             {
@@ -187,7 +232,7 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 }
 
 
-                ValidateAccess(request.AffiliateId.Value, offerEntity);
+                ValidateAccess(request.AffiliateId.Value, request.TenantId, offerEntity);
 
                 await EnsureBrand(request.BrandId.Value, context);
                 var existingGeos = await EnsureGeos(request.GeoIds, context);
@@ -246,7 +291,7 @@ namespace MarketingBox.Affiliate.Service.Repositories
 
                 if (request.GeoIds.Any())
                 {
-                    query = query.Where(x => request.GeoIds.Intersect(x.Geos.Select(x => x.Id)).Any());
+                    query = query.Where(x => x.Geos.Any(z => request.GeoIds.Contains(z.Id)));
                 }
 
                 if (request.LanguageIds.Any())
@@ -262,6 +307,11 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 if (!string.IsNullOrEmpty(request.OfferName))
                 {
                     query = query.Where(x => x.Name.ToLower().Contains(request.OfferName.ToLowerInvariant()));
+                }
+
+                if (!string.IsNullOrEmpty(request.TenantId))
+                {
+                    query = query.Where(x => x.TenantId.Equals(request.TenantId));
                 }
 
                 var total = query.Count();
@@ -329,9 +379,10 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 }
                 else
                 {
-                    ValidateAccess(affiliateId, offerEntity);
+                    ValidateAccess(affiliateId, offerEntity.TenantId, offerEntity);
 
-                    var offerAffiliate = offerEntity.OfferAffiliates.FirstOrDefault(x => x.AffiliateId == affiliateId);
+                    var offerAffiliate = offerEntity.OfferAffiliates
+                        .FirstOrDefault(x => x.AffiliateId == affiliateId);
                     if (offerAffiliate is null)
                     {
                         throw new NotFoundException($"OfferAffiliate for offer {offerId} for affiliate", affiliateId);

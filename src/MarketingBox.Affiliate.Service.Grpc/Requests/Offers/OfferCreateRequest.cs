@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Runtime.Serialization;
-using MarketingBox.Affiliate.Service.Domain.Models.Common;
 using MarketingBox.Affiliate.Service.Domain.Models.Offers;
 using MarketingBox.Sdk.Common.Attributes;
+using MarketingBox.Sdk.Common.Enums;
 using MarketingBox.Sdk.Common.Models;
 
 namespace MarketingBox.Affiliate.Service.Grpc.Requests.Offers
@@ -26,5 +26,8 @@ namespace MarketingBox.Affiliate.Service.Grpc.Requests.Offers
 
         [DataMember(Order = 7), Required, AdvancedCompare(ComparisonType.GreaterThanOrEqual, 1)]
         public long? BrandId { get; set; }
+        
+        [DataMember(Order = 8), Required]
+        public string TenantId { get; set; }
     }
 }

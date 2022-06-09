@@ -17,4 +17,7 @@ public class BrandBoxCreateRequest : ValidatableEntity
 
     [DataMember(Order = 4), Required, AdvancedCompare(ComparisonType.GreaterThan, 0)]
     public long? CreatedBy { get; set; }
+    
+    [DataMember(Order = 5), Required]
+    public string TenantId { get; set; }
 }

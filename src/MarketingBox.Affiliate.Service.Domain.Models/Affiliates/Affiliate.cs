@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using Destructurama.Attributed;
-using MarketingBox.Affiliate.Service.Domain.Models.Common;
 using MarketingBox.Affiliate.Service.Domain.Models.OfferAffiliates;
+using MarketingBox.Sdk.Common.Enums;
 
 namespace MarketingBox.Affiliate.Service.Domain.Models.Affiliates
 {
@@ -18,9 +18,6 @@ namespace MarketingBox.Affiliate.Service.Domain.Models.Affiliates
         
         [DataMember(Order = 3)]
         public string Username { get; set; }
-
-        [DataMember(Order = 4)] [LogMasked(PreserveLength = false)]
-        public string Password { get; set; }
 
         [DataMember(Order = 5)] [LogMasked(PreserveLength = true, ShowFirst = 1, ShowLast = 1)]
         public string Email { get; set; }
@@ -58,5 +55,49 @@ namespace MarketingBox.Affiliate.Service.Domain.Models.Affiliates
 
         [DataMember(Order = 19)]
         public List<OfferAffiliate> OfferAffiliates { get; set; } = new ();
+        
+        public AffiliateMessage MapToMessage()
+        {
+            var bank = Bank is null
+                ? null
+                : new Bank()
+                {
+                    Address = Bank.Address,
+                    Iban = Bank.Iban,
+                    Name = Bank.Name,
+                    Swift = Bank.Swift,
+                    AccountNumber = Bank.AccountNumber,
+                    BeneficiaryAddress = Bank.BeneficiaryAddress,
+                    BeneficiaryName = Bank.BeneficiaryName,
+                };
+            var company = Company is null
+                ? null
+                : new Company()
+                {
+                    Address = Company.Address,
+                    Name = Company.Name,
+                    RegNumber = Company.RegNumber,
+                    VatId = Company.VatId
+                };
+            return new AffiliateMessage
+            {
+                AffiliateId = Id,
+                TenantId = TenantId,
+                Bank = bank,
+                Company = company,
+                GeneralInfo = new GeneralInfo
+                {
+                    Currency = Currency,
+                    Email = Email,
+                    Phone = Phone,
+                    Skype = Skype,
+                    State = State,
+                    Username = Username,
+                    ApiKey = ApiKey,
+                    CreatedAt = CreatedAt,
+                    ZipCode = ZipCode
+                },
+            };
+        }
     }
 }

@@ -6,9 +6,9 @@ public class OfferNoSql : MyNoSqlDbEntity
 {
     
     public const string TableName = "marketingbox-affiliateservice-offers";
-    public static string GeneratePartitionKey() => "offers";
+    public static string GeneratePartitionKey(string tenantId) => $"{tenantId}";
 
-    public static string GenerateRowKey(long id) => $"{id}";
+    public static string GenerateRowKey(long offerId) => $"{offerId}";
 
     public Domain.Models.Offers.Offer Offer { get; set; }
     public string UniqueId { get; set; }
@@ -17,10 +17,10 @@ public class OfferNoSql : MyNoSqlDbEntity
     {
         return new()
         {
-            PartitionKey = GeneratePartitionKey(),
+            PartitionKey = GeneratePartitionKey(offer.TenantId),
             RowKey = GenerateRowKey(offer.Id),
-            Offer = offer,
-            UniqueId = offer.UniqueId
+            UniqueId = offer.UniqueId,
+            Offer = offer
         };
     }
 }

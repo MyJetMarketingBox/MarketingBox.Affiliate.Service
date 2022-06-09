@@ -9,6 +9,7 @@ using MarketingBox.Affiliate.Service.Grpc;
 using MarketingBox.Affiliate.Service.Grpc.Requests.Brands;
 using MarketingBox.Affiliate.Service.Messages.Brands;
 using MarketingBox.Affiliate.Service.MyNoSql.Brands;
+using MarketingBox.Sdk.Common.Enums;
 using MarketingBox.Sdk.Common.Exceptions;
 using MarketingBox.Sdk.Common.Extensions;
 using MarketingBox.Sdk.Common.Models.Grpc;
@@ -53,7 +54,8 @@ namespace MarketingBox.Affiliate.Service.Services
             brand.Payouts = brandPayouts;
         }
 
-        private static async Task EnsureIntegration(long? integrationId, DatabaseContext ctx, Brand brand)
+        private static async Task EnsureIntegration(long? integrationId, DatabaseContext ctx,
+            Brand brand)
         {
             if (integrationId.HasValue)
             {
@@ -69,6 +71,41 @@ namespace MarketingBox.Affiliate.Service.Services
             else
             {
                 brand.Integration = null;
+            }
+        }
+
+        private static async Task EnsureIntegrationType(IntegrationType requestIntegrationType, Brand brand,
+            DatabaseContext ctx)
+        {
+            if (brand.IntegrationType == requestIntegrationType) return;
+            var errorFormat =
+                "Could not change IntegrationType. To be able to change integration type, please, detach brand from {0}: {1}";
+            switch (requestIntegrationType)
+            {
+                case IntegrationType.API:
+                    var offersWithBrand = await ctx.Offers
+                        .Where(x => x.BrandId == brand.Id)
+                        .Select(x => x.Id)
+                        .ToListAsync();
+                    if (offersWithBrand.Any())
+                    {
+                        throw new BadRequestException(
+                            string.Format(errorFormat, "offers", string.Join(',', offersWithBrand)));
+                    }
+
+                    break;
+                case IntegrationType.S2S:
+                    var campaignRowsWithBrand = await ctx.CampaignRows
+                        .Where(x => x.BrandId == brand.Id)
+                        .Select(x => x.Id)
+                        .ToListAsync();
+                    if (campaignRowsWithBrand.Any())
+                    {
+                        throw new BadRequestException(
+                            string.Format(errorFormat, "campaign rows", string.Join(',', campaignRowsWithBrand)));
+                    }
+
+                    break;
             }
         }
 
@@ -142,8 +179,8 @@ namespace MarketingBox.Affiliate.Service.Services
                 var brand = await ctx.Brands
                     .Include(x => x.Payouts)
                     .ThenInclude(x => x.Geo)
-                    .Include(x => x.CampaignRows)
-                    .ThenInclude(x => x.Geo)
+                    .Include(x => x.CampaignRows).ThenInclude(x => x.Geo)
+                    .Include(x => x.CampaignRows).ThenInclude(x => x.Campaign)
                     .Include(x => x.LinkParameters)
                     .Include(x => x.Integration)
                     .FirstOrDefaultAsync(x => x.Id == request.BrandId);
@@ -152,6 +189,8 @@ namespace MarketingBox.Affiliate.Service.Services
                 {
                     throw new NotFoundException($"Brand with {nameof(request.BrandId)}", request.BrandId);
                 }
+
+                await EnsureIntegrationType(request.IntegrationType.Value, brand, ctx);
 
                 await EnsureBrandPayout(
                     request.BrandPayoutIds.Distinct().ToList(),
@@ -165,7 +204,7 @@ namespace MarketingBox.Affiliate.Service.Services
                 brand.LinkParameters = request.LinkParameters;
                 brand.Link = request.Link;
                 await ctx.SaveChangesAsync();
-                
+
                 var brandMessage = _mapper.Map<BrandMessage>(brand);
                 var nosql = BrandNoSql.Create(brandMessage);
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
@@ -199,13 +238,18 @@ namespace MarketingBox.Affiliate.Service.Services
                 var brand = await ctx.Brands
                     .Include(x => x.Payouts)
                     .ThenInclude(x => x.Geo)
-                    .Include(x => x.CampaignRows)
-                    .ThenInclude(x => x.Geo)
+                    .Include(x => x.CampaignRows).ThenInclude(x => x.Geo)
+                    .Include(x => x.CampaignRows).ThenInclude(x => x.Campaign)
                     .Include(x => x.LinkParameters)
                     .Include(x => x.Integration)
                     .FirstOrDefaultAsync(x => x.Id == request.BrandId);
+
                 if (brand is null) throw new NotFoundException(nameof(request.BrandId), request.BrandId);
 
+                var brandMessage = _mapper.Map<BrandMessage>(brand);
+                var nosql = BrandNoSql.Create(brandMessage);
+                await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
+                _logger.LogInformation("Sent brand update to MyNoSql {@context}", request);
                 return new Response<Brand>
                 {
                     Status = ResponseStatus.Ok,
@@ -229,7 +273,6 @@ namespace MarketingBox.Affiliate.Service.Services
                 await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
 
                 var brand = await ctx.Brands.FirstOrDefaultAsync(x => x.Id == request.BrandId);
-
                 if (brand == null)
                     throw new NotFoundException(nameof(request.BrandId), request.BrandId);
                 ctx.Brands.Remove(brand);
@@ -244,7 +287,6 @@ namespace MarketingBox.Affiliate.Service.Services
                     BrandId = brand.Id,
                     TenantId = brand.TenantId
                 });
-
 
                 return new Response<bool>
                 {
@@ -271,14 +313,14 @@ namespace MarketingBox.Affiliate.Service.Services
                 var query = ctx.Brands
                     .Include(x => x.Payouts)
                     .ThenInclude(x => x.Geo)
-                    .Include(x => x.CampaignRows)
-                    .ThenInclude(x => x.Geo)
+                    .Include(x => x.CampaignRows).ThenInclude(x => x.Geo)
+                    .Include(x => x.CampaignRows).ThenInclude(x => x.Campaign)
                     .Include(x => x.LinkParameters)
                     .Include(x => x.Integration)
                     .AsQueryable();
 
                 if (!string.IsNullOrEmpty(request.TenantId))
-                    query = query.Where(x => x.TenantId == request.TenantId);
+                    query = query.Where(x => x.TenantId.Equals(request.TenantId));
 
                 if (!string.IsNullOrEmpty(request.Name))
                     query = query.Where(x => x.Name

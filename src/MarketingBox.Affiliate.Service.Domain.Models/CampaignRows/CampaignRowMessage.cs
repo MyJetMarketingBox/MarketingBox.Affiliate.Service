@@ -18,4 +18,5 @@ public class CampaignRowMessage
     [DataMember(Order = 9)] public List<ActivityHours> ActivityHours { get; set; }
     [DataMember(Order = 10)] public string Information { get; set; }
     [DataMember(Order = 11)] public bool EnableTraffic { get; set; }
+    [DataMember(Order = 12)] public string TenantId { get; set; }
 }

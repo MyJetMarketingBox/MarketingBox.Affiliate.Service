@@ -15,5 +15,9 @@ public class BrandBoxUpdateRequest : ValidatableEntity
     [DataMember(Order = 2), Required, StringLength(128, MinimumLength = 1)]
     public string Name { get; set; }
 
-    [DataMember(Order = 3), Required] public List<long> BrandIds { get; set; }
+    [DataMember(Order = 3), Required]
+    public List<long> BrandIds { get; set; }
+    
+    [DataMember(Order = 4), Required]
+    public string TenantId { get; set; }
 }

@@ -2,9 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using MarketingBox.Affiliate.Service.Domain.Models.OfferAffiliates;
-using MarketingBox.Affiliate.Service.Extensions;
 using MarketingBox.Affiliate.Service.Grpc;
-using MarketingBox.Affiliate.Service.Grpc.Requests;
 using MarketingBox.Affiliate.Service.Grpc.Requests.OfferAffiliate;
 using MarketingBox.Affiliate.Service.MyNoSql.OfferAffiliates;
 using MarketingBox.Affiliate.Service.Repositories.Interfaces;
@@ -39,8 +37,8 @@ public class OfferAffiliateService : IOfferAffiliateService
 
             var response = await _repository.CreateAsync(request);
 
-            await response.InsertOrReplaceToNoSqlAsync(_noSqlServerDataWriter);
-            
+            await _noSqlServerDataWriter.InsertOrReplaceAsync(OfferAffiliateNoSql.Create(response));
+
             return new Response<OfferAffiliate>()
             {
                 Status = ResponseStatus.Ok,
@@ -61,6 +59,27 @@ public class OfferAffiliateService : IOfferAffiliateService
             request.ValidateEntity();
 
             var response = await _repository.GetAsync(request.OfferAffiliateId.Value);
+            return new Response<OfferAffiliate>()
+            {
+                Status = ResponseStatus.Ok,
+                Data = response
+            };
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, e.Message);
+            return e.FailedResponse<OfferAffiliate>();
+        }
+    }
+
+    public async Task<Response<OfferAffiliate>> GetByUniqueIdAsync(OfferAffiliateByUniqueIdRequest request)
+    {
+        try
+        {
+            request.ValidateEntity();
+
+            var response = await _repository.GetAsync(request.UniqueId);
+            await _noSqlServerDataWriter.InsertOrReplaceAsync(OfferAffiliateNoSql.Create(response));
             return new Response<OfferAffiliate>()
             {
                 Status = ResponseStatus.Ok,

@@ -18,21 +18,23 @@ namespace MarketingBox.Affiliate.Service.Grpc.Requests.Brands
         [DataMember(Order = 2), Required, StringLength(128, MinimumLength = 1)]
         public string Name { get; set; }
 
-        [DataMember(Order = 3), RequiredOnlyIf(nameof(IntegrationType), MarketingBox.Sdk.Common.Enums.IntegrationType.API),
-        AdvancedCompare(ComparisonType.GreaterThanOrEqual, 1)]
+        [DataMember(Order = 3),
+         RequiredOnlyIf(nameof(IntegrationType), MarketingBox.Sdk.Common.Enums.IntegrationType.API),
+         AdvancedCompare(ComparisonType.GreaterThanOrEqual, 1)]
         public long? IntegrationId { get; set; }
 
-        [DataMember(Order = 4), Required, IsEnum] public IntegrationType? IntegrationType { get; set; }
+        [DataMember(Order = 4), Required, IsEnum]
+        public IntegrationType? IntegrationType { get; set; }
 
         [DataMember(Order = 5)] public List<long> BrandPayoutIds { get; set; } = new();
 
         [DataMember(Order = 6), Required] public string TenantId { get; set; }
-        
-        [DataMember(Order = 7), Url, StringLength(2100,MinimumLength = 11)]
+
+        [DataMember(Order = 7), Url, StringLength(2100)]
         [RequiredOnlyIf(nameof(IntegrationType), MarketingBox.Sdk.Common.Enums.IntegrationType.S2S)]
         public string Link { get; set; }
-        
-        [DataMember(Order = 8)] 
+
+        [DataMember(Order = 8)]
         [RequiredOnlyIf(nameof(IntegrationType), MarketingBox.Sdk.Common.Enums.IntegrationType.S2S)]
         public LinkParameters LinkParameters { get; set; }
     }

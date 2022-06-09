@@ -32,5 +32,6 @@ namespace MarketingBox.Affiliate.Service.Grpc.Requests.Affiliates
         [DataMember(Order = 10)] public bool Asc { get; set; }
 
         [DataMember(Order = 11)] public string TenantId { get; set; }
+        [DataMember(Order = 12)] public string ApiKey { get; set; }
     }
 }

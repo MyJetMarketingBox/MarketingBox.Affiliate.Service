@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Runtime.Serialization;
-using MarketingBox.Affiliate.Service.Domain.Models.Common;
 using MarketingBox.Affiliate.Service.Domain.Models.Offers;
 using MarketingBox.Sdk.Common.Attributes;
 using MarketingBox.Sdk.Common.Models;
@@ -26,4 +25,6 @@ public class OfferSearchRequest : ValidatableEntity
     [DataMember(Order = 9)] public List<OfferState> States { get; set; } = new();
     [DataMember(Order = 10)] public List<int> GeoIds { get; set; } = new();
     [DataMember(Order = 11)] public List<long> BrandIds { get; set; } = new();
+    [DataMember(Order = 12)] public string TenantId { get; set; }
+    [DataMember(Order = 13)] public string UniqueId { get; set; }
 }

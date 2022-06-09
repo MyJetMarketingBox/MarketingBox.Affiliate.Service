@@ -10,8 +10,8 @@ namespace MarketingBox.Affiliate.Service.Domain.Models.CampaignRows
     public class CampaignRow
     {
         [DataMember(Order = 1)] public long Id { get; set; }
-        [DataMember(Order = 2)] public long CampaignId { get; set; }
-        public Campaign Campaign { get; set; }
+        public long CampaignId { get; set; }
+        [DataMember(Order = 3)] public Campaign Campaign { get; set; }
         [DataMember(Order = 4)] public long BrandId { get; set; }
         public Brand Brand { get; set; }
         public int GeoId { get; set; }
@@ -23,5 +23,6 @@ namespace MarketingBox.Affiliate.Service.Domain.Models.CampaignRows
         [DataMember(Order = 12)] public List<ActivityHours> ActivityHours { get; set; }
         [DataMember(Order = 13)] public string Information { get; set; }
         [DataMember(Order = 14)] public bool EnableTraffic { get; set; }
+        [DataMember(Order = 15)] public string TenantId { get; set; }
     }
 }

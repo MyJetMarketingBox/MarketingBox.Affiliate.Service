@@ -77,7 +77,8 @@ namespace MarketingBox.Affiliate.Service.Services
             {
                 request.ValidateEntity();
 
-                var result = await _offerRepository.GetAsync(request.Id.Value, request.AffiliateId.Value);
+                var result = await _offerRepository.GetAsync(request.Id.Value);
+                await _myNoSqlServerDataWriter.InsertOrReplaceAsync(OfferNoSql.Create(result));
                 return new Response<Offer>
                 {
                     Status = ResponseStatus.Ok,
@@ -90,17 +91,60 @@ namespace MarketingBox.Affiliate.Service.Services
             }
         }
 
-        public async Task<Response<bool>> DeleteAsync(OfferRequestById request)
+        public async Task<Response<Offer>> GetByIdWithAccessAsync(OfferRequestByIdAndAffiliate request)
         {
             try
             {
                 request.ValidateEntity();
 
-                await _offerRepository.DeleteAsync(request.Id.Value, request.AffiliateId.Value);
+                var result =
+                    await _offerRepository.GetAsync(request.Id.Value, request.AffiliateId.Value);
+                await _myNoSqlServerDataWriter.InsertOrReplaceAsync(OfferNoSql.Create(result));
+                return new Response<Offer>
+                {
+                    Status = ResponseStatus.Ok,
+                    Data = result
+                };
+            }
+            catch (Exception e)
+            {
+                return e.FailedResponse<Offer>();
+            }
+        }
+
+        public async Task<Response<Offer>> GetByUniqueIdAsync(OfferRequestByUniqueId request)
+        {
+            try
+            {
+                request.ValidateEntity();
+
+                var result =
+                    await _offerRepository.GetAsync(request.UniqueId);
+                await _myNoSqlServerDataWriter.InsertOrReplaceAsync(OfferNoSql.Create(result));
+                return new Response<Offer>
+                {
+                    Status = ResponseStatus.Ok,
+                    Data = result
+                };
+            }
+            catch (Exception e)
+            {
+                return e.FailedResponse<Offer>();
+            }
+        }
+
+        public async Task<Response<bool>> DeleteAsync(OfferRequestByIdAndAffiliate request)
+        {
+            try
+            {
+                request.ValidateEntity();
+
+                var (tenantId, offerId) =
+                    await _offerRepository.DeleteAsync(request.Id.Value, request.AffiliateId.Value);
 
                 await _myNoSqlServerDataWriter.DeleteAsync(
-                    OfferNoSql.GeneratePartitionKey(),
-                    OfferNoSql.GenerateRowKey(request.Id.Value));
+                    OfferNoSql.GeneratePartitionKey(tenantId),
+                    OfferNoSql.GenerateRowKey(offerId));
                 return new Response<bool>
                 {
                     Status = ResponseStatus.Ok,
@@ -138,7 +182,7 @@ namespace MarketingBox.Affiliate.Service.Services
             try
             {
                 request.ValidateEntity();
-                
+
                 var result = await _offerRepository.GetUrlAsync(request.OfferId.Value, request.AffiliateId.Value);
                 return new Response<string>()
                 {
