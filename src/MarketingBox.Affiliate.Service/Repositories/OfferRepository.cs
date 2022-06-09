@@ -21,6 +21,7 @@ namespace MarketingBox.Affiliate.Service.Repositories
         private readonly DbContextOptionsBuilder<DatabaseContext> _dbContextOptionsBuilder;
         private readonly ILogger<OfferRepository> _logger;
         private readonly IMapper _mapper;
+        // todo remove when role management will be implemented
         private const long AdminId = 999;
 
         private static async Task EnsureBrand(long brandId, DatabaseContext context)
