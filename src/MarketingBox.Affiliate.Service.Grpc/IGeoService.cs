@@ -13,7 +13,7 @@ public interface IGeoService
     [OperationContract]
     Task<Response<IReadOnlyCollection<Geo>>> SearchAllAsync(GeoSearchRequest request);
     [OperationContract]
-    Task<Response<bool>> DeleteAsync(GeoByIdRequest request);
+    Task<Response<IReadOnlyCollection<GeoRemoveResponse>>> DeleteAsync(GeoByIdRequest request);
     [OperationContract]
     Task<Response<Geo>> CreateAsync(GeoCreateRequest request);
     [OperationContract]

@@ -46,23 +46,23 @@ namespace MarketingBox.Affiliate.Service.Services
             }
         }
 
-        public async Task<Response<bool>> DeleteAsync(GeoByIdRequest request)
+        public async Task<Response<IReadOnlyCollection<GeoRemoveResponse>>> DeleteAsync(GeoByIdRequest request)
         {
             try
             {
                 request.ValidateEntity();
 
-                await _repository.DeleteAsync(request.GeoId.Value);
-                return new Response<bool>
+                var responses = await _repository.DeleteAsync(request.GeoId.Value);
+                return new Response<IReadOnlyCollection<GeoRemoveResponse>>
                 {
                     Status = ResponseStatus.Ok,
-                    Data = true
+                    Data = responses
                 };
             }
             catch (Exception e)
             {
                 _logger.LogError(e, e.Message);
-                return e.FailedResponse<bool>();
+                return e.FailedResponse<IReadOnlyCollection<GeoRemoveResponse>>();
             }
         }
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using MarketingBox.Affiliate.Postgres;
+using MarketingBox.Affiliate.Service.Domain.Models.Campaigns;
 using MarketingBox.Affiliate.Service.Domain.Models.Country;
 using MarketingBox.Affiliate.Service.Grpc.Requests.Geo;
 using MarketingBox.Affiliate.Service.Repositories.Interfaces;
@@ -125,7 +126,7 @@ namespace MarketingBox.Affiliate.Service.Repositories
             }
         }
 
-        public async Task DeleteAsync(long id)
+        public async Task<List<GeoRemoveResponse>> DeleteAsync(long id)
         {
             try
             {
@@ -137,18 +138,28 @@ namespace MarketingBox.Affiliate.Service.Repositories
                     throw new NotFoundException("Geo with id", id);
                 }
 
-                var campaignRows = context.CampaignRows
+                var campaignRows = await context.CampaignRows
+                    .Include(x => x.Campaign)
+                    .AsQueryable()
                     .Where(x => x.GeoId == id)
-                    .Select(x => x.Id)
-                    .ToList();
+                    .GroupBy(
+                        x => new {x.CampaignId, x.Campaign.Name},
+                        x => x,
+                        (k, v) => new GeoRemoveResponse
+                        {
+                            CampaignId = k.CampaignId,
+                            CampaignName = k.Name,
+                            Amount = v.Count()
+                        })
+                    .ToListAsync();
                 if (campaignRows.Any())
                 {
-                    throw new BadRequestException(
-                        $"Geo with id {id} is used by campaign rows: {string.Join(',', campaignRows)}.");
+                    return campaignRows;
                 }
 
                 context.Geos.Remove(result);
                 await context.SaveChangesAsync();
+                return new List<GeoRemoveResponse>();
             }
             catch (Exception e)
             {
