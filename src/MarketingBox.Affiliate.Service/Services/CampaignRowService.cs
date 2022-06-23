@@ -170,6 +170,38 @@ namespace MarketingBox.Affiliate.Service.Services
             }
         }
 
+        public async Task<Response<bool>> UpdateTrafficAsync(UpdateTrafficRequest request)
+        {
+            try
+            {
+                await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+                var campaignRow = await ctx.CampaignRows
+                    .FirstOrDefaultAsync(x => x.Id == request.CampaignRowId);
+                
+                if (campaignRow is null)
+                {
+                    throw new NotFoundException(nameof(request.CampaignRowId), request.CampaignRowId);
+                }
+
+                campaignRow.EnableTraffic = request.EnableTraffic;
+                await ctx.SaveChangesAsync();
+                var nosql = CampaignRowNoSql.Create(_mapper.Map<CampaignRowMessage>(campaignRow));
+                await _myNoSqlServerDataWriter.InsertOrReplaceAsync(nosql);
+                _logger.LogInformation("Sent campaignRow update to MyNoSql {@Context}", request);
+                return new Response<bool>()
+                {
+                    Data = true,
+                    Status = ResponseStatus.Ok
+                };
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error updating campaign row {@Context}", request);
+
+                return e.FailedResponse<bool>();
+            }
+        }
+
         public async Task<Response<CampaignRow>> GetAsync(CampaignRowByIdRequest request)
         {
             try
