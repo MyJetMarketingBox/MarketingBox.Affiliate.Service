@@ -65,6 +65,7 @@ public class OfferAffiliatesRepository : IOfferAffiliatesRepository
             }
 
             var offerAffiliate = _mapper.Map<OfferAffiliate>(request);
+            offerAffiliate.UniqueId = Guid.NewGuid().ToString("N");
             await context.AddAsync(offerAffiliate);
             await context.SaveChangesAsync();
 
