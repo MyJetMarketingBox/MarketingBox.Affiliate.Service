@@ -7,7 +7,7 @@ public class CountriesNoSql: MyNoSqlDbEntity
 {
     public const string TableName = "marketingbox-affiliateservice-countries";
     public static string GeneratePartitionKey() => "countries";
-    public static string GenerateRowKey() => string.Empty;
+    public static string GenerateRowKey() => "countries";
     
     public IEnumerable<Domain.Models.Country.Country> Countries { get; set; }
 

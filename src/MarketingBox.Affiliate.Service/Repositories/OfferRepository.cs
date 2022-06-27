@@ -103,6 +103,7 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 offerEntity.CreatedAt = DateTime.UtcNow;
                 offerEntity.Geos = existingGeos;
                 offerEntity.Language = await EnsureLanguage(request.LanguageId.Value, context);
+                offerEntity.UniqueId = Guid.NewGuid().ToString("N");
                 await context.AddAsync(offerEntity);
                 await context.SaveChangesAsync();
 

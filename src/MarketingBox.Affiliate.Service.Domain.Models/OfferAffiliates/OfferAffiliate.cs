@@ -1,4 +1,3 @@
-using System;
 using System.Runtime.Serialization;
 using MarketingBox.Affiliate.Service.Domain.Models.Offers;
 
@@ -12,7 +11,7 @@ namespace MarketingBox.Affiliate.Service.Domain.Models.OfferAffiliates
         public Affiliates.Affiliate Affiliate { get; set; }
         [DataMember(Order = 3)] public long OfferId { get; set; }
         public Offer Offer { get; set; }
-        public string UniqueId { get; } = Guid.NewGuid().ToString("N");
         [DataMember(Order = 4)] public string TenantId { get; set; }
+        public string UniqueId { get; set; }
     }
 }

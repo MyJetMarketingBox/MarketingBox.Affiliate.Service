@@ -10,7 +10,7 @@ namespace MarketingBox.Affiliate.Service.Repositories.Interfaces
     {
         Task<(IReadOnlyCollection<Geo>, int)> SearchAsync(GeoSearchRequest request);
         Task<Geo> GetAsync(long id);
-        Task DeleteAsync(long id);
+        Task<List<GeoRemoveResponse>> DeleteAsync(long id);
         Task<Geo> CreateAsync(GeoCreateRequest request);
         Task<Geo> UpdateAsync(GeoUpdateRequest request);
     }

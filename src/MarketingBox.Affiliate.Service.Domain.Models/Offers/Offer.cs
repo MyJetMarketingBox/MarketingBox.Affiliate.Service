@@ -31,8 +31,10 @@ namespace MarketingBox.Affiliate.Service.Domain.Models.Offers
 
         public Brand Brand { get; set; }
         
-        public string UniqueId { get; } = Guid.NewGuid().ToString("N");
         [DataMember(Order = 11)] public string TenantId { get; set; }
+        
         [DataMember(Order = 12)] public DateTime CreatedAt { get; set; }
+
+        public string UniqueId { get; set; }
     }
 }
