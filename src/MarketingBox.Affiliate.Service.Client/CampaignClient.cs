@@ -38,7 +38,7 @@ public class CampaignClient : ICampaignClient
         {
             _logger.LogInformation("Getting campaign from nosql server.");
             CampaignMessage campaignMessage;
-            if (string.IsNullOrEmpty(tenantId))
+            if (!string.IsNullOrEmpty(tenantId))
             {
                 campaignMessage = _noSqlReader.Get(
                     CampaignNoSql.GeneratePartitionKey(tenantId),
