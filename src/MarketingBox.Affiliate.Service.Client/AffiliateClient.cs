@@ -37,7 +37,7 @@ public class AffiliateClient : IAffiliateClient
         {
             _logger.LogInformation("Getting affiliate from nosql server.");
             AffiliateMessage affiliateMessage;
-            if (string.IsNullOrEmpty(tenantId))
+            if (!string.IsNullOrEmpty(tenantId))
             {
                 affiliateMessage = _noSqlReader.Get(
                     AffiliateNoSql.GeneratePartitionKey(tenantId),
