@@ -82,7 +82,7 @@ public class AffiliateClient : IAffiliateClient
         {
             _logger.LogInformation("Getting affiliate from nosql server.");
             var affiliateMessage = _noSqlReader.Get(x =>
-                x.Affiliate.GeneralInfo.ApiKey.ToLower().Equals(apiKey.ToLowerInvariant())).FirstOrDefault()?.Affiliate;
+                x.Affiliate.GeneralInfo.ApiKey.ToLower() == apiKey.ToLowerInvariant()).FirstOrDefault()?.Affiliate;
             if (affiliateMessage != null)
             {
                 return affiliateMessage;
