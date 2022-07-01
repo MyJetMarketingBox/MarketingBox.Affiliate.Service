@@ -46,7 +46,7 @@ public class AffiliateClient : IAffiliateClient
             else
             {
                 affiliateMessage = _noSqlReader
-                    .Get(x => x.Affiliate.AffiliateId == affiliateId)
+                    .Get(x => x.Affiliate?.AffiliateId == affiliateId)
                     .FirstOrDefault()?.Affiliate;
             }
 
