@@ -33,8 +33,12 @@ public class OfferClient : IOfferClient
         try
         {
             _logger.LogInformation("Getting offer from nosql server.");
-            var offer = _noSqlReader.Get(x =>
-                x.UniqueId == uniqueId).FirstOrDefault()?.Offer;
+            var offer = _noSqlReader
+                .Get(x => string.Equals(
+                    x.UniqueId,
+                    uniqueId,
+                    StringComparison.InvariantCultureIgnoreCase))
+                .FirstOrDefault()?.Offer;
             if (offer != null)
             {
                 return offer;

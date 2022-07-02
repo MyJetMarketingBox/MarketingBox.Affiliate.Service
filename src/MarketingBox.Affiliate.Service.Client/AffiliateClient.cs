@@ -37,7 +37,7 @@ public class AffiliateClient : IAffiliateClient
         {
             _logger.LogInformation("Getting affiliate from nosql server.");
             AffiliateMessage affiliateMessage;
-            if (string.IsNullOrEmpty(tenantId))
+            if (!string.IsNullOrEmpty(tenantId))
             {
                 affiliateMessage = _noSqlReader.Get(
                     AffiliateNoSql.GeneratePartitionKey(tenantId),
@@ -46,7 +46,7 @@ public class AffiliateClient : IAffiliateClient
             else
             {
                 affiliateMessage = _noSqlReader
-                    .Get(x => x.Affiliate.AffiliateId == affiliateId)
+                    .Get(x => x.Affiliate?.AffiliateId == affiliateId)
                     .FirstOrDefault()?.Affiliate;
             }
 
@@ -81,8 +81,11 @@ public class AffiliateClient : IAffiliateClient
         try
         {
             _logger.LogInformation("Getting affiliate from nosql server.");
-            var affiliateMessage = _noSqlReader.Get(x =>
-                x.Affiliate.GeneralInfo.ApiKey.ToLower().Equals(apiKey.ToLowerInvariant())).FirstOrDefault()?.Affiliate;
+            var affiliateMessage = _noSqlReader
+                .Get(x => string.Equals(
+                    x.Affiliate?.GeneralInfo?.ApiKey,
+                    apiKey,
+                    StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault()?.Affiliate;
             if (affiliateMessage != null)
             {
                 return affiliateMessage;
