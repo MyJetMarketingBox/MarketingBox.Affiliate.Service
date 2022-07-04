@@ -16,7 +16,7 @@ namespace MarketingBox.Affiliate.Service.Grpc
         [OperationContract]
         Task<Response<CampaignRow>> UpdateAsync(CampaignRowUpdateRequest request);
         [OperationContract]
-        Task<Response<bool>> UpdateTrafficAsync(UpdateTrafficRequest request);
+        Task<Response<CampaignRow>> UpdateTrafficAsync(UpdateTrafficRequest request);
 
         [OperationContract]
         Task<Response<CampaignRow>> GetAsync(CampaignRowByIdRequest request);
