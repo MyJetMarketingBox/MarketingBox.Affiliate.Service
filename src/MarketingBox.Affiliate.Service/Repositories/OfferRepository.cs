@@ -6,6 +6,7 @@ using AutoMapper;
 using MarketingBox.Affiliate.Postgres;
 using MarketingBox.Affiliate.Service.Domain.Models.Country;
 using MarketingBox.Affiliate.Service.Domain.Models.Languages;
+using MarketingBox.Affiliate.Service.Domain.Models.OfferAffiliates;
 using MarketingBox.Affiliate.Service.Domain.Models.Offers;
 using MarketingBox.Affiliate.Service.Grpc.Requests.Offers;
 using MarketingBox.Affiliate.Service.Repositories.Interfaces;
@@ -13,6 +14,7 @@ using MarketingBox.Sdk.Common.Enums;
 using MarketingBox.Sdk.Common.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Npgsql;
 
 namespace MarketingBox.Affiliate.Service.Repositories
 {
@@ -21,8 +23,6 @@ namespace MarketingBox.Affiliate.Service.Repositories
         private readonly DbContextOptionsBuilder<DatabaseContext> _dbContextOptionsBuilder;
         private readonly ILogger<OfferRepository> _logger;
         private readonly IMapper _mapper;
-        // todo remove when role management will be implemented
-        private const long AdminId = 999;
 
         private static async Task EnsureBrand(long brandId, DatabaseContext context)
         {
@@ -66,11 +66,9 @@ namespace MarketingBox.Affiliate.Service.Repositories
             return language;
         }
 
-
         private static void ValidateAccess(long affiliateId, string tenantId, Offer offerEntity)
         {
-            if (affiliateId != AdminId &&
-                offerEntity.TenantId.Equals(tenantId) &&
+            if (offerEntity.TenantId.Equals(tenantId) &&
                 offerEntity.Privacy == OfferPrivacy.Private &&
                 offerEntity.OfferAffiliates.All(z => z.AffiliateId != affiliateId && z.TenantId.Equals(tenantId)))
             {
@@ -104,9 +102,21 @@ namespace MarketingBox.Affiliate.Service.Repositories
                 offerEntity.Geos = existingGeos;
                 offerEntity.Language = await EnsureLanguage(request.LanguageId.Value, context);
                 offerEntity.UniqueId = Guid.NewGuid().ToString("N");
-                await context.AddAsync(offerEntity);
+
+                await context.Offers.AddAsync(offerEntity);
                 await context.SaveChangesAsync();
 
+                var offerAffiliate = new OfferAffiliate
+                {
+                    AffiliateId = request.CreatedByUserId.Value,
+                    OfferId = offerEntity.Id,
+                    UniqueId = Guid.NewGuid().ToString("N"),
+                    TenantId = request.TenantId
+                };
+                await context.OfferAffiliates.AddAsync(offerAffiliate);
+                await context.SaveChangesAsync();
+
+                await context.Entry(offerEntity).Collection(x => x.OfferAffiliates).LoadAsync();
                 return offerEntity;
             }
             catch (Exception e)
@@ -232,19 +242,36 @@ namespace MarketingBox.Affiliate.Service.Repositories
                     throw new NotFoundException(nameof(request.OfferId), request.OfferId);
                 }
 
-
                 ValidateAccess(request.AffiliateId.Value, request.TenantId, offerEntity);
+
+                var privacy = request.Privacy ?? OfferPrivacy.Public;
 
                 await EnsureBrand(request.BrandId.Value, context);
                 var existingGeos = await EnsureGeos(request.GeoIds, context);
 
                 offerEntity.Currency = request.Currency.Value;
-                offerEntity.Privacy = request.Privacy ?? OfferPrivacy.Public;
+                offerEntity.Privacy = privacy;
                 offerEntity.State = request.State ?? OfferState.Active;
                 offerEntity.BrandId = request.BrandId.Value;
                 offerEntity.Name = request.Name;
                 offerEntity.Geos = existingGeos;
                 offerEntity.Language = await EnsureLanguage(request.LanguageId.Value, context);
+                await context.SaveChangesAsync();
+
+                if (privacy != OfferPrivacy.Private) return offerEntity;
+
+                if (await context.OfferAffiliates.AnyAsync(
+                        x => x.OfferId == offerEntity.Id &&
+                             x.AffiliateId == request.AffiliateId.Value)) return offerEntity;
+                
+                var offerAffiliate = new OfferAffiliate
+                {
+                    OfferId = offerEntity.Id,
+                    AffiliateId = request.AffiliateId.Value,
+                    UniqueId = Guid.NewGuid().ToString("N"),
+                    TenantId = request.TenantId
+                };
+                context.OfferAffiliates.Add(offerAffiliate);
                 await context.SaveChangesAsync();
 
                 return offerEntity;

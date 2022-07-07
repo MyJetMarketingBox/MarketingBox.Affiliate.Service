@@ -104,9 +104,12 @@ public class DatabaseContext : MyDbContext
 
         modelBuilder
             .Entity<OfferAffiliate>()
-            .HasIndex(x => new {x.OfferId, x.AffiliateId, x.UniqueId})
+            .HasIndex(x => new {x.OfferId, x.AffiliateId})
             .IsUnique();
-
+        modelBuilder
+            .Entity<OfferAffiliate>()
+            .HasIndex(x =>x.UniqueId)
+            .IsUnique();
         modelBuilder
             .Entity<OfferAffiliate>()
             .Property(x => x.UniqueId)

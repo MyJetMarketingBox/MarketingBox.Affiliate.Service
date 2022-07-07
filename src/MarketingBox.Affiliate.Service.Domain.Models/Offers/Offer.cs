@@ -34,6 +34,7 @@ namespace MarketingBox.Affiliate.Service.Domain.Models.Offers
         [DataMember(Order = 11)] public string TenantId { get; set; }
         
         [DataMember(Order = 12)] public DateTime CreatedAt { get; set; }
+        [DataMember(Order = 13)] public long? CreatedByUserId { get; set; }
 
         public string UniqueId { get; set; }
     }

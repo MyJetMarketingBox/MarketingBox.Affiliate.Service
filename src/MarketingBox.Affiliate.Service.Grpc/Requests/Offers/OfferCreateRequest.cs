@@ -29,5 +29,8 @@ namespace MarketingBox.Affiliate.Service.Grpc.Requests.Offers
         
         [DataMember(Order = 8), Required]
         public string TenantId { get; set; }
+
+        [DataMember(Order = 9), Required]
+        public long? CreatedByUserId { get; set; }
     }
 }
